@@ -31,7 +31,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     stop,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
 
-  const { position, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
+  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
   const {
     wordLists,
@@ -71,7 +71,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onOpenSettings={() => setSidebarOpen(true)}
         onRandomizeSeed={() => update('seed', randomSeed())}
       />
-      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} />
+      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
       <Grid
         bars={bars}
         position={position}
