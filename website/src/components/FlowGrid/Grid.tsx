@@ -13,6 +13,7 @@ type GridProps = {
   playheadLineRef: RefObject<HTMLDivElement | null>
   barsPerLine: BarsPerLine
   introBars: number
+  scrollToBar: number
 }
 
 let scrollRafId: number | null = null
@@ -32,7 +33,7 @@ function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
   scrollRafId = requestAnimationFrame(step)
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars }: GridProps) {
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 
@@ -62,28 +63,23 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     }
   }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine])
 
-  // Auto-scroll to keep current bar at the top
-  // Scroll one beat early so the animation finishes before the next row starts
+  // Auto-scroll ~300ms before the next row starts (triggered by usePlayhead RAF)
   useEffect(() => {
+    if (scrollToBar < 0) return
     const container = containerRef.current
     if (!container) return
+    const barEl = barRefsMap.current.get(scrollToBar)
+    const scrollTarget = barEl ? barEl.offsetTop : 0
+    smoothScrollTo(container, Math.max(0, scrollTarget))
+  }, [scrollToBar])
 
-    const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
-    const isLastBeat = position.beat === BEATS_PER_BAR - 1
-
-    if (isLastBeat && isLastBarInRow) {
-      // Scroll to next row's first bar
-      const nextRowBar = position.bar + 1
-      const barEl = barRefsMap.current.get(nextRowBar)
-      const scrollTarget = barEl ? barEl.offsetTop : 0
-      smoothScrollTo(container, Math.max(0, scrollTarget))
-    } else if (position.beat === 0 && position.bar % barsPerLine === 0) {
-      // Fallback: ensure correct position on row start (e.g. first bar, or seeking)
-      const barEl = barRefsMap.current.get(position.bar)
-      const scrollTarget = barEl ? barEl.offsetTop : 0
-      smoothScrollTo(container, Math.max(0, scrollTarget))
+  // Ensure correct scroll position on first bar (initial load / stop)
+  useEffect(() => {
+    if (position.bar === 0 && position.beat === 0) {
+      const container = containerRef.current
+      if (container) container.scrollTop = 0
     }
-  }, [position.bar, position.beat, barsPerLine])
+  }, [position.bar, position.beat])
 
   return (
     <div

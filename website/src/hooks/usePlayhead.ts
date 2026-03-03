@@ -31,10 +31,15 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
   const rafRef = useRef<number | null>(null)
   const audioOffsetRef = useRef(audioOffsetMs)
   audioOffsetRef.current = audioOffsetMs
+  // Set to the next row's first bar index when ~300ms remain, used to trigger scroll
+  const [scrollToBar, setScrollToBar] = useState(-1)
+  const lastScrollRowRef = useRef(-1)
 
   const resetPosition = useCallback(() => {
     setPosition({ bar: 0, beat: 0, globalBeat: 0 })
     progressRef.current = 0
+    lastScrollRowRef.current = -1
+    setScrollToBar(-1)
     if (playheadLineRef.current) {
       playheadLineRef.current.style.left = '0%'
     }
@@ -104,6 +109,13 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
         if (timelineLineRef.current) {
           timelineLineRef.current.style.left = pct
         }
+
+        // Fire scroll when playhead reaches ~97% through the row
+        const currentRow = Math.floor(currentBar / barsPerLine)
+        if (clamped >= 0.97 && currentRow !== lastScrollRowRef.current) {
+          lastScrollRowRef.current = currentRow
+          setScrollToBar((currentRow + 1) * barsPerLine)
+        }
       }
       rafRef.current = requestAnimationFrame(update)
     }
@@ -118,5 +130,5 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
     }
   }, [isPlaying, barsPerLine])
 
-  return { position, progressRef, playheadLineRef, timelineLineRef, resetPosition }
+  return { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar }
 }

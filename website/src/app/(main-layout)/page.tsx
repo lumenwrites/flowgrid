@@ -31,7 +31,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     stop,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
 
-  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
+  const { position, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
   const {
     wordLists,
@@ -79,6 +79,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         playheadLineRef={playheadLineRef}
         barsPerLine={settings.barsPerLine}
         introBars={settings.introBars}
+        scrollToBar={scrollToBar}
       />
       <PlayButton
         isPlaying={isPlaying}
