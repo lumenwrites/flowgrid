@@ -3,7 +3,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
-import type { BarsPerLine } from '@/lib/constants'
+import { BEATS_PER_BAR, type BarsPerLine } from '@/lib/constants'
 import Bar from './Bar'
 
 type GridProps = {
@@ -43,7 +43,19 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     line.style.top = `${barEl.offsetTop}px`
     line.style.height = `${barEl.offsetHeight}px`
     line.style.display = 'block'
-  }, [position.bar, isPlaying, playheadLineRef, bars])
+
+    // White when over the rhyme cell (last beat of last bar in row)
+    const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
+    const isLastBeat = position.beat === BEATS_PER_BAR - 1
+    const isOnRhyme = isLastBarInRow && isLastBeat && position.bar >= introBars
+    if (isOnRhyme) {
+      line.style.backgroundColor = '#ffffff'
+      line.style.boxShadow = '0 0 8px rgba(255,255,255,0.6)'
+    } else {
+      line.style.backgroundColor = ''
+      line.style.boxShadow = '0 0 8px var(--color-accent)'
+    }
+  }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine])
 
   // Auto-scroll to keep current bar in upper quarter
   useEffect(() => {

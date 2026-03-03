@@ -19,8 +19,8 @@ function uid() { return `b${++barIdCounter}-${Date.now().toString(36)}` }
 export type RhymeColor = {
   bg: string
   border: string
-  bright: string
-  dark: string
+  activeBg: string
+  activeBorder: string
 }
 
 export type BarData = {

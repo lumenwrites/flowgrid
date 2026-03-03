@@ -34,8 +34,8 @@ export default function BeatCell({
         hasRhyme
           ? isActive
             ? {
-                backgroundColor: rhymeColor.dark,
-                borderColor: rhymeColor.bright,
+                backgroundColor: rhymeColor.activeBg,
+                borderColor: rhymeColor.activeBorder,
               }
             : {
                 backgroundColor: rhymeColor.bg,
