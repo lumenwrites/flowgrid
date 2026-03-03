@@ -19,7 +19,6 @@ export default function Bar({ bar, currentBeat, isLastInLine = true, isIntro = f
         return (
           <BeatCell
             key={beatIdx}
-            beatIndex={beatIdx}
             isActive={currentBeat === beatIdx}
             rhymeWord={showRhyme ? bar.rhymeWord : undefined}
             rhymeColor={showRhyme ? bar.rhymeColor : undefined}

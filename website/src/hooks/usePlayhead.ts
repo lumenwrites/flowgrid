@@ -4,13 +4,22 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import * as Tone from 'tone'
 import { BEATS_PER_BAR } from '@/lib/constants'
 
+function parseTransportPosition(transport: ReturnType<typeof Tone.getTransport>) {
+  const parts = transport.position.toString().split(':')
+  return {
+    bar: parseInt(parts[0], 10),
+    beat: parseInt(parts[1], 10),
+    sixteenths: parseFloat(parts[2]),
+  }
+}
+
 export type PlayheadPosition = {
   bar: number
   beat: number
   globalBeat: number
 }
 
-export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
+export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOffsetMs: number = 0) {
   const [position, setPosition] = useState<PlayheadPosition>({
     bar: 0,
     beat: 0,
@@ -20,6 +29,8 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
   const playheadLineRef = useRef<HTMLDivElement | null>(null)
   const timelineLineRef = useRef<HTMLDivElement | null>(null)
   const rafRef = useRef<number | null>(null)
+  const audioOffsetRef = useRef(audioOffsetMs)
+  audioOffsetRef.current = audioOffsetMs
 
   const resetPosition = useCallback(() => {
     setPosition({ bar: 0, beat: 0, globalBeat: 0 })
@@ -33,17 +44,20 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
   }, [])
 
   // Beat-level position updates via Tone.Loop
+  // Offset is applied here so bar/beat tracking matches the delayed visuals
   useEffect(() => {
     const loop = new Tone.Loop((time) => {
       const transport = Tone.getTransport()
-      const parts = transport.position.toString().split(':')
-      const bars = parseInt(parts[0], 10)
-      const beats = parseInt(parts[1], 10)
-      const globalBeat = bars * BEATS_PER_BAR + beats
+      const offsetSec = audioOffsetRef.current / 1000
+      // Delay the scheduled draw callback by the offset amount
+      const drawTime = time + offsetSec
+
+      const { bar, beat } = parseTransportPosition(transport)
+      const globalBeat = bar * BEATS_PER_BAR + beat
 
       Tone.getDraw().schedule(() => {
-        setPosition({ bar: bars, beat: beats, globalBeat })
-      }, time)
+        setPosition({ bar, beat, globalBeat })
+      }, drawTime)
     }, '4n')
 
     loop.start(0)
@@ -55,6 +69,7 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
   }, [])
 
   // Smooth playhead line via RAF — directly mutates DOM for performance
+  // Offset delays the visual position to match late-arriving Bluetooth audio
   useEffect(() => {
     if (!isPlaying) {
       if (rafRef.current) {
@@ -67,13 +82,18 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
     const update = () => {
       const transport = Tone.getTransport()
       if (transport.state === 'started') {
-        const parts = transport.position.toString().split(':')
-        const currentBar = parseInt(parts[0], 10)
-        const beats = parseInt(parts[1], 10)
-        const sixteenths = parseFloat(parts[2])
+        // Subtract offset from transport seconds to get the delayed visual position
+        const offsetSec = audioOffsetRef.current / 1000
+        const bpm = transport.bpm.value
+        const beatsPerSec = bpm / 60
+        const transportSeconds = Math.max(0, transport.seconds - offsetSec)
+        const totalBeatsElapsed = transportSeconds * beatsPerSec
+        const currentBar = Math.floor(totalBeatsElapsed / BEATS_PER_BAR)
+        const beatInBar = totalBeatsElapsed - currentBar * BEATS_PER_BAR
+
         const barInRow = currentBar % barsPerLine
         const totalBeats = barsPerLine * BEATS_PER_BAR
-        const p = (barInRow * BEATS_PER_BAR + beats + sixteenths / 4) / totalBeats
+        const p = (barInRow * BEATS_PER_BAR + beatInBar) / totalBeats
         const clamped = Math.min(1, Math.max(0, p))
         progressRef.current = clamped
 

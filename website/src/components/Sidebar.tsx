@@ -1,7 +1,10 @@
 'use client'
 
 import { AVAILABLE_BEATS, NONE_BEAT_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { randomSeed } from '@/lib/utils'
 import type { WordList } from '@/lib/rhymes'
+
+const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
 
 type SidebarProps = {
   open: boolean
@@ -109,7 +112,7 @@ export default function Sidebar({
             <select
               value={selectedBeatIndex}
               onChange={(e) => onBeatChange(Number(e.target.value))}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               <option value={NONE_BEAT_INDEX}>None</option>
               {AVAILABLE_BEATS.map((beat, i) => (
@@ -127,7 +130,7 @@ export default function Sidebar({
               <select
                 value={metronomeBpm}
                 onChange={(e) => onMetronomeBpmChange(Number(e.target.value))}
-                className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+                className={selectClass}
               >
                 {METRONOME_BPM_OPTIONS.map((bpm) => (
                   <option key={bpm} value={bpm}>
@@ -172,7 +175,7 @@ export default function Sidebar({
             <select
               value={selectedListId}
               onChange={(e) => onWordListChange(e.target.value)}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {wordLists.map((list) => (
                 <option key={list.id} value={list.id}>
@@ -188,7 +191,7 @@ export default function Sidebar({
             <select
               value={barsPerLine}
               onChange={(e) => onBarsPerLineChange(Number(e.target.value) as BarsPerLine)}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {BARS_PER_LINE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -204,7 +207,7 @@ export default function Sidebar({
             <select
               value={barCount}
               onChange={(e) => onBarCountChange(Number(e.target.value))}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {BAR_COUNT_OPTIONS.map((n) => (
                 <option key={n} value={n}>
@@ -220,7 +223,7 @@ export default function Sidebar({
             <select
               value={introBars}
               onChange={(e) => onIntroBarsChange(Number(e.target.value))}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {INTRO_BAR_OPTIONS.map((n) => (
                 <option key={n} value={n}>
@@ -236,7 +239,7 @@ export default function Sidebar({
             <select
               value={rhymePattern}
               onChange={(e) => onRhymePatternChange(e.target.value as RhymePattern)}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {RHYME_PATTERNS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -252,7 +255,7 @@ export default function Sidebar({
             <select
               value={fillMode}
               onChange={(e) => onFillModeChange(e.target.value as FillMode)}
-              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              className={selectClass}
             >
               {FILL_MODES.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -273,7 +276,7 @@ export default function Sidebar({
                 className="flex-1 min-w-0 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
               />
               <button
-                onClick={() => onSeedChange(Math.floor(Math.random() * 2 ** 31))}
+                onClick={() => onSeedChange(randomSeed())}
                 className="px-3 py-1.5 bg-surface-light text-foreground-muted text-sm rounded border border-border hover:bg-accent/20 hover:text-foreground transition-colors"
               >
                 Shuffle
@@ -283,17 +286,17 @@ export default function Sidebar({
 
           {/* Audio offset */}
           <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Audio offset — {audioOffset > 0 ? '+' : ''}{audioOffset}ms</label>
+            <label className="text-sm text-foreground">Latency compensation — {audioOffset}ms</label>
             <input
               type="range"
-              min={-200}
+              min={0}
               max={200}
               step={10}
               value={audioOffset}
               onChange={(e) => onAudioOffsetChange(Number(e.target.value))}
               className="w-full accent-accent"
             />
-            <p className="text-xs text-foreground-muted">Shift audio to compensate for Bluetooth lag</p>
+            <p className="text-xs text-foreground-muted">Delay visuals to match Bluetooth/wireless audio</p>
           </div>
         </div>
       </div>

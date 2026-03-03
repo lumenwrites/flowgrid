@@ -174,5 +174,6 @@ export function generateBars(
 
 export async function loadWordLists(): Promise<WordList[]> {
   const res = await fetch('/data/word-lists.json')
+  if (!res.ok) throw new Error(`Failed to load word lists: ${res.status}`)
   return res.json()
 }

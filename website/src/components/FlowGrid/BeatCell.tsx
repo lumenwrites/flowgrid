@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils'
 import type { RhymeColor } from '@/lib/rhymes'
 
 type BeatCellProps = {
-  beatIndex: number
   isActive: boolean
   rhymeWord?: string
   rhymeColor?: RhymeColor

@@ -37,7 +37,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   // Generate initial bars when word list or rhyme pattern changes
   useEffect(() => {
     if (!selectedList) return
-    const count = barCount === 0 ? INFINITE_INITIAL_BARS : barCount
+    const count = barCount === 0 ? INFINITE_INITIAL_BARS : barCount + introBars
     const newBars = generateBars(selectedList, count, 0, rhymePattern, barsPerLine, fillMode, seed, introBars)
     setBars(newBars)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,7 +70,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   const regenerate = useCallback(() => {
     const list = selectedListRef.current
     if (!list) return
-    const count = barCountRef.current === 0 ? INFINITE_INITIAL_BARS : barCountRef.current
+    const count = barCountRef.current === 0 ? INFINITE_INITIAL_BARS : barCountRef.current + introBarsRef.current
     const newBars = generateBars(list, count, 0, rhymePatternRef.current, barsPerLineRef.current, fillModeRef.current, seedRef.current, introBarsRef.current)
     setBars(newBars)
   }, [])

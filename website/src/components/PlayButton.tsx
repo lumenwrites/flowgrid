@@ -1,7 +1,5 @@
 'use client'
 
-import { cn } from '@/lib/utils'
-
 type PlayButtonProps = {
   isPlaying: boolean
   onToggle: () => void
@@ -27,12 +25,7 @@ export default function PlayButton({
 
       <button
         onClick={onToggle}
-        className={cn(
-          'w-14 h-14 flex items-center justify-center rounded-full transition-colors',
-          isPlaying
-            ? 'bg-accent text-white hover:bg-accent-hover'
-            : 'bg-accent text-white hover:bg-accent-hover'
-        )}
+        className="w-14 h-14 flex items-center justify-center rounded-full transition-colors bg-accent text-white hover:bg-accent-hover"
         aria-label={isPlaying ? 'Pause' : 'Play'}
       >
         {isPlaying ? (

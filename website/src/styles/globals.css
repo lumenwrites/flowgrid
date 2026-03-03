@@ -2,8 +2,6 @@
 
 @theme inline {
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-roboto-slab);
-  --font-georgia: var(--font-georgia);
 
   --color-background: #0a0a0f;
   --color-surface: #14141f;

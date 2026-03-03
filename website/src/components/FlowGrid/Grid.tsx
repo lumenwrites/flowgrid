@@ -15,18 +15,21 @@ type GridProps = {
   introBars: number
 }
 
+let scrollRafId: number | null = null
 function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
+  if (scrollRafId !== null) cancelAnimationFrame(scrollRafId)
   const start = el.scrollTop
   const delta = target - start
-  if (Math.abs(delta) < 1) return
+  if (Math.abs(delta) < 1) { scrollRafId = null; return }
   const startTime = performance.now()
   const step = (now: number) => {
     const t = Math.min((now - startTime) / duration, 1)
     const ease = t * (2 - t) // ease-out quad
     el.scrollTop = start + delta * ease
-    if (t < 1) requestAnimationFrame(step)
+    if (t < 1) { scrollRafId = requestAnimationFrame(step) }
+    else { scrollRafId = null }
   }
-  requestAnimationFrame(step)
+  scrollRafId = requestAnimationFrame(step)
 }
 
 export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars }: GridProps) {

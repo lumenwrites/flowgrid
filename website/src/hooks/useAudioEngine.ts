@@ -4,7 +4,11 @@ import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
 import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX, DEFAULT_BPM, NONE_BEAT_INDEX } from '@/lib/constants'
 
-export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM, beatVolume: number = 100, metronomeVolume: number = 100, audioOffset: number = 0) {
+function volumeToDb(v: number): number {
+  return v === 0 ? -Infinity : 20 * Math.log10(v / 100)
+}
+
+export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM, beatVolume: number = 100, metronomeVolume: number = 100) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedBeatIndex, setSelectedBeatIndex] = useState(initialBeatIndex)
   const selectedBeatIndexRef = useRef(initialBeatIndex)
@@ -15,8 +19,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   metronomeEnabledRef.current = metronomeEnabled
   const metronomeBpmRef = useRef(metronomeBpm)
   metronomeBpmRef.current = metronomeBpm
-  const audioOffsetRef = useRef(audioOffset)
-  audioOffsetRef.current = audioOffset
+  const beatVolumeRef = useRef(beatVolume)
+  beatVolumeRef.current = beatVolume
+  const metronomeVolumeRef = useRef(metronomeVolume)
+  metronomeVolumeRef.current = metronomeVolume
 
   // Sync metronome mute state
   useEffect(() => {
@@ -28,29 +34,16 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   // Sync beat volume (0-100 → dB, 0 = -Infinity)
   useEffect(() => {
     if (playerRef.current) {
-      playerRef.current.volume.value = beatVolume === 0 ? -Infinity : 20 * Math.log10(beatVolume / 100)
+      playerRef.current.volume.value = volumeToDb(beatVolume)
     }
   }, [beatVolume])
 
   // Sync metronome volume
   useEffect(() => {
     if (metronomeRef.current) {
-      metronomeRef.current.volume.value = metronomeVolume === 0 ? -Infinity : 20 * Math.log10(metronomeVolume / 100)
+      metronomeRef.current.volume.value = volumeToDb(metronomeVolume)
     }
   }, [metronomeVolume])
-
-  // Re-sync players when audio offset changes
-  useEffect(() => {
-    const offsetSec = audioOffset / 1000
-    if (playerRef.current) {
-      playerRef.current.unsync()
-      playerRef.current.sync().start(offsetSec)
-    }
-    if (metronomeRef.current) {
-      metronomeRef.current.unsync()
-      metronomeRef.current.sync().start(offsetSec)
-    }
-  }, [audioOffset])
 
   // Reload when metronomeBpm changes and beat is None (different metronome file needed)
   useEffect(() => {
@@ -125,15 +118,16 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       return
     }
 
-    // Now sync to transport (offset shifts audio relative to transport timeline)
-    const offsetSec = audioOffsetRef.current / 1000
+    // Apply current volume and sync to transport
     if (player) {
-      player.sync().start(offsetSec)
+      player.volume.value = volumeToDb(beatVolumeRef.current)
+      player.sync().start(0)
       playerRef.current = player
     }
 
     if (metronome) {
-      metronome.sync().start(offsetSec)
+      metronome.volume.value = volumeToDb(metronomeVolumeRef.current)
+      metronome.sync().start(0)
       metronomeRef.current = metronome
     }
 

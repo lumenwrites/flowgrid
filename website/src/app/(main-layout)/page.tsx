@@ -10,6 +10,7 @@ import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
+import { randomSeed } from '@/lib/utils'
 
 export default function Home() {
   const { settings, update, loaded } = useSettings()
@@ -28,9 +29,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume, settings.audioOffset)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
 
-  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine)
+  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
   const {
     wordLists,
@@ -68,7 +69,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         metronomeEnabled={settings.metronomeEnabled}
         onMetronomeChange={(v) => update('metronomeEnabled', v)}
         onOpenSettings={() => setSidebarOpen(true)}
-        onRandomizeSeed={() => update('seed', Math.floor(Math.random() * 2 ** 31))}
+        onRandomizeSeed={() => update('seed', randomSeed())}
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} />
       <Grid
