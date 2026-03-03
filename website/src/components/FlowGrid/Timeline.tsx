@@ -18,18 +18,22 @@ export default function Timeline({ currentBeat, currentBar, barsPerLine, lineRef
   const totalSubs = totalBeats * 4
   const barInRow = currentBar % barsPerLine
   const activeBeatIndex = barInRow * BEATS_PER_BAR + currentBeat
+  const progressBarRef = useRef<HTMLDivElement | null>(null)
   const tickRefs = useRef<(HTMLDivElement | null)[]>([])
   const lastActiveRef = useRef(-1)
   const rafRef = useRef<number | null>(null)
 
-  // RAF loop to highlight the active tick based on playhead progress
+  // RAF loop to update progress bar + highlight passed ticks
   useEffect(() => {
-    if (!isPlaying) {
+    const clearAll = () => {
       for (let i = 0; i <= totalSubs; i++) {
-        const el = tickRefs.current[i]
-        if (el) el.style.backgroundColor = ''
+        const tick = tickRefs.current[i]
+        if (tick) tick.style.backgroundColor = ''
       }
-      lastActiveRef.current = -1
+      if (progressBarRef.current) progressBarRef.current.style.width = '0%'
+    }
+
+    if (!isPlaying) {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current)
         rafRef.current = null
@@ -39,31 +43,32 @@ export default function Timeline({ currentBeat, currentBar, barsPerLine, lineRef
 
     const update = () => {
       const p = progressRef.current
-      const activeTick = Math.min(Math.floor(p * totalSubs), totalSubs - 1)
+      const activeSub = Math.min(Math.floor(p * totalSubs), totalSubs - 1)
 
-      if (activeTick !== lastActiveRef.current) {
-        // Light up ticks between old and new position
-        const from = lastActiveRef.current < 0 ? 0 : lastActiveRef.current + 1
-        const to = activeTick
+      // Update progress bar width every frame
+      if (progressBarRef.current) {
+        progressBarRef.current.style.width = `${p * 100}%`
+      }
 
-        // If playhead wrapped back (new row), clear all and light from 0
-        if (to < lastActiveRef.current) {
+      if (activeSub !== lastActiveRef.current) {
+        if (activeSub < lastActiveRef.current) {
+          // Wrapped to new row — clear all, light up from 0
           for (let i = 0; i <= totalSubs; i++) {
-            const el = tickRefs.current[i]
-            if (el) el.style.backgroundColor = ''
+            const tick = tickRefs.current[i]
+            if (tick) tick.style.backgroundColor = ''
           }
-          for (let i = 0; i <= to; i++) {
-            const el = tickRefs.current[i]
-            if (el) el.style.backgroundColor = 'var(--color-accent)'
+          for (let i = 0; i <= activeSub; i++) {
+            const tick = tickRefs.current[i]
+            if (tick) tick.style.backgroundColor = 'var(--color-accent)'
           }
         } else {
-          for (let i = from; i <= to; i++) {
-            const el = tickRefs.current[i]
-            if (el) el.style.backgroundColor = 'var(--color-accent)'
+          const from = lastActiveRef.current < 0 ? 0 : lastActiveRef.current + 1
+          for (let i = from; i <= activeSub; i++) {
+            const tick = tickRefs.current[i]
+            if (tick) tick.style.backgroundColor = 'var(--color-accent)'
           }
         }
-
-        lastActiveRef.current = activeTick
+        lastActiveRef.current = activeSub
       }
 
       rafRef.current = requestAnimationFrame(update)
@@ -97,9 +102,16 @@ export default function Timeline({ currentBeat, currentBar, barsPerLine, lineRef
         ))}
       </div>
 
-      {/* Subdivision ticks, highlight segments, and playhead */}
+      {/* Subdivision ticks, progress bar, and playhead */}
       <div className="h-3 relative">
-        {/* Tick marks — RAF brightens the active one */}
+        {/* Progress fill — stretches from left to playhead position */}
+        <div
+          ref={progressBarRef}
+          className="absolute bottom-0 left-0 h-3 bg-accent/0"
+          style={{ width: '0%' }}
+        />
+
+        {/* Tick marks */}
         {Array.from({ length: totalSubs + 1 }).map((_, i) => {
           const isBeat = i % 4 === 0
           return (
