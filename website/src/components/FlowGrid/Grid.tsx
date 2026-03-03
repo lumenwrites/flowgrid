@@ -44,13 +44,15 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     line.style.height = `${barEl.offsetHeight}px`
     line.style.display = 'block'
 
-    // White when over the rhyme cell (last beat of last bar in row)
+    // Match rhyme color when over the rhyme cell (last beat of last bar in row)
     const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
     const isLastBeat = position.beat === BEATS_PER_BAR - 1
-    const isOnRhyme = isLastBarInRow && isLastBeat && position.bar >= introBars
+    const currentBar = bars.find((b) => b.index === position.bar)
+    const isOnRhyme = isLastBarInRow && isLastBeat && currentBar && currentBar.index >= introBars
     if (isOnRhyme) {
-      line.style.backgroundColor = '#ffffff'
-      line.style.boxShadow = '0 0 8px rgba(255,255,255,0.6)'
+      const c = currentBar.rhymeColor.activeBorder
+      line.style.backgroundColor = c
+      line.style.boxShadow = `0 0 8px ${c}`
     } else {
       line.style.backgroundColor = ''
       line.style.boxShadow = '0 0 8px var(--color-accent)'

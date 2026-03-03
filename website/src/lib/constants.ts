@@ -2,14 +2,14 @@ export const BEATS_PER_BAR = 4
 
 // Rhyme cell colors — dim = default, active = when playhead is on it
 export const RHYME_COLORS = [
-  { bg: '#7f1d1d', border: '#991b1b', activeBg: '#991b1b', activeBorder: '#b91c1c' }, // red
-  { bg: '#164e63', border: '#155e75', activeBg: '#155e75', activeBorder: '#0e7490' }, // cyan
-  { bg: '#713f12', border: '#854d0e', activeBg: '#854d0e', activeBorder: '#a16207' }, // yellow
-  { bg: '#312e81', border: '#3730a3', activeBg: '#3730a3', activeBorder: '#4338ca' }, // indigo
-  { bg: '#831843', border: '#9d174d', activeBg: '#9d174d', activeBorder: '#be185d' }, // pink
-  { bg: '#064e3b', border: '#065f46', activeBg: '#065f46', activeBorder: '#047857' }, // emerald
-  { bg: '#78350f', border: '#92400e', activeBg: '#92400e', activeBorder: '#b45309' }, // amber
-  { bg: '#4c1d95', border: '#5b21b6', activeBg: '#5b21b6', activeBorder: '#6d28d9' }, // violet
+  { bg: '#7f1d1d', border: '#991b1b', activeBg: '#991b1b', activeBorder: '#ef4444' }, // red
+  { bg: '#164e63', border: '#155e75', activeBg: '#155e75', activeBorder: '#06b6d4' }, // cyan
+  { bg: '#713f12', border: '#854d0e', activeBg: '#854d0e', activeBorder: '#eab308' }, // yellow
+  { bg: '#312e81', border: '#3730a3', activeBg: '#3730a3', activeBorder: '#6366f1' }, // indigo
+  { bg: '#831843', border: '#9d174d', activeBg: '#9d174d', activeBorder: '#ec4899' }, // pink
+  { bg: '#064e3b', border: '#065f46', activeBg: '#065f46', activeBorder: '#10b981' }, // emerald
+  { bg: '#78350f', border: '#92400e', activeBg: '#92400e', activeBorder: '#f59e0b' }, // amber
+  { bg: '#4c1d95', border: '#5b21b6', activeBg: '#5b21b6', activeBorder: '#8b5cf6' }, // violet
 ]
 
 export type Beat = {
