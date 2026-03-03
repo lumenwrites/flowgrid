@@ -9,14 +9,11 @@ import Timeline from '@/components/FlowGrid/Timeline'
 import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
-import { DEFAULT_BAR_COUNT, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { useSettings } from '@/hooks/useSettings'
 
 export default function Home() {
+  const { settings, update, loaded } = useSettings()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [metronomeEnabled, setMetronomeEnabled] = useState(false)
-  const [barsPerLine, setBarsPerLine] = useState<BarsPerLine>(1)
-  const [rhymePattern, setRhymePattern] = useState<RhymePattern>('AABB')
-  const [barCount, setBarCount] = useState(DEFAULT_BAR_COUNT)
 
   const {
     isPlaying,
@@ -24,9 +21,9 @@ export default function Home() {
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine(metronomeEnabled)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex)
 
-  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, barsPerLine)
+  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine)
 
   const {
     wordLists,
@@ -35,12 +32,22 @@ export default function Home() {
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(rhymePattern, barsPerLine, barCount)
+  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.barCount, settings.selectedListId)
 
   // Extend bars as playhead progresses
   useEffect(() => {
     extendBars(position.bar)
   }, [position.bar, extendBars])
+
+  const handleBeatChange = (index: number) => {
+    changeBeat(index)
+    update('selectedBeatIndex', index)
+  }
+
+  const handleWordListChange = (id: string) => {
+    changeWordList(id)
+    update('selectedListId', id)
+  }
 
   const handleStop = () => {
     stop()
@@ -48,20 +55,22 @@ export default function Home() {
     regenerate()
   }
 
+  if (!loaded) return null
+
   return (
     <>
       <Toolbar
-        metronomeEnabled={metronomeEnabled}
-        onMetronomeChange={setMetronomeEnabled}
+        metronomeEnabled={settings.metronomeEnabled}
+        onMetronomeChange={(v) => update('metronomeEnabled', v)}
         onOpenSettings={() => setSidebarOpen(true)}
       />
-      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={barsPerLine} lineRef={timelineLineRef} />
+      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} />
       <Grid
         bars={bars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
-        barsPerLine={barsPerLine}
+        barsPerLine={settings.barsPerLine}
       />
       <PlayButton
         isPlaying={isPlaying}
@@ -72,16 +81,16 @@ export default function Home() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         selectedBeatIndex={selectedBeatIndex}
-        onBeatChange={changeBeat}
+        onBeatChange={handleBeatChange}
         wordLists={wordLists}
         selectedListId={selectedListId}
-        onWordListChange={changeWordList}
-        barsPerLine={barsPerLine}
-        onBarsPerLineChange={setBarsPerLine}
-        rhymePattern={rhymePattern}
-        onRhymePatternChange={setRhymePattern}
-        barCount={barCount}
-        onBarCountChange={setBarCount}
+        onWordListChange={handleWordListChange}
+        barsPerLine={settings.barsPerLine}
+        onBarsPerLineChange={(v) => update('barsPerLine', v)}
+        rhymePattern={settings.rhymePattern}
+        onRhymePatternChange={(v) => update('rhymePattern', v)}
+        barCount={settings.barCount}
+        onBarCountChange={(v) => update('barCount', v)}
       />
     </>
   )

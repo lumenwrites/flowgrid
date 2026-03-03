@@ -2,12 +2,12 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
-import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX } from '@/lib/constants'
+import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX, DEFAULT_BPM, NONE_BEAT_INDEX } from '@/lib/constants'
 
-export function useAudioEngine(metronomeEnabled: boolean = false) {
+export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX) {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [selectedBeatIndex, setSelectedBeatIndex] = useState(DEFAULT_BEAT_INDEX)
-  const selectedBeatIndexRef = useRef(DEFAULT_BEAT_INDEX)
+  const [selectedBeatIndex, setSelectedBeatIndex] = useState(initialBeatIndex)
+  const selectedBeatIndexRef = useRef(initialBeatIndex)
   const playerRef = useRef<Tone.Player | null>(null)
   const metronomeRef = useRef<Tone.Player | null>(null)
   const isLoadedRef = useRef(false)
@@ -22,9 +22,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false) {
   }, [metronomeEnabled])
 
   const loadBeat = useCallback(async (beatIndex: number) => {
-    const beat = AVAILABLE_BEATS[beatIndex]
-    if (!beat) return
-
     // Stop and reset transport position (don't cancel — that kills the playhead loop)
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
@@ -40,44 +37,61 @@ export function useAudioEngine(metronomeEnabled: boolean = false) {
 
     isLoadedRef.current = false
 
-    // Create players
-    const player = new Tone.Player({
-      url: beat.file,
-      loop: true,
-    }).toDestination()
+    const beat = beatIndex === NONE_BEAT_INDEX ? null : AVAILABLE_BEATS[beatIndex]
+    const bpm = beat ? beat.bpm : DEFAULT_BPM
 
-    const metronomeFile = METRONOME_FILES[beat.bpm]
-    let metronome: Tone.Player | null = null
-    if (metronomeFile) {
-      metronome = new Tone.Player({
-        url: metronomeFile,
-        loop: true,
-      }).toDestination()
-      metronome.mute = !metronomeEnabledRef.current
+    // Helper: create a player and return a promise that resolves when loaded
+    function createPlayer(url: string, loop: boolean): Promise<Tone.Player> {
+      return new Promise((resolve, reject) => {
+        const p = new Tone.Player({
+          url,
+          loop,
+          onload: () => resolve(p),
+          onerror: (e) => reject(e),
+        }).toDestination()
+      })
     }
 
-    // Wait for all buffers to load
+    // Create beat player (if a beat is selected)
+    let player: Tone.Player | null = null
+    let metronome: Tone.Player | null = null
+
     try {
-      const loadPromises = [player.loaded]
-      if (metronome) loadPromises.push(metronome.loaded)
-      await Promise.all(loadPromises)
+      const loadPromises: Promise<Tone.Player>[] = []
+
+      if (beat) {
+        loadPromises.push(createPlayer(beat.file, true))
+      }
+
+      const metronomeFile = METRONOME_FILES[bpm]
+      if (metronomeFile) {
+        loadPromises.push(createPlayer(metronomeFile, true))
+      }
+
+      const results = await Promise.all(loadPromises)
+      let idx = 0
+      if (beat) player = results[idx++]
+      if (METRONOME_FILES[bpm]) {
+        metronome = results[idx]
+        metronome.mute = !metronomeEnabledRef.current
+      }
     } catch (e) {
       console.error('Failed to load audio:', e)
-      player.dispose()
-      metronome?.dispose()
       return
     }
 
     // Now sync to transport
-    player.sync().start(0)
-    playerRef.current = player
+    if (player) {
+      player.sync().start(0)
+      playerRef.current = player
+    }
 
     if (metronome) {
       metronome.sync().start(0)
       metronomeRef.current = metronome
     }
 
-    Tone.getTransport().bpm.value = beat.bpm
+    Tone.getTransport().bpm.value = bpm
     isLoadedRef.current = true
     setSelectedBeatIndex(beatIndex)
     selectedBeatIndexRef.current = beatIndex

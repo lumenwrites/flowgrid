@@ -1,6 +1,6 @@
 'use client'
 
-import { AVAILABLE_BEATS, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { AVAILABLE_BEATS, NONE_BEAT_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, type RhymePattern, type BarsPerLine } from '@/lib/constants'
 import type { WordList } from '@/lib/rhymes'
 
 type SidebarProps = {
@@ -83,6 +83,7 @@ export default function Sidebar({
               onChange={(e) => onBeatChange(Number(e.target.value))}
               className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
             >
+              <option value={NONE_BEAT_INDEX}>None</option>
               {AVAILABLE_BEATS.map((beat, i) => (
                 <option key={i} value={i}>
                   {beat.label}
@@ -133,7 +134,7 @@ export default function Sidebar({
             >
               {BAR_COUNT_OPTIONS.map((n) => (
                 <option key={n} value={n}>
-                  {n} bars
+                  {n === 0 ? 'Infinite' : `${n} bars`}
                 </option>
               ))}
             </select>

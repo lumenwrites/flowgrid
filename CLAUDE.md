@@ -1,17 +1,24 @@
 # Project Instructions
 
-Read `SPEC.md` for what we're building.
-Read `PLAN.md` for the current implementation plan and technical architecture.
+Read `SPEC.md` for what we're building and what's implemented.
+Read `PLAN.md` for the technical architecture and file structure.
 
-Read files in `./references/` as needed — they contain conventions and standards for code architecture, SQL schemas, patterns, etc.
+All app source is in `website/src/`. The app is Next.js 16 + Tone.js + Tailwind. Single-page app at `(main-layout)/page.tsx`.
+
+## Key files to understand the app
+
+- `website/src/lib/constants.ts` — All config: beats, metronome files, rhyme patterns, bar count options, types
+- `website/src/hooks/useAudioEngine.ts` — Tone.js audio playback (beat + metronome players)
+- `website/src/hooks/usePlayhead.ts` — Beat tracking and smooth playhead position
+- `website/src/hooks/useRhymes.ts` — Word list loading and bar generation
+- `website/src/hooks/useSettings.ts` — localStorage persistence
+- `website/src/lib/rhymes.ts` — `generateBars()` algorithm with pattern + barsPerLine support
 
 ## References
 
 - `references/nextjs-starter-description.md` — What's in the website/ starter: file structure, layout system, theming, error handling, utilities.
 - `references/nextjs-patterns.md` — Next.js + Supabase app patterns: API layer, error handling, forms, toasts, proxy/auth, layouts, components.
-
-Not needed for the first version of this project:
-- `references/sql-schemas.md` — Supabase SQL standards: file organization, table conventions, RPC patterns, triggers, RLS, CRUD.
+- `references/sql-schemas.md` — Supabase SQL standards (not needed yet).
 
 # Rhyme Finder
 In ./rhyme-finder:
