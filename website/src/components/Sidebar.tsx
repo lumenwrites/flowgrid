@@ -62,11 +62,11 @@ export default function Sidebar({
 
       {/* Panel */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-surface border-r border-border z-50 transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-72 bg-surface border-r border-border z-50 flex flex-col transition-transform duration-300 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] border-b border-border">
           <h2 className="text-sm font-bold text-foreground tracking-wider">SETTINGS</h2>
           <button
             onClick={onClose}
@@ -90,7 +90,7 @@ export default function Sidebar({
           </button>
         </div>
 
-        <div className="p-4 space-y-5">
+        <div className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
           {/* Beat */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Beat</label>
