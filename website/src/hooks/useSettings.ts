@@ -18,6 +18,7 @@ export type Settings = {
   seed: number
   beatVolume: number
   metronomeVolume: number
+  audioOffset: number
 }
 
 const DEFAULTS: Settings = {
@@ -33,6 +34,7 @@ const DEFAULTS: Settings = {
   seed: DEFAULT_SEED,
   beatVolume: 100,
   metronomeVolume: 100,
+  audioOffset: 0,
 }
 
 function loadSettings(): Settings {

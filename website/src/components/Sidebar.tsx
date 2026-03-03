@@ -29,6 +29,8 @@ type SidebarProps = {
   onBeatVolumeChange: (volume: number) => void
   metronomeVolume: number
   onMetronomeVolumeChange: (volume: number) => void
+  audioOffset: number
+  onAudioOffsetChange: (offset: number) => void
 }
 
 export default function Sidebar({
@@ -57,6 +59,8 @@ export default function Sidebar({
   onBeatVolumeChange,
   metronomeVolume,
   onMetronomeVolumeChange,
+  audioOffset,
+  onAudioOffsetChange,
 }: SidebarProps) {
   return (
     <>
@@ -275,6 +279,21 @@ export default function Sidebar({
                 Shuffle
               </button>
             </div>
+          </div>
+
+          {/* Audio offset */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Audio offset — {audioOffset > 0 ? '+' : ''}{audioOffset}ms</label>
+            <input
+              type="range"
+              min={-200}
+              max={200}
+              step={10}
+              value={audioOffset}
+              onChange={(e) => onAudioOffsetChange(Number(e.target.value))}
+              className="w-full accent-accent"
+            />
+            <p className="text-xs text-foreground-muted">Shift audio to compensate for Bluetooth lag</p>
           </div>
         </div>
       </div>

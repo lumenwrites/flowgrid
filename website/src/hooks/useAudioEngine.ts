@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
 import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX, DEFAULT_BPM, NONE_BEAT_INDEX } from '@/lib/constants'
 
-export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM, beatVolume: number = 100, metronomeVolume: number = 100) {
+export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM, beatVolume: number = 100, metronomeVolume: number = 100, audioOffset: number = 0) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedBeatIndex, setSelectedBeatIndex] = useState(initialBeatIndex)
   const selectedBeatIndexRef = useRef(initialBeatIndex)
@@ -15,6 +15,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   metronomeEnabledRef.current = metronomeEnabled
   const metronomeBpmRef = useRef(metronomeBpm)
   metronomeBpmRef.current = metronomeBpm
+  const audioOffsetRef = useRef(audioOffset)
+  audioOffsetRef.current = audioOffset
 
   // Sync metronome mute state
   useEffect(() => {
@@ -36,6 +38,19 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       metronomeRef.current.volume.value = metronomeVolume === 0 ? -Infinity : 20 * Math.log10(metronomeVolume / 100)
     }
   }, [metronomeVolume])
+
+  // Re-sync players when audio offset changes
+  useEffect(() => {
+    const offsetSec = audioOffset / 1000
+    if (playerRef.current) {
+      playerRef.current.unsync()
+      playerRef.current.sync().start(offsetSec)
+    }
+    if (metronomeRef.current) {
+      metronomeRef.current.unsync()
+      metronomeRef.current.sync().start(offsetSec)
+    }
+  }, [audioOffset])
 
   // Reload when metronomeBpm changes and beat is None (different metronome file needed)
   useEffect(() => {
@@ -110,14 +125,15 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       return
     }
 
-    // Now sync to transport
+    // Now sync to transport (offset shifts audio relative to transport timeline)
+    const offsetSec = audioOffsetRef.current / 1000
     if (player) {
-      player.sync().start(0)
+      player.sync().start(offsetSec)
       playerRef.current = player
     }
 
     if (metronome) {
-      metronome.sync().start(0)
+      metronome.sync().start(offsetSec)
       metronomeRef.current = metronome
     }
 

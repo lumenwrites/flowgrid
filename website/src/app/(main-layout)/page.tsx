@@ -28,7 +28,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume, settings.audioOffset)
 
   const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine)
 
@@ -110,6 +110,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onBeatVolumeChange={(v) => update('beatVolume', v)}
         metronomeVolume={settings.metronomeVolume}
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
+        audioOffset={settings.audioOffset}
+        onAudioOffsetChange={(v) => update('audioOffset', v)}
       />
     </>
   )
