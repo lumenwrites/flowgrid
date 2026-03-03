@@ -14,7 +14,7 @@ export default function PlayButton({
   onStop,
 }: PlayButtonProps) {
   return (
-    <div className="flex items-center justify-center gap-3 py-3 bg-surface border-t border-border">
+    <div className="flex items-center justify-center gap-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-surface border-t border-border">
       <button
         onClick={onStop}
         className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-light border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted transition-colors"
