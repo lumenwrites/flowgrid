@@ -6,13 +6,23 @@ import { AVAILABLE_BEATS, DEFAULT_BPM } from '@/lib/constants'
 
 const DEFAULT_BEAT_INDEX = AVAILABLE_BEATS.findIndex((b) => b.bpm === DEFAULT_BPM)
 
-export function useAudioEngine() {
+export function useAudioEngine(metronomeEnabled: boolean = false) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [bpm, setBpm] = useState(DEFAULT_BPM)
   const [selectedBeatIndex, setSelectedBeatIndex] = useState(DEFAULT_BEAT_INDEX)
   const selectedBeatIndexRef = useRef(DEFAULT_BEAT_INDEX)
   const playerRef = useRef<Tone.Player | null>(null)
+  const metronomeRef = useRef<Tone.Player | null>(null)
   const isLoadedRef = useRef(false)
+  const metronomeEnabledRef = useRef(metronomeEnabled)
+  metronomeEnabledRef.current = metronomeEnabled
+
+  // Sync metronome mute state
+  useEffect(() => {
+    if (metronomeRef.current) {
+      metronomeRef.current.mute = !metronomeEnabled
+    }
+  }, [metronomeEnabled])
 
   const loadBeat = useCallback(async (beatIndex: number) => {
     const beat = AVAILABLE_BEATS[beatIndex]
@@ -23,6 +33,13 @@ export function useAudioEngine() {
       playerRef.current.dispose()
       playerRef.current = null
     }
+    if (metronomeRef.current) {
+      metronomeRef.current.stop()
+      metronomeRef.current.dispose()
+      metronomeRef.current = null
+    }
+
+    const metronomeFile = beat.file.replace('drums-loop', 'metronome-loop')
 
     const player = new Tone.Player({
       url: beat.file,
@@ -32,8 +49,16 @@ export function useAudioEngine() {
       },
     }).toDestination()
 
+    const metronome = new Tone.Player({
+      url: metronomeFile,
+      loop: true,
+    }).toDestination()
+    metronome.mute = !metronomeEnabledRef.current
+
     player.sync().start(0)
+    metronome.sync().start(0)
     playerRef.current = player
+    metronomeRef.current = metronome
     Tone.getTransport().bpm.value = beat.bpm
     setBpm(beat.bpm)
     setSelectedBeatIndex(beatIndex)
@@ -99,6 +124,9 @@ export function useAudioEngine() {
       Tone.getTransport().cancel()
       if (playerRef.current) {
         playerRef.current.dispose()
+      }
+      if (metronomeRef.current) {
+        metronomeRef.current.dispose()
       }
     }
   }, [])

@@ -24,3 +24,15 @@ export const DEFAULT_BPM = 80
 export const BARS_AHEAD = 16
 export const BARS_BUFFER = 8
 export const BARS_BEHIND_KEEP = 4
+
+export type RhymePattern = 'AABB' | 'ABAB'
+export const RHYME_PATTERNS: { value: RhymePattern; label: string }[] = [
+  { value: 'AABB', label: 'AABB — Couplets' },
+  { value: 'ABAB', label: 'ABAB — Alternating' },
+]
+
+export type BarsPerLine = 1 | 2
+export const BARS_PER_LINE_OPTIONS: { value: BarsPerLine; label: string }[] = [
+  { value: 1, label: '1 bar — Rap' },
+  { value: 2, label: '2 bars — Musical' },
+]

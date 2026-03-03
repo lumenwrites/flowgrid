@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
+import type { BarsPerLine } from '@/lib/constants'
 import Bar from './Bar'
 
 type GridProps = {
@@ -10,6 +11,7 @@ type GridProps = {
   position: PlayheadPosition
   isPlaying: boolean
   playheadLineRef: RefObject<HTMLDivElement | null>
+  barsPerLine: BarsPerLine
 }
 
 function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
@@ -26,7 +28,7 @@ function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
   requestAnimationFrame(step)
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef }: GridProps) {
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 
@@ -75,21 +77,47 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef }: Gri
         />
       </div>
 
-      {bars.map((bar) => (
-        <div
-          key={bar.id}
-          ref={(el) => {
-            if (el) barRefsMap.current.set(bar.index, el)
-            else barRefsMap.current.delete(bar.index)
-          }}
-          className="relative"
-        >
-          <Bar
-            bar={bar}
-            currentBeat={position.bar === bar.index ? position.beat : null}
-          />
-        </div>
-      ))}
+      {barsPerLine === 2
+        ? Array.from({ length: Math.ceil(bars.length / 2) }).map((_, rowIdx) => {
+            const pair = bars.slice(rowIdx * 2, rowIdx * 2 + 2)
+            const firstBar = pair[0]
+            return (
+              <div
+                key={firstBar.id}
+                ref={(el) => {
+                  for (const b of pair) {
+                    if (el) barRefsMap.current.set(b.index, el)
+                    else barRefsMap.current.delete(b.index)
+                  }
+                }}
+                className="relative grid grid-cols-2 gap-1 sm:gap-1.5"
+              >
+                {pair.map((bar, i) => (
+                  <Bar
+                    key={bar.id}
+                    bar={bar}
+                    currentBeat={position.bar === bar.index ? position.beat : null}
+                    isLastInLine={i === pair.length - 1}
+                  />
+                ))}
+              </div>
+            )
+          })
+        : bars.map((bar) => (
+            <div
+              key={bar.id}
+              ref={(el) => {
+                if (el) barRefsMap.current.set(bar.index, el)
+                else barRefsMap.current.delete(bar.index)
+              }}
+              className="relative"
+            >
+              <Bar
+                bar={bar}
+                currentBeat={position.bar === bar.index ? position.beat : null}
+              />
+            </div>
+          ))}
     </div>
   )
 }

@@ -1,24 +1,31 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Toolbar from '@/components/Toolbar'
+import Sidebar from '@/components/Sidebar'
 import PlayButton from '@/components/PlayButton'
 import Grid from '@/components/FlowGrid/Grid'
 import Timeline from '@/components/FlowGrid/Timeline'
 import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
+import type { RhymePattern, BarsPerLine } from '@/lib/constants'
 
 export default function Home() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [metronomeEnabled, setMetronomeEnabled] = useState(false)
+  const [barsPerLine, setBarsPerLine] = useState<BarsPerLine>(1)
+  const [rhymePattern, setRhymePattern] = useState<RhymePattern>('AABB')
+
   const {
     isPlaying,
     selectedBeatIndex,
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine()
+  } = useAudioEngine(metronomeEnabled)
 
-  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying)
+  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, barsPerLine)
 
   const {
     wordLists,
@@ -27,7 +34,7 @@ export default function Home() {
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes()
+  } = useRhymes(rhymePattern, barsPerLine)
 
   // Extend bars as playhead progresses
   useEffect(() => {
@@ -48,18 +55,30 @@ export default function Home() {
         wordLists={wordLists}
         selectedListId={selectedListId}
         onWordListChange={changeWordList}
+        onOpenSettings={() => setSidebarOpen(true)}
       />
-      <Timeline currentBeat={position.beat} lineRef={timelineLineRef} />
+      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={barsPerLine} lineRef={timelineLineRef} />
       <Grid
         bars={bars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
+        barsPerLine={barsPerLine}
       />
       <PlayButton
         isPlaying={isPlaying}
         onToggle={togglePlay}
         onStop={handleStop}
+      />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        metronomeEnabled={metronomeEnabled}
+        onMetronomeChange={setMetronomeEnabled}
+        barsPerLine={barsPerLine}
+        onBarsPerLineChange={setBarsPerLine}
+        rhymePattern={rhymePattern}
+        onRhymePatternChange={setRhymePattern}
       />
     </>
   )

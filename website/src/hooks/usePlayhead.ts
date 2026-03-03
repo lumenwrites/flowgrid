@@ -10,7 +10,7 @@ export type PlayheadPosition = {
   globalBeat: number
 }
 
-export function usePlayhead(isPlaying: boolean) {
+export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1) {
   const [position, setPosition] = useState<PlayheadPosition>({
     bar: 0,
     beat: 0,
@@ -68,9 +68,12 @@ export function usePlayhead(isPlaying: boolean) {
       const transport = Tone.getTransport()
       if (transport.state === 'started') {
         const parts = transport.position.toString().split(':')
+        const currentBar = parseInt(parts[0], 10)
         const beats = parseInt(parts[1], 10)
         const sixteenths = parseFloat(parts[2])
-        const p = (beats + sixteenths / 4) / BEATS_PER_BAR
+        const barInRow = currentBar % barsPerLine
+        const totalBeats = barsPerLine * BEATS_PER_BAR
+        const p = (barInRow * BEATS_PER_BAR + beats + sixteenths / 4) / totalBeats
         const clamped = Math.min(1, Math.max(0, p))
         progressRef.current = clamped
 
@@ -93,7 +96,7 @@ export function usePlayhead(isPlaying: boolean) {
         rafRef.current = null
       }
     }
-  }, [isPlaying])
+  }, [isPlaying, barsPerLine])
 
   return { position, progressRef, playheadLineRef, timelineLineRef, resetPosition }
 }

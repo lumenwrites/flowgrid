@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { type WordList, type BarData, loadWordLists, generateBars } from '@/lib/rhymes'
-import { BARS_AHEAD, BARS_BUFFER } from '@/lib/constants'
+import { BARS_AHEAD, BARS_BUFFER, type RhymePattern, type BarsPerLine } from '@/lib/constants'
 
-export function useRhymes() {
+export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1) {
+  const rhymePatternRef = useRef(rhymePattern)
+  rhymePatternRef.current = rhymePattern
+  const barsPerLineRef = useRef(barsPerLine)
+  barsPerLineRef.current = barsPerLine
   const [wordLists, setWordLists] = useState<WordList[]>([])
   const [selectedListId, setSelectedListId] = useState<string>('elementary')
   const [bars, setBars] = useState<BarData[]>([])
@@ -22,13 +26,13 @@ export function useRhymes() {
     return () => { cancelled = true }
   }, [])
 
-  // Generate initial bars when word list changes
+  // Generate initial bars when word list or rhyme pattern changes
   useEffect(() => {
     if (!selectedList) return
-    const newBars = generateBars(selectedList, BARS_AHEAD)
+    const newBars = generateBars(selectedList, BARS_AHEAD, 0, rhymePattern, barsPerLine)
     setBars(newBars)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedListId, wordLists])
+  }, [selectedListId, wordLists, rhymePattern, barsPerLine])
 
   const extendBars = useCallback(
     (currentBar: number) => {
@@ -40,7 +44,7 @@ export function useRhymes() {
         const remaining = lastBar ? lastBar.index - currentBar + 1 : 0
         if (remaining < BARS_BUFFER) {
           const startIdx = lastBar ? lastBar.index + 1 : currentBar
-          const newBars = generateBars(list, BARS_AHEAD, startIdx)
+          const newBars = generateBars(list, BARS_AHEAD, startIdx, rhymePatternRef.current, barsPerLineRef.current)
           return [...prev, ...newBars]
         }
 
@@ -57,7 +61,7 @@ export function useRhymes() {
   const regenerate = useCallback(() => {
     const list = selectedListRef.current
     if (!list) return
-    const newBars = generateBars(list, BARS_AHEAD)
+    const newBars = generateBars(list, BARS_AHEAD, 0, rhymePatternRef.current, barsPerLineRef.current)
     setBars(newBars)
   }, [])
 

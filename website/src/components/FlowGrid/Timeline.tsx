@@ -6,19 +6,25 @@ import { cn } from '@/lib/utils'
 
 type TimelineProps = {
   currentBeat: number
+  currentBar: number
+  barsPerLine: number
   lineRef: RefObject<HTMLDivElement | null>
 }
 
-export default function Timeline({ currentBeat, lineRef }: TimelineProps) {
+export default function Timeline({ currentBeat, currentBar, barsPerLine, lineRef }: TimelineProps) {
+  const totalBeats = BEATS_PER_BAR * barsPerLine
+  const barInRow = currentBar % barsPerLine
+  const activeBeatIndex = barInRow * BEATS_PER_BAR + currentBeat
+
   return (
     <div className="relative px-2 sm:px-3 pb-1">
-      <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
-        {Array.from({ length: BEATS_PER_BAR }).map((_, i) => (
+      <div className={cn('grid gap-1 sm:gap-1.5', barsPerLine === 2 ? 'grid-cols-8' : 'grid-cols-4')}>
+        {Array.from({ length: totalBeats }).map((_, i) => (
           <div
             key={i}
             className={cn(
               'flex items-center justify-center h-7 text-xs font-mono rounded transition-colors',
-              i === currentBeat
+              i === activeBeatIndex
                 ? 'text-accent font-bold'
                 : 'text-foreground-muted'
             )}
@@ -30,7 +36,7 @@ export default function Timeline({ currentBeat, lineRef }: TimelineProps) {
 
       {/* Subdivision ticks and playhead */}
       <div className="h-3 relative">
-        {Array.from({ length: BEATS_PER_BAR * 4 + 1 }).map((_, i) => {
+        {Array.from({ length: totalBeats * 4 + 1 }).map((_, i) => {
           const isBeat = i % 4 === 0
           return (
             <div
@@ -39,7 +45,7 @@ export default function Timeline({ currentBeat, lineRef }: TimelineProps) {
                 'absolute bottom-0',
                 isBeat ? 'h-3 w-px bg-foreground-muted/40' : 'h-1.5 w-px bg-foreground-muted/20'
               )}
-              style={{ left: `${(i / (BEATS_PER_BAR * 4)) * 100}%` }}
+              style={{ left: `${(i / (totalBeats * 4)) * 100}%` }}
             />
           )
         })}

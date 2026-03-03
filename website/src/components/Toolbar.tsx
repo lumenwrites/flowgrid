@@ -2,6 +2,7 @@
 
 import { AVAILABLE_BEATS } from '@/lib/constants'
 import type { WordList } from '@/lib/rhymes'
+import HamburgerButton from './HamburgerButton'
 
 type ToolbarProps = {
   selectedBeatIndex: number
@@ -9,6 +10,7 @@ type ToolbarProps = {
   wordLists: WordList[]
   selectedListId: string
   onWordListChange: (id: string) => void
+  onOpenSettings: () => void
 }
 
 export default function Toolbar({
@@ -17,6 +19,7 @@ export default function Toolbar({
   wordLists,
   selectedListId,
   onWordListChange,
+  onOpenSettings,
 }: ToolbarProps) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 bg-surface border-b border-border">
@@ -53,6 +56,8 @@ export default function Toolbar({
           ))}
         </select>
       </div>
+
+      <HamburgerButton onClick={onOpenSettings} />
     </div>
   )
 }

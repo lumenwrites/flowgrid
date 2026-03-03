@@ -1,4 +1,4 @@
-import { RHYME_COLORS } from './constants'
+import { RHYME_COLORS, type RhymePattern, type BarsPerLine } from './constants'
 
 export type Word = {
   word: string
@@ -41,7 +41,9 @@ function shuffle<T>(arr: T[]): T[] {
 export function generateBars(
   wordList: WordList,
   count: number,
-  startIndex: number = 0
+  startIndex: number = 0,
+  rhymePattern: RhymePattern = 'AABB',
+  barsPerLine: BarsPerLine = 1
 ): BarData[] {
   const familyMap = new Map<number, string[]>()
   for (const w of wordList.words) {
@@ -56,37 +58,72 @@ export function generateBars(
 
   if (families.length === 0) return []
 
-  const bars: BarData[] = []
   let colorIndex = 0
   let familyPool = shuffle(families)
   let poolIndex = 0
 
-  for (let i = 0; i < count; i += 2) {
+  function nextFamily(): [number, string[]] {
     if (poolIndex >= familyPool.length) {
       familyPool = shuffle(families)
       poolIndex = 0
     }
+    return familyPool[poolIndex++]
+  }
 
-    const [familyId, words] = familyPool[poolIndex++]
-    const shuffledWords = shuffle(words)
-    const color = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
-    colorIndex++
+  // Build a sequence of line rhymes based on the pattern
+  // Each "line" is barsPerLine bars; rhyme word shows on the last bar of each line
+  const lineCount = Math.ceil(count / barsPerLine)
+  const lineRhymes: { word: string; color: typeof RHYME_COLORS[0]; familyId: number }[] = []
 
-    bars.push({
-      id: uid(),
-      index: startIndex + i,
-      rhymeWord: shuffledWords[0],
-      rhymeColor: color,
-      familyId,
-    })
+  if (rhymePattern === 'AABB') {
+    // Lines rhyme in consecutive pairs: AA BB CC ...
+    for (let i = 0; i < lineCount; i += 2) {
+      const [familyId, words] = nextFamily()
+      const shuffled = shuffle(words)
+      const color = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      colorIndex++
+      lineRhymes.push({ word: shuffled[0], color, familyId })
+      if (i + 1 < lineCount) {
+        lineRhymes.push({ word: shuffled[1 % shuffled.length], color, familyId })
+      }
+    }
+  } else {
+    // ABAB — lines 1&3 share a rhyme, lines 2&4 share a rhyme
+    for (let i = 0; i < lineCount; i += 4) {
+      const [familyIdA, wordsA] = nextFamily()
+      const [familyIdB, wordsB] = nextFamily()
+      const shuffA = shuffle(wordsA)
+      const shuffB = shuffle(wordsB)
+      const colorA = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      colorIndex++
+      const colorB = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      colorIndex++
 
-    if (i + 1 < count) {
+      const group = [
+        { word: shuffA[0], color: colorA, familyId: familyIdA },
+        { word: shuffB[0], color: colorB, familyId: familyIdB },
+        { word: shuffA[1 % shuffA.length], color: colorA, familyId: familyIdA },
+        { word: shuffB[1 % shuffB.length], color: colorB, familyId: familyIdB },
+      ]
+      for (let j = 0; j < 4 && i + j < lineCount; j++) {
+        lineRhymes.push(group[j])
+      }
+    }
+  }
+
+  // Expand lines into bars
+  const bars: BarData[] = []
+  for (let lineIdx = 0; lineIdx < lineRhymes.length; lineIdx++) {
+    const rhyme = lineRhymes[lineIdx]
+    for (let b = 0; b < barsPerLine; b++) {
+      const barIdx = lineIdx * barsPerLine + b
+      if (barIdx >= count) break
       bars.push({
         id: uid(),
-        index: startIndex + i + 1,
-        rhymeWord: shuffledWords[1],
-        rhymeColor: color,
-        familyId,
+        index: startIndex + barIdx,
+        rhymeWord: rhyme.word,
+        rhymeColor: rhyme.color,
+        familyId: rhyme.familyId,
       })
     }
   }
