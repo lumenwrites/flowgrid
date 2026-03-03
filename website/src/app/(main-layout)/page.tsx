@@ -9,10 +9,17 @@ import Timeline from '@/components/FlowGrid/Timeline'
 import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
-import { useSettings } from '@/hooks/useSettings'
+import { useSettings, type Settings } from '@/hooks/useSettings'
 
 export default function Home() {
   const { settings, update, loaded } = useSettings()
+
+  if (!loaded) return null
+
+  return <FlowGrid settings={settings} update={update} />
+}
+
+function FlowGrid({ settings, update }: { settings: Settings; update: <K extends keyof Settings>(key: K, value: Settings[K]) => void }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const {
@@ -21,7 +28,7 @@ export default function Home() {
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm)
 
   const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine)
 
@@ -32,7 +39,7 @@ export default function Home() {
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.barCount, settings.selectedListId)
+  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.barCount, settings.selectedListId, settings.fillMode, settings.seed)
 
   // Extend bars as playhead progresses
   useEffect(() => {
@@ -55,14 +62,13 @@ export default function Home() {
     regenerate()
   }
 
-  if (!loaded) return null
-
   return (
     <>
       <Toolbar
         metronomeEnabled={settings.metronomeEnabled}
         onMetronomeChange={(v) => update('metronomeEnabled', v)}
         onOpenSettings={() => setSidebarOpen(true)}
+        onRandomizeSeed={() => update('seed', Math.floor(Math.random() * 2 ** 31))}
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} />
       <Grid
@@ -71,6 +77,7 @@ export default function Home() {
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
         barsPerLine={settings.barsPerLine}
+        introBars={settings.introBars}
       />
       <PlayButton
         isPlaying={isPlaying}
@@ -91,6 +98,14 @@ export default function Home() {
         onRhymePatternChange={(v) => update('rhymePattern', v)}
         barCount={settings.barCount}
         onBarCountChange={(v) => update('barCount', v)}
+        fillMode={settings.fillMode}
+        onFillModeChange={(v) => update('fillMode', v)}
+        introBars={settings.introBars}
+        onIntroBarsChange={(v) => update('introBars', v)}
+        metronomeBpm={settings.metronomeBpm}
+        onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
+        seed={settings.seed}
+        onSeedChange={(v) => update('seed', v)}
       />
     </>
   )

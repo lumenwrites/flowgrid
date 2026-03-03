@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
 import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX, DEFAULT_BPM, NONE_BEAT_INDEX } from '@/lib/constants'
 
-export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX) {
+export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedBeatIndex, setSelectedBeatIndex] = useState(initialBeatIndex)
   const selectedBeatIndexRef = useRef(initialBeatIndex)
@@ -13,6 +13,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   const isLoadedRef = useRef(false)
   const metronomeEnabledRef = useRef(metronomeEnabled)
   metronomeEnabledRef.current = metronomeEnabled
+  const metronomeBpmRef = useRef(metronomeBpm)
+  metronomeBpmRef.current = metronomeBpm
 
   // Sync metronome mute state
   useEffect(() => {
@@ -20,6 +22,20 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       metronomeRef.current.mute = !metronomeEnabled
     }
   }, [metronomeEnabled])
+
+  // Reload when metronomeBpm changes and beat is None (different metronome file needed)
+  useEffect(() => {
+    if (!isLoadedRef.current) return
+    if (selectedBeatIndexRef.current !== NONE_BEAT_INDEX) return
+    const wasPlaying = Tone.getTransport().state === 'started'
+    loadBeat(NONE_BEAT_INDEX).then(() => {
+      if (wasPlaying) {
+        Tone.getTransport().start()
+        setIsPlaying(true)
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metronomeBpm])
 
   const loadBeat = useCallback(async (beatIndex: number) => {
     // Stop and reset transport position (don't cancel — that kills the playhead loop)
@@ -38,7 +54,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
     isLoadedRef.current = false
 
     const beat = beatIndex === NONE_BEAT_INDEX ? null : AVAILABLE_BEATS[beatIndex]
-    const bpm = beat ? beat.bpm : DEFAULT_BPM
+    const bpm = beat ? beat.bpm : metronomeBpmRef.current
 
     // Helper: create a player and return a promise that resolves when loaded
     function createPlayer(url: string, loop: boolean): Promise<Tone.Player> {

@@ -38,6 +38,11 @@ export const NONE_BEAT_INDEX = -1
 export const DEFAULT_BEAT_INDEX = 1 // Drums 80
 export const DEFAULT_BPM = 80 // Used when no beat is selected
 
+export const INTRO_BAR_OPTIONS = [0, 2, 4, 6, 8]
+export const METRONOME_BPM_OPTIONS = [60, 80, 100, 120]
+
+export const DEFAULT_SEED = 42
+
 export const DEFAULT_BAR_COUNT = 0 // 0 = infinite
 export const BAR_COUNT_OPTIONS = [0, 8, 16, 24, 32, 48, 64]
 export const INFINITE_INITIAL_BARS = 48 // initial bars in infinite mode (fill the screen)
@@ -49,6 +54,13 @@ export type RhymePattern = 'AABB' | 'ABAB'
 export const RHYME_PATTERNS: { value: RhymePattern; label: string }[] = [
   { value: 'AABB', label: 'AABB — Couplets' },
   { value: 'ABAB', label: 'ABAB — Alternating' },
+]
+
+export type FillMode = 'all' | 'setup-punchline' | 'off-the-cliff'
+export const FILL_MODES: { value: FillMode; label: string }[] = [
+  { value: 'all', label: 'All Rhymes' },
+  { value: 'setup-punchline', label: 'Setup Punchline' },
+  { value: 'off-the-cliff', label: 'Off the Cliff' },
 ]
 
 export type BarsPerLine = 1 | 2

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { DEFAULT_BEAT_INDEX, DEFAULT_BAR_COUNT, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { useState, useEffect, useCallback } from 'react'
+import { DEFAULT_BEAT_INDEX, DEFAULT_BAR_COUNT, DEFAULT_BPM, DEFAULT_SEED, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
 const STORAGE_KEY = 'flowgrid-settings'
 
@@ -12,6 +12,10 @@ export type Settings = {
   barsPerLine: BarsPerLine
   rhymePattern: RhymePattern
   barCount: number
+  fillMode: FillMode
+  introBars: number
+  metronomeBpm: number
+  seed: number
 }
 
 const DEFAULTS: Settings = {
@@ -21,10 +25,13 @@ const DEFAULTS: Settings = {
   barsPerLine: 1,
   rhymePattern: 'AABB',
   barCount: DEFAULT_BAR_COUNT,
+  fillMode: 'all',
+  introBars: 0,
+  metronomeBpm: DEFAULT_BPM,
+  seed: DEFAULT_SEED,
 }
 
 function loadSettings(): Settings {
-  if (typeof window === 'undefined') return DEFAULTS
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (!stored) return DEFAULTS
@@ -36,14 +43,14 @@ function loadSettings(): Settings {
 }
 
 export function useSettings() {
-  // Initialize synchronously from localStorage so hooks get correct initial values
-  const initializedRef = useRef(false)
-  const [settings, setSettings] = useState<Settings>(() => {
-    if (typeof window === 'undefined') return DEFAULTS
-    initializedRef.current = true
-    return loadSettings()
-  })
-  const loaded = initializedRef.current
+  const [settings, setSettings] = useState<Settings>(DEFAULTS)
+  const [loaded, setLoaded] = useState(false)
+
+  // Load from localStorage after mount
+  useEffect(() => {
+    setSettings(loadSettings())
+    setLoaded(true)
+  }, [])
 
   // Persist to localStorage on change
   useEffect(() => {

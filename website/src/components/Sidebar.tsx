@@ -1,6 +1,6 @@
 'use client'
 
-import { AVAILABLE_BEATS, NONE_BEAT_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { AVAILABLE_BEATS, NONE_BEAT_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 import type { WordList } from '@/lib/rhymes'
 
 type SidebarProps = {
@@ -17,6 +17,14 @@ type SidebarProps = {
   onRhymePatternChange: (pattern: RhymePattern) => void
   barCount: number
   onBarCountChange: (count: number) => void
+  fillMode: FillMode
+  onFillModeChange: (mode: FillMode) => void
+  introBars: number
+  onIntroBarsChange: (count: number) => void
+  metronomeBpm: number
+  onMetronomeBpmChange: (bpm: number) => void
+  seed: number
+  onSeedChange: (seed: number) => void
 }
 
 export default function Sidebar({
@@ -33,6 +41,14 @@ export default function Sidebar({
   onRhymePatternChange,
   barCount,
   onBarCountChange,
+  fillMode,
+  onFillModeChange,
+  introBars,
+  onIntroBarsChange,
+  metronomeBpm,
+  onMetronomeBpmChange,
+  seed,
+  onSeedChange,
 }: SidebarProps) {
   return (
     <>
@@ -46,8 +62,8 @@ export default function Sidebar({
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-surface border-l border-border z-50 transition-transform duration-300 ${
-          open ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 left-0 h-full w-72 bg-surface border-r border-border z-50 transition-transform duration-300 ${
+          open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
@@ -91,6 +107,24 @@ export default function Sidebar({
               ))}
             </select>
           </div>
+
+          {/* Metronome BPM — only when no beat selected */}
+          {selectedBeatIndex === NONE_BEAT_INDEX && (
+            <div className="space-y-1.5">
+              <label className="text-sm text-foreground">Metronome BPM</label>
+              <select
+                value={metronomeBpm}
+                onChange={(e) => onMetronomeBpmChange(Number(e.target.value))}
+                className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+              >
+                {METRONOME_BPM_OPTIONS.map((bpm) => (
+                  <option key={bpm} value={bpm}>
+                    {bpm} BPM
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Word list */}
           <div className="space-y-1.5">
@@ -140,6 +174,22 @@ export default function Sidebar({
             </select>
           </div>
 
+          {/* Intro bars */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Intro bars</label>
+            <select
+              value={introBars}
+              onChange={(e) => onIntroBarsChange(Number(e.target.value))}
+              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+            >
+              {INTRO_BAR_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n === 0 ? 'None' : `${n} bars`}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Rhyme pattern */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Rhyme pattern</label>
@@ -154,6 +204,41 @@ export default function Sidebar({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Fill mode */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Fill mode</label>
+            <select
+              value={fillMode}
+              onChange={(e) => onFillModeChange(e.target.value as FillMode)}
+              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+            >
+              {FILL_MODES.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Seed */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Seed</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={seed}
+                readOnly
+                className="flex-1 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
+              />
+              <button
+                onClick={() => onSeedChange(Math.floor(Math.random() * 2 ** 31))}
+                className="px-3 py-1.5 bg-surface-light text-foreground-muted text-sm rounded border border-border hover:bg-accent/20 hover:text-foreground transition-colors"
+              >
+                Shuffle
+              </button>
+            </div>
           </div>
         </div>
       </div>

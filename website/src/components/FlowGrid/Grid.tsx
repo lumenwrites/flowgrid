@@ -12,6 +12,7 @@ type GridProps = {
   isPlaying: boolean
   playheadLineRef: RefObject<HTMLDivElement | null>
   barsPerLine: BarsPerLine
+  introBars: number
 }
 
 function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
@@ -28,7 +29,7 @@ function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
   requestAnimationFrame(step)
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine }: GridProps) {
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 
@@ -98,6 +99,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
                     bar={bar}
                     currentBeat={position.bar === bar.index ? position.beat : null}
                     isLastInLine={i === pair.length - 1}
+                    isIntro={bar.index < introBars}
                   />
                 ))}
               </div>
@@ -115,6 +117,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
               <Bar
                 bar={bar}
                 currentBeat={position.bar === bar.index ? position.beat : null}
+                isIntro={bar.index < introBars}
               />
             </div>
           ))}

@@ -8,12 +8,14 @@ type BeatCellProps = {
   isActive: boolean
   rhymeWord?: string
   rhymeColor?: RhymeColor
+  rhymeHidden?: boolean
 }
 
 export default function BeatCell({
   isActive,
   rhymeWord,
   rhymeColor,
+  rhymeHidden,
 }: BeatCellProps) {
   const hasRhyme = rhymeWord && rhymeColor
 
@@ -24,12 +26,12 @@ export default function BeatCell({
         'h-12 sm:h-14',
         isActive
           ? 'border-accent bg-accent/20'
-          : hasRhyme
+          : hasRhyme && !rhymeHidden
             ? ''
             : 'border-beat-cell-border bg-beat-cell'
       )}
       style={
-        hasRhyme && !isActive
+        hasRhyme && !rhymeHidden && !isActive
           ? {
               backgroundColor: rhymeColor.bg,
               borderColor: rhymeColor.border,
@@ -37,9 +39,12 @@ export default function BeatCell({
           : undefined
       }
     >
-      {rhymeWord && (
-        <span className="text-sm sm:text-base font-semibold text-white">
-          {rhymeWord}
+      {hasRhyme && (
+        <span className={cn(
+          'text-sm sm:text-base font-semibold',
+          rhymeHidden ? 'text-foreground-muted' : 'text-white'
+        )}>
+          {rhymeHidden ? '????' : rhymeWord}
         </span>
       )}
     </div>

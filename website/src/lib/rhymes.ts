@@ -1,4 +1,4 @@
-import { RHYME_COLORS, type RhymePattern, type BarsPerLine } from './constants'
+import { RHYME_COLORS, type RhymePattern, type BarsPerLine, type FillMode } from './constants'
 
 export type Word = {
   word: string
@@ -27,12 +27,24 @@ export type BarData = {
   rhymeWord: string
   rhymeColor: RhymeColor
   familyId: number
+  rhymeHidden: boolean
 }
 
-function shuffle<T>(arr: T[]): T[] {
+// Mulberry32 — fast seeded 32-bit PRNG returning [0, 1)
+function mulberry32(seed: number): () => number {
+  let s = seed | 0
+  return () => {
+    s = (s + 0x6d2b79f5) | 0
+    let t = Math.imul(s ^ (s >>> 15), 1 | s)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function shuffle<T>(arr: T[], random: () => number): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    const j = Math.floor(random() * (i + 1))
     ;[a[i], a[j]] = [a[j], a[i]]
   }
   return a
@@ -43,8 +55,13 @@ export function generateBars(
   count: number,
   startIndex: number = 0,
   rhymePattern: RhymePattern = 'AABB',
-  barsPerLine: BarsPerLine = 1
+  barsPerLine: BarsPerLine = 1,
+  fillMode: FillMode = 'all',
+  seed: number = 42
 ): BarData[] {
+  // Use seed + startIndex so extension chunks produce different sequences
+  const random = mulberry32(seed + startIndex)
+
   const familyMap = new Map<number, string[]>()
   for (const w of wordList.words) {
     const list = familyMap.get(w.familyId) || []
@@ -59,12 +76,12 @@ export function generateBars(
   if (families.length === 0) return []
 
   let colorIndex = 0
-  let familyPool = shuffle(families)
+  let familyPool = shuffle(families, random)
   let poolIndex = 0
 
   function nextFamily(): [number, string[]] {
     if (poolIndex >= familyPool.length) {
-      familyPool = shuffle(families)
+      familyPool = shuffle(families, random)
       poolIndex = 0
     }
     return familyPool[poolIndex++]
@@ -79,7 +96,7 @@ export function generateBars(
     // Lines rhyme in consecutive pairs: AA BB CC ...
     for (let i = 0; i < lineCount; i += 2) {
       const [familyId, words] = nextFamily()
-      const shuffled = shuffle(words)
+      const shuffled = shuffle(words, random)
       const color = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
       colorIndex++
       lineRhymes.push({ word: shuffled[0], color, familyId })
@@ -92,8 +109,8 @@ export function generateBars(
     for (let i = 0; i < lineCount; i += 4) {
       const [familyIdA, wordsA] = nextFamily()
       const [familyIdB, wordsB] = nextFamily()
-      const shuffA = shuffle(wordsA)
-      const shuffB = shuffle(wordsB)
+      const shuffA = shuffle(wordsA, random)
+      const shuffB = shuffle(wordsB, random)
       const colorA = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
       colorIndex++
       const colorB = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
@@ -115,6 +132,12 @@ export function generateBars(
   const bars: BarData[] = []
   for (let lineIdx = 0; lineIdx < lineRhymes.length; lineIdx++) {
     const rhyme = lineRhymes[lineIdx]
+    // Determine if rhyme is hidden based on fill mode and position in pair
+    const posInPair = lineIdx % 2 // 0 = first line (setup), 1 = second line (punchline)
+    const rhymeHidden =
+      fillMode === 'setup-punchline' ? posInPair === 0 :
+      fillMode === 'off-the-cliff' ? posInPair === 1 :
+      false
     for (let b = 0; b < barsPerLine; b++) {
       const barIdx = lineIdx * barsPerLine + b
       if (barIdx >= count) break
@@ -124,6 +147,7 @@ export function generateBars(
         rhymeWord: rhyme.word,
         rhymeColor: rhyme.color,
         familyId: rhyme.familyId,
+        rhymeHidden,
       })
     }
   }
