@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'flowgrid-v1'
+const CACHE_VERSION = 'flowgrid-v2'
 
 const PRECACHE_ASSETS = [
   '/',
