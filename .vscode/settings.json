@@ -1,0 +1,11 @@
+{
+  "git.autoRepositoryDetection": "subFolders",
+  "eslint.workingDirectories": ["tiwigames"],
+  "eslint.format.enable": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  }
+}

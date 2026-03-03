@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-roboto-slab);
+  --font-georgia: var(--font-georgia);
+
+  --color-background: #e1c596;
+  --color-page: #F4EAD5;
+  --color-foreground: #1e293b;
+
+  --color-orange-cta: #CC4331;
+  --color-orange-cta-hover: #d95650;
+
+  --color-brown-900: #3E1C15;
+
+  --color-border: #BF742E;
+  --color-text-body: #3E1C15;
+  --color-text-title: #4A251C;
+  --color-bg-title: #FFE8C5;
+}
+
+body {
+  background-color: var(--color-background);
+  background-image: url('/img/background-tile.webp');
+  color: var(--color-foreground);
+}
+
+@layer base {
+  blockquote p:first-child {
+    margin-top: 0;
+  }
+}
