@@ -59,23 +59,19 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     }
   }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine])
 
-  // Auto-scroll to keep current bar in upper quarter
+  // Auto-scroll to keep current bar at the top
   useEffect(() => {
-    if (!isPlaying) return
     const container = containerRef.current
+    if (!container) return
     const barEl = barRefsMap.current.get(position.bar)
-    if (!container || !barEl) return
-
-    const barTop = barEl.offsetTop
-    const scrollTarget = barTop
-
+    const scrollTarget = barEl ? barEl.offsetTop : 0
     smoothScrollTo(container, Math.max(0, scrollTarget))
-  }, [position.bar, isPlaying])
+  }, [position.bar])
 
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto px-2 sm:px-3 pt-0 pb-2 space-y-1 sm:space-y-1.5 relative"
+      className="flex-1 overflow-y-hidden px-2 sm:px-3 pt-0 pb-2 space-y-1 sm:space-y-1.5 relative"
     >
       {/* Playhead track — inset to match container padding so left% aligns with timeline */}
       <div className="absolute inset-y-0 left-2 right-2 sm:left-3 sm:right-3 pointer-events-none z-10">

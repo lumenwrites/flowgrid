@@ -22,7 +22,7 @@ website/src/
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
-│   ├── Sidebar.tsx                     — Slide-over settings panel (beat, words, bars per line, bar count, rhyme pattern)
+│   ├── Sidebar.tsx                     — Slide-over settings panel (beat, BPM, words, bars/line, bar count, intro bars, rhyme pattern, fill mode, seed)
 │   └── PlayButton.tsx                  — Play/pause + stop at bottom center
 │
 ├── hooks/
@@ -45,10 +45,11 @@ website/src/
 - Uses **Tone.js** Transport as master clock
 - `Tone.Player` for beat loop (synced to transport, looping)
 - Separate `Tone.Player` for metronome (synced, muted/unmuted live)
-- Beat index `-1` = "None" (metronome-only mode at default 80 BPM)
+- Beat index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
 - Players created with `onload` callback → `Promise` wrapper → `await` before `.sync().start(0)`
-- BPM set from the beat's config, not user-adjustable independently
+- BPM set from the beat's config when a beat is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
+- Reloads metronome when BPM changes while beat is "None"
 
 ## Playhead (`usePlayhead`)
 
@@ -64,13 +65,16 @@ website/src/
   - Builds `lineRhymes` array based on pattern (AABB or ABAB)
   - Expands each line into `barsPerLine` bars sharing the same rhyme word/color/family
   - With 2 bars per line, only the last bar in each row shows the rhyme word
+  - `rhymeHidden` flag set per bar based on fill mode and line position in pair
+  - Uses seeded PRNG (mulberry32) — `seed + startIndex` ensures extension chunks are deterministic but different
 - Bar count: fixed (8–64) generates exactly that many; `0` = infinite mode (generates chunks of 24, extends during playback)
-- 8 rotating dark accent colors for rhyme pair highlighting
+- 8 rotating colors with 4 shades each: dim bg/border (default), active bg/border (playhead on it, with vivid ~500 borders)
+- Fill modes: all, setup-punchline, off-the-cliff, all-blanks — hidden cells still show color
 
 ## Settings (`useSettings`)
 
 - Single `flowgrid-settings` key in localStorage
-- Persisted: metronomeEnabled, selectedBeatIndex, selectedListId, barsPerLine, rhymePattern, barCount
+- Persisted: metronomeEnabled, selectedBeatIndex, selectedListId, barsPerLine, rhymePattern, barCount, fillMode, introBars, metronomeBpm, seed
 - Loads on mount with defaults fallback, saves on every change
 - `loaded` flag prevents rendering before hydration (avoids flash)
 
@@ -78,7 +82,7 @@ website/src/
 
 ```
 ┌─────────────────────────────────────┐
-│ FLOWGRID    [Metronome ○]    [☰]    │  ← Toolbar
+│ [☰] FLOWGRID    [🎲] [Metronome ○]  │  ← Toolbar
 ├─────────────────────────────────────┤
 │  1    2    3    4                    │  ← Timeline (or 1-8 for 2 bars/line)
 │  ┊    ┊    ┊    ┊                   │  ← Subdivision ticks + playhead
@@ -92,15 +96,19 @@ website/src/
 │           [▶ / ⏸] [⏹]              │  ← PlayButton
 └─────────────────────────────────────┘
 
-Sidebar (slides from right):
+Sidebar (slides from left):
 ┌──────────────┐
 │ SETTINGS  [✕] │
 │               │
 │ Beat      [▼] │
+│ BPM       [▼] │  ← only when beat=None
 │ Words     [▼] │
 │ Bars/line [▼] │
 │ Bars      [▼] │
+│ Intro     [▼] │
 │ Rhyme     [▼] │
+│ Fill mode [▼] │
+│ Seed [____][↻]│
 └──────────────┘
 ```
 
@@ -122,4 +130,5 @@ Sidebar (slides from right):
 - **Line-level rhyme generation** — patterns (AABB/ABAB) apply to lines not individual bars, so they work correctly regardless of bars-per-line setting
 - **Settings in page.tsx** — all state lives at the page level and flows down via props (no context needed for this scale)
 - **localStorage for persistence** — simplest cross-platform solution, works in PWA contexts on all platforms
-- **No BPM control** — each beat file has its own tempo; BPM is derived from the file, not user-adjustable
+- **No BPM control when beat selected** — each beat file has its own tempo; BPM only user-selectable in "None" mode for metronome
+- **Seeded PRNG** — mulberry32 for deterministic rhyme generation; seed persisted so reloads produce the same sequence

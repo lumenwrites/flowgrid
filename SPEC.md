@@ -23,15 +23,23 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 - **Bars per line** — 1 bar per line (4 beats, suited for rap) or 2 bars per line (8 beats, suited for improv musicals). Timeline, playhead, and rhyme placement all adapt.
 - **Rhyme patterns** — AABB (couplets: consecutive lines rhyme) or ABAB (alternating: lines 1&3 rhyme, 2&4 rhyme). Patterns work correctly with both 1 and 2 bars per line.
 - **Bar count** — Generate a fixed number of bars (8, 16, 24, 32, 48, 64) or infinite (generates ahead continuously as you play).
-- **Settings sidebar** — Hamburger menu in the toolbar opens a slide-over panel with all settings: beat, words, bars per line, bar count, rhyme pattern.
+- **Intro bars** — Optional 2/4/6/8 intro bars where the loop plays but rhyme words are hidden, giving time to get into the groove.
+- **Fill modes** — Controls which rhyme words are revealed:
+  - *All Rhymes* — every line shows its word (default)
+  - *Setup Punchline* — first line shows `????`, second reveals the word
+  - *Off the Cliff* — first line shows the word, second shows `????`
+  - *All Blanks* — every line shows `????` (full freestyle)
+  - Hidden cells still show their rhyme color so you can see the pattern.
+- **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
+- **Metronome BPM** — When beat is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
+- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: beat, metronome BPM, words, bars per line, bar count, intro bars, rhyme pattern, fill mode, seed.
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.
-- **Playhead sync** — Smooth playhead line tracks beat position via RAF, with beat-level highlighting via Tone.Loop + Draw.schedule.
+- **Playhead sync** — Smooth playhead line tracks beat position via RAF, with beat-level highlighting via Tone.Loop + Draw.schedule. Playhead stays visible when paused. Turns the rhyme's color when over the rhyme cell.
 - **Auto-scroll** — Grid smoothly scrolls to keep the current bar near the top.
-- **Color-coded rhymes** — Rhyme pairs share the same background color (8 rotating dark accent colors).
+- **Color-coded rhymes** — Rhyme pairs share the same background color (8 rotating colors). Dim by default, brighten when the playhead activates them. Active borders are vivid (~500 shade) for strong contrast.
 
 ## Future features
 
-- Fill modes (setup/punchline, off the cliff — show `????` on some lines)
 - Audio recording while playing
 - PWA support (installable, offline)
 - CMU dictionary-based live rhyme lookup (currently uses pre-grouped word lists only)
@@ -39,11 +47,11 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 ## UI
 
 Minimalist dark theme.
-- **Toolbar** (top): FLOWGRID label, metronome toggle, hamburger menu
+- **Toolbar** (top): hamburger menu, FLOWGRID label, dice (randomize seed), metronome toggle
 - **Timeline**: Numbered beats (1-4 or 1-8 depending on bars per line) with subdivision ticks
 - **Grid**: Scrolling bars with rhyme words, playhead overlay
 - **Play button** (bottom center): Play/pause and stop controls
-- **Sidebar** (right slide-over): All settings dropdowns
+- **Sidebar** (left slide-over): All settings dropdowns
 
 ## Audio files
 
