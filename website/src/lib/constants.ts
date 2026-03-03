@@ -12,14 +12,29 @@ export const RHYME_COLORS = [
   { bg: '#5b21b6', border: '#6d28d9' }, // violet-800
 ]
 
-export const AVAILABLE_BEATS = [
-  { label: '60 BPM', bpm: 60, file: '/beats/drums-loop-60bpm.wav' },
-  { label: '80 BPM', bpm: 80, file: '/beats/drums-loop-80bpm.wav' },
-  { label: '100 BPM', bpm: 100, file: '/beats/drums-loop-100bpm.wav' },
-  { label: '120 BPM', bpm: 120, file: '/beats/drums-loop-120bpm.wav' },
+export type Beat = {
+  label: string
+  bpm: number
+  file: string
+  bars: number // how many bars the loop contains
+}
+
+export const AVAILABLE_BEATS: Beat[] = [
+  { label: 'Drums 60', bpm: 60, file: '/beats/drums-loop-60bpm.wav', bars: 1 },
+  { label: 'Drums 80', bpm: 80, file: '/beats/drums-loop-80bpm.wav', bars: 1 },
+  { label: 'Drums 100', bpm: 100, file: '/beats/drums-loop-100bpm.wav', bars: 1 },
+  { label: 'Drums 120', bpm: 120, file: '/beats/drums-loop-120bpm.wav', bars: 1 },
+  { label: 'Scene to Rap 100', bpm: 100, file: '/beats/scene-to-rap-loop-100bpm.m4a', bars: 8 },
 ]
 
-export const DEFAULT_BPM = 80
+export const METRONOME_FILES: Record<number, string> = {
+  60: '/beats/metronome-loop-60bpm.wav',
+  80: '/beats/metronome-loop-80bpm.wav',
+  100: '/beats/metronome-loop-100bpm.wav',
+  120: '/beats/metronome-loop-120bpm.wav',
+}
+
+export const DEFAULT_BEAT_INDEX = 1 // Drums 80
 
 export const BARS_AHEAD = 16
 export const BARS_BUFFER = 8

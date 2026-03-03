@@ -28,14 +28,14 @@ export default function Toolbar({
       </span>
 
       <div className="flex items-center gap-2 ml-auto">
-        <label className="text-xs text-foreground-muted">BPM</label>
+        <label className="text-xs text-foreground-muted">Beat</label>
         <select
           value={selectedBeatIndex}
           onChange={(e) => onBeatChange(Number(e.target.value))}
           className="bg-surface-light text-foreground text-sm rounded px-2 py-1 border border-border focus:outline-none focus:border-accent"
         >
           {AVAILABLE_BEATS.map((beat, i) => (
-            <option key={beat.bpm} value={i}>
+            <option key={i} value={i}>
               {beat.label}
             </option>
           ))}
