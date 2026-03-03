@@ -32,12 +32,13 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
   - Hidden cells still show their rhyme color so you can see the pattern.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
 - **Metronome BPM** — When beat is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
-- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: beat, metronome BPM, words, bars per line, bar count, intro bars, rhyme pattern, fill mode, seed.
+- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: beat, volumes, metronome BPM, words, bars per line, bar count, intro bars, rhyme pattern, fill mode, seed, audio offset.
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.
 - **Playhead sync** — Smooth playhead line tracks beat position via RAF, with beat-level highlighting via Tone.Loop + Draw.schedule. Playhead stays visible when paused. Turns the rhyme's color when over the rhyme cell.
 - **Auto-scroll** — Grid smoothly scrolls to keep the current bar near the top. Scroll starts one beat early so the animation completes before the next row begins.
 - **Color-coded rhymes** — Rhyme pairs share the same background color (8 rotating colors). Dim by default, brighten when the playhead activates them. Active borders are vivid (~500 shade) for strong contrast.
 - **Volume controls** — Separate beat volume and metronome volume sliders (0-100%) in the sidebar. Values persist across sessions.
+- **Audio offset** — Slider (-200ms to +200ms, 10ms steps) to shift audio timing, compensating for Bluetooth/wireless headphone latency. Negative values play audio earlier. Applied by offsetting player sync start times on the Tone.js transport; re-syncs live when adjusted.
 - **PWA support** — Installable as a standalone app on mobile/desktop. Service worker precaches all audio files, word lists, and app shell for full offline support. Web manifest with dark theme, portrait orientation, and multiple icon sizes.
 
 ## Future features
