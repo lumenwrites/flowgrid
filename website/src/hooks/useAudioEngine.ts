@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
 import { AVAILABLE_BEATS, METRONOME_FILES, DEFAULT_BEAT_INDEX, DEFAULT_BPM, NONE_BEAT_INDEX } from '@/lib/constants'
 
-export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM) {
+export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatIndex: number = DEFAULT_BEAT_INDEX, metronomeBpm: number = DEFAULT_BPM, beatVolume: number = 100, metronomeVolume: number = 100) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedBeatIndex, setSelectedBeatIndex] = useState(initialBeatIndex)
   const selectedBeatIndexRef = useRef(initialBeatIndex)
@@ -22,6 +22,20 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       metronomeRef.current.mute = !metronomeEnabled
     }
   }, [metronomeEnabled])
+
+  // Sync beat volume (0-100 → dB, 0 = -Infinity)
+  useEffect(() => {
+    if (playerRef.current) {
+      playerRef.current.volume.value = beatVolume === 0 ? -Infinity : 20 * Math.log10(beatVolume / 100)
+    }
+  }, [beatVolume])
+
+  // Sync metronome volume
+  useEffect(() => {
+    if (metronomeRef.current) {
+      metronomeRef.current.volume.value = metronomeVolume === 0 ? -Infinity : 20 * Math.log10(metronomeVolume / 100)
+    }
+  }, [metronomeVolume])
 
   // Reload when metronomeBpm changes and beat is None (different metronome file needed)
   useEffect(() => {

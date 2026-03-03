@@ -25,6 +25,10 @@ type SidebarProps = {
   onMetronomeBpmChange: (bpm: number) => void
   seed: number
   onSeedChange: (seed: number) => void
+  beatVolume: number
+  onBeatVolumeChange: (volume: number) => void
+  metronomeVolume: number
+  onMetronomeVolumeChange: (volume: number) => void
 }
 
 export default function Sidebar({
@@ -49,6 +53,10 @@ export default function Sidebar({
   onMetronomeBpmChange,
   seed,
   onSeedChange,
+  beatVolume,
+  onBeatVolumeChange,
+  metronomeVolume,
+  onMetronomeVolumeChange,
 }: SidebarProps) {
   return (
     <>
@@ -126,6 +134,34 @@ export default function Sidebar({
             </div>
           )}
 
+          {/* Beat volume — only when a beat is selected */}
+          {selectedBeatIndex !== NONE_BEAT_INDEX && (
+            <div className="space-y-1.5">
+              <label className="text-sm text-foreground">Beat volume — {beatVolume}%</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={beatVolume}
+                onChange={(e) => onBeatVolumeChange(Number(e.target.value))}
+                className="w-full accent-accent"
+              />
+            </div>
+          )}
+
+          {/* Metronome volume */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Metronome volume — {metronomeVolume}%</label>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={metronomeVolume}
+              onChange={(e) => onMetronomeVolumeChange(Number(e.target.value))}
+              className="w-full accent-accent"
+            />
+          </div>
+
           {/* Word list */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Words</label>
@@ -184,7 +220,7 @@ export default function Sidebar({
             >
               {INTRO_BAR_OPTIONS.map((n) => (
                 <option key={n} value={n}>
-                  {n === 0 ? 'None' : `${n} bars`}
+                  {n === 0 ? 'None' : n === 1 ? '1 bar' : `${n} bars`}
                 </option>
               ))}
             </select>

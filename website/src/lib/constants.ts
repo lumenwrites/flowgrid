@@ -38,7 +38,7 @@ export const NONE_BEAT_INDEX = -1
 export const DEFAULT_BEAT_INDEX = 1 // Drums 80
 export const DEFAULT_BPM = 80 // Used when no beat is selected
 
-export const INTRO_BAR_OPTIONS = [0, 2, 4, 6, 8]
+export const INTRO_BAR_OPTIONS = [0, 1, 2, 4, 6, 8]
 export const METRONOME_BPM_OPTIONS = [60, 80, 100, 120]
 
 export const DEFAULT_SEED = 42

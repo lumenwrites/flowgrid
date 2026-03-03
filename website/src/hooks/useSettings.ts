@@ -16,6 +16,8 @@ export type Settings = {
   introBars: number
   metronomeBpm: number
   seed: number
+  beatVolume: number
+  metronomeVolume: number
 }
 
 const DEFAULTS: Settings = {
@@ -29,6 +31,8 @@ const DEFAULTS: Settings = {
   introBars: 0,
   metronomeBpm: DEFAULT_BPM,
   seed: DEFAULT_SEED,
+  beatVolume: 100,
+  metronomeVolume: 100,
 }
 
 function loadSettings(): Settings {

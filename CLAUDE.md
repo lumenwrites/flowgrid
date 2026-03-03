@@ -8,11 +8,14 @@ All app source is in `website/src/`. The app is Next.js 16 + Tone.js + Tailwind.
 ## Key files to understand the app
 
 - `website/src/lib/constants.ts` — All config: beats, metronome files, rhyme colors (4-shade), fill modes, bar count options, types
-- `website/src/hooks/useAudioEngine.ts` — Tone.js audio playback (beat + metronome players, BPM-aware)
+- `website/src/hooks/useAudioEngine.ts` — Tone.js audio playback (beat + metronome players, BPM-aware, volume control)
 - `website/src/hooks/usePlayhead.ts` — Beat tracking and smooth playhead position
 - `website/src/hooks/useRhymes.ts` — Word list loading, bar generation, infinite extending (seed-aware)
-- `website/src/hooks/useSettings.ts` — localStorage persistence (all settings including seed, fill mode, intro bars, metronome BPM)
-- `website/src/lib/rhymes.ts` — `generateBars()` with seeded PRNG (mulberry32), pattern + barsPerLine + fillMode support
+- `website/src/hooks/useSettings.ts` — localStorage persistence (all settings including seed, fill mode, intro bars, metronome BPM, beat/metronome volume)
+- `website/src/lib/rhymes.ts` — `generateBars()` with seeded PRNG (mulberry32), pattern + barsPerLine + fillMode + introBars support
+- `website/public/sw.js` — Service worker with precaching for offline PWA support
+- `website/public/manifest.webmanifest` — PWA web manifest
+- `website/src/components/ServiceWorkerRegistrar.tsx` — Client component to register service worker
 
 ## References
 

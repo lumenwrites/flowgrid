@@ -28,7 +28,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     togglePlay,
     changeBeat,
     stop,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
 
   const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying, settings.barsPerLine)
 
@@ -39,7 +39,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.barCount, settings.selectedListId, settings.fillMode, settings.seed)
+  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.barCount, settings.selectedListId, settings.fillMode, settings.seed, settings.introBars)
 
   // Extend bars as playhead progresses
   useEffect(() => {
@@ -106,6 +106,10 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
         seed={settings.seed}
         onSeedChange={(v) => update('seed', v)}
+        beatVolume={settings.beatVolume}
+        onBeatVolumeChange={(v) => update('beatVolume', v)}
+        metronomeVolume={settings.metronomeVolume}
+        onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
       />
     </>
   )
