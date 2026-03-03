@@ -19,6 +19,8 @@ function uid() { return `b${++barIdCounter}-${Date.now().toString(36)}` }
 export type RhymeColor = {
   bg: string
   border: string
+  bright: string
+  dark: string
 }
 
 export type BarData = {
@@ -135,6 +137,7 @@ export function generateBars(
     // Determine if rhyme is hidden based on fill mode and position in pair
     const posInPair = lineIdx % 2 // 0 = first line (setup), 1 = second line (punchline)
     const rhymeHidden =
+      fillMode === 'all-blanks' ? true :
       fillMode === 'setup-punchline' ? posInPair === 0 :
       fillMode === 'off-the-cliff' ? posInPair === 1 :
       false

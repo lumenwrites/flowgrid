@@ -24,26 +24,28 @@ export default function BeatCell({
       className={cn(
         'flex items-center justify-center rounded-md border transition-colors duration-75',
         'h-12 sm:h-14',
-        isActive
-          ? 'border-accent bg-accent/20'
-          : hasRhyme && !rhymeHidden
-            ? ''
+        hasRhyme
+          ? ''
+          : isActive
+            ? 'border-accent bg-accent/20'
             : 'border-beat-cell-border bg-beat-cell'
       )}
       style={
-        hasRhyme && !rhymeHidden && !isActive
-          ? {
-              backgroundColor: rhymeColor.bg,
-              borderColor: rhymeColor.border,
-            }
+        hasRhyme
+          ? isActive
+            ? {
+                backgroundColor: rhymeColor.dark,
+                borderColor: rhymeColor.bright,
+              }
+            : {
+                backgroundColor: rhymeColor.bg,
+                borderColor: rhymeColor.border,
+              }
           : undefined
       }
     >
       {hasRhyme && (
-        <span className={cn(
-          'text-sm sm:text-base font-semibold',
-          rhymeHidden ? 'text-foreground-muted' : 'text-white'
-        )}>
+        <span className="text-sm sm:text-base font-semibold text-white">
           {rhymeHidden ? '????' : rhymeWord}
         </span>
       )}

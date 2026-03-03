@@ -1,15 +1,16 @@
 export const BEATS_PER_BAR = 4
 
 // Dark-medium background colors for rhyme word cells — white text on colored bg
+// Active state: bright border + dark fill for high-contrast glow effect
 export const RHYME_COLORS = [
-  { bg: '#991b1b', border: '#b91c1c' }, // red-800
-  { bg: '#155e75', border: '#0e7490' }, // cyan-800
-  { bg: '#854d0e', border: '#a16207' }, // yellow-800
-  { bg: '#3730a3', border: '#4338ca' }, // indigo-800
-  { bg: '#9d174d', border: '#be185d' }, // pink-800
-  { bg: '#065f46', border: '#047857' }, // emerald-800
-  { bg: '#92400e', border: '#b45309' }, // amber-800
-  { bg: '#5b21b6', border: '#6d28d9' }, // violet-800
+  { bg: '#991b1b', border: '#b91c1c', bright: '#dc2626', dark: '#450a0a' }, // red
+  { bg: '#155e75', border: '#0e7490', bright: '#0891b2', dark: '#083344' }, // cyan
+  { bg: '#854d0e', border: '#a16207', bright: '#ca8a04', dark: '#422006' }, // yellow
+  { bg: '#3730a3', border: '#4338ca', bright: '#6366f1', dark: '#1e1b4b' }, // indigo
+  { bg: '#9d174d', border: '#be185d', bright: '#ec4899', dark: '#500724' }, // pink
+  { bg: '#065f46', border: '#047857', bright: '#10b981', dark: '#022c22' }, // emerald
+  { bg: '#92400e', border: '#b45309', bright: '#d97706', dark: '#451a03' }, // amber
+  { bg: '#5b21b6', border: '#6d28d9', bright: '#8b5cf6', dark: '#2e1065' }, // violet
 ]
 
 export type Beat = {
@@ -56,11 +57,12 @@ export const RHYME_PATTERNS: { value: RhymePattern; label: string }[] = [
   { value: 'ABAB', label: 'ABAB — Alternating' },
 ]
 
-export type FillMode = 'all' | 'setup-punchline' | 'off-the-cliff'
+export type FillMode = 'all' | 'setup-punchline' | 'off-the-cliff' | 'all-blanks'
 export const FILL_MODES: { value: FillMode; label: string }[] = [
   { value: 'all', label: 'All Rhymes' },
   { value: 'setup-punchline', label: 'Setup Punchline' },
   { value: 'off-the-cliff', label: 'Off the Cliff' },
+  { value: 'all-blanks', label: 'All Blanks' },
 ]
 
 export type BarsPerLine = 1 | 2

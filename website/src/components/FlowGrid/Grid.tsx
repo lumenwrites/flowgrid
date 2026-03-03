@@ -42,7 +42,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
 
     line.style.top = `${barEl.offsetTop}px`
     line.style.height = `${barEl.offsetHeight}px`
-    line.style.display = isPlaying ? 'block' : 'none'
+    line.style.display = 'block'
   }, [position.bar, isPlaying, playheadLineRef, bars])
 
   // Auto-scroll to keep current bar in upper quarter

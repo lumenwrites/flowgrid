@@ -230,7 +230,7 @@ export default function Sidebar({
                 type="text"
                 value={seed}
                 readOnly
-                className="flex-1 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
+                className="flex-1 min-w-0 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
               />
               <button
                 onClick={() => onSeedChange(Math.floor(Math.random() * 2 ** 31))}
