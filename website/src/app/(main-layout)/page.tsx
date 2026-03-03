@@ -9,13 +9,14 @@ import Timeline from '@/components/FlowGrid/Timeline'
 import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
-import type { RhymePattern, BarsPerLine } from '@/lib/constants'
+import { DEFAULT_BAR_COUNT, type RhymePattern, type BarsPerLine } from '@/lib/constants'
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [metronomeEnabled, setMetronomeEnabled] = useState(false)
   const [barsPerLine, setBarsPerLine] = useState<BarsPerLine>(1)
   const [rhymePattern, setRhymePattern] = useState<RhymePattern>('AABB')
+  const [barCount, setBarCount] = useState(DEFAULT_BAR_COUNT)
 
   const {
     isPlaying,
@@ -34,7 +35,7 @@ export default function Home() {
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(rhymePattern, barsPerLine)
+  } = useRhymes(rhymePattern, barsPerLine, barCount)
 
   // Extend bars as playhead progresses
   useEffect(() => {
@@ -50,11 +51,8 @@ export default function Home() {
   return (
     <>
       <Toolbar
-        selectedBeatIndex={selectedBeatIndex}
-        onBeatChange={changeBeat}
-        wordLists={wordLists}
-        selectedListId={selectedListId}
-        onWordListChange={changeWordList}
+        metronomeEnabled={metronomeEnabled}
+        onMetronomeChange={setMetronomeEnabled}
         onOpenSettings={() => setSidebarOpen(true)}
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={barsPerLine} lineRef={timelineLineRef} />
@@ -73,12 +71,17 @@ export default function Home() {
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        metronomeEnabled={metronomeEnabled}
-        onMetronomeChange={setMetronomeEnabled}
+        selectedBeatIndex={selectedBeatIndex}
+        onBeatChange={changeBeat}
+        wordLists={wordLists}
+        selectedListId={selectedListId}
+        onWordListChange={changeWordList}
         barsPerLine={barsPerLine}
         onBarsPerLineChange={setBarsPerLine}
         rhymePattern={rhymePattern}
         onRhymePatternChange={setRhymePattern}
+        barCount={barCount}
+        onBarCountChange={setBarCount}
       />
     </>
   )

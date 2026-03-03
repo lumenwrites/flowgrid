@@ -1,24 +1,16 @@
 'use client'
 
-import { AVAILABLE_BEATS } from '@/lib/constants'
-import type { WordList } from '@/lib/rhymes'
 import HamburgerButton from './HamburgerButton'
 
 type ToolbarProps = {
-  selectedBeatIndex: number
-  onBeatChange: (index: number) => void
-  wordLists: WordList[]
-  selectedListId: string
-  onWordListChange: (id: string) => void
+  metronomeEnabled: boolean
+  onMetronomeChange: (enabled: boolean) => void
   onOpenSettings: () => void
 }
 
 export default function Toolbar({
-  selectedBeatIndex,
-  onBeatChange,
-  wordLists,
-  selectedListId,
-  onWordListChange,
+  metronomeEnabled,
+  onMetronomeChange,
   onOpenSettings,
 }: ToolbarProps) {
   return (
@@ -28,33 +20,20 @@ export default function Toolbar({
       </span>
 
       <div className="flex items-center gap-2 ml-auto">
-        <label className="text-xs text-foreground-muted">Beat</label>
-        <select
-          value={selectedBeatIndex}
-          onChange={(e) => onBeatChange(Number(e.target.value))}
-          className="bg-surface-light text-foreground text-sm rounded px-2 py-1 border border-border focus:outline-none focus:border-accent"
+        <label className="text-xs text-foreground-muted">Metronome</label>
+        <button
+          onClick={() => onMetronomeChange(!metronomeEnabled)}
+          className={`relative w-10 h-5 rounded-full transition-colors ${
+            metronomeEnabled ? 'bg-accent' : 'bg-surface-light'
+          }`}
+          aria-label="Toggle metronome"
         >
-          {AVAILABLE_BEATS.map((beat, i) => (
-            <option key={i} value={i}>
-              {beat.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-foreground-muted">Words</label>
-        <select
-          value={selectedListId}
-          onChange={(e) => onWordListChange(e.target.value)}
-          className="bg-surface-light text-foreground text-sm rounded px-2 py-1 border border-border focus:outline-none focus:border-accent"
-        >
-          {wordLists.map((list) => (
-            <option key={list.id} value={list.id}>
-              {list.name}
-            </option>
-          ))}
-        </select>
+          <span
+            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              metronomeEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       <HamburgerButton onClick={onOpenSettings} />

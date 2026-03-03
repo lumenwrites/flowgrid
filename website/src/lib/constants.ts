@@ -36,7 +36,8 @@ export const METRONOME_FILES: Record<number, string> = {
 
 export const DEFAULT_BEAT_INDEX = 1 // Drums 80
 
-export const BARS_AHEAD = 16
+export const DEFAULT_BAR_COUNT = 16
+export const BAR_COUNT_OPTIONS = [8, 16, 24, 32, 48, 64]
 export const BARS_BUFFER = 8
 export const BARS_BEHIND_KEEP = 4
 

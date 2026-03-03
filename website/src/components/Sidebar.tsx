@@ -1,27 +1,38 @@
 'use client'
 
-import { RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { AVAILABLE_BEATS, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import type { WordList } from '@/lib/rhymes'
 
 type SidebarProps = {
   open: boolean
   onClose: () => void
-  metronomeEnabled: boolean
-  onMetronomeChange: (enabled: boolean) => void
+  selectedBeatIndex: number
+  onBeatChange: (index: number) => void
+  wordLists: WordList[]
+  selectedListId: string
+  onWordListChange: (id: string) => void
   barsPerLine: BarsPerLine
   onBarsPerLineChange: (value: BarsPerLine) => void
   rhymePattern: RhymePattern
   onRhymePatternChange: (pattern: RhymePattern) => void
+  barCount: number
+  onBarCountChange: (count: number) => void
 }
 
 export default function Sidebar({
   open,
   onClose,
-  metronomeEnabled,
-  onMetronomeChange,
+  selectedBeatIndex,
+  onBeatChange,
+  wordLists,
+  selectedListId,
+  onWordListChange,
   barsPerLine,
   onBarsPerLineChange,
   rhymePattern,
   onRhymePatternChange,
+  barCount,
+  onBarCountChange,
 }: SidebarProps) {
   return (
     <>
@@ -64,22 +75,36 @@ export default function Sidebar({
         </div>
 
         <div className="p-4 space-y-5">
-          {/* Metronome toggle */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-foreground">Metronome</label>
-            <button
-              onClick={() => onMetronomeChange(!metronomeEnabled)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${
-                metronomeEnabled ? 'bg-accent' : 'bg-surface-light'
-              }`}
-              aria-label="Toggle metronome"
+          {/* Beat */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Beat</label>
+            <select
+              value={selectedBeatIndex}
+              onChange={(e) => onBeatChange(Number(e.target.value))}
+              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
             >
-              <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                  metronomeEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
+              {AVAILABLE_BEATS.map((beat, i) => (
+                <option key={i} value={i}>
+                  {beat.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Word list */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Words</label>
+            <select
+              value={selectedListId}
+              onChange={(e) => onWordListChange(e.target.value)}
+              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+            >
+              {wordLists.map((list) => (
+                <option key={list.id} value={list.id}>
+                  {list.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Bars per line */}
@@ -93,6 +118,22 @@ export default function Sidebar({
               {BARS_PER_LINE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Bar count */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Bars</label>
+            <select
+              value={barCount}
+              onChange={(e) => onBarCountChange(Number(e.target.value))}
+              className="w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent"
+            >
+              {BAR_COUNT_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n} bars
                 </option>
               ))}
             </select>

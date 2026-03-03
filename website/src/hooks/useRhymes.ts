@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { type WordList, type BarData, loadWordLists, generateBars } from '@/lib/rhymes'
-import { BARS_AHEAD, BARS_BUFFER, type RhymePattern, type BarsPerLine } from '@/lib/constants'
+import { DEFAULT_BAR_COUNT, BARS_BUFFER, type RhymePattern, type BarsPerLine } from '@/lib/constants'
 
-export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1) {
+export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, barCount: number = DEFAULT_BAR_COUNT) {
+  const barCountRef = useRef(barCount)
+  barCountRef.current = barCount
   const rhymePatternRef = useRef(rhymePattern)
   rhymePatternRef.current = rhymePattern
   const barsPerLineRef = useRef(barsPerLine)
@@ -29,10 +31,10 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   // Generate initial bars when word list or rhyme pattern changes
   useEffect(() => {
     if (!selectedList) return
-    const newBars = generateBars(selectedList, BARS_AHEAD, 0, rhymePattern, barsPerLine)
+    const newBars = generateBars(selectedList, barCount, 0, rhymePattern, barsPerLine)
     setBars(newBars)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedListId, wordLists, rhymePattern, barsPerLine])
+  }, [selectedListId, wordLists, rhymePattern, barsPerLine, barCount])
 
   const extendBars = useCallback(
     (currentBar: number) => {
@@ -44,7 +46,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
         const remaining = lastBar ? lastBar.index - currentBar + 1 : 0
         if (remaining < BARS_BUFFER) {
           const startIdx = lastBar ? lastBar.index + 1 : currentBar
-          const newBars = generateBars(list, BARS_AHEAD, startIdx, rhymePatternRef.current, barsPerLineRef.current)
+          const newBars = generateBars(list, barCountRef.current, startIdx, rhymePatternRef.current, barsPerLineRef.current)
           return [...prev, ...newBars]
         }
 
@@ -61,7 +63,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   const regenerate = useCallback(() => {
     const list = selectedListRef.current
     if (!list) return
-    const newBars = generateBars(list, BARS_AHEAD, 0, rhymePatternRef.current, barsPerLineRef.current)
+    const newBars = generateBars(list, barCountRef.current, 0, rhymePatternRef.current, barsPerLineRef.current)
     setBars(newBars)
   }, [])
 
