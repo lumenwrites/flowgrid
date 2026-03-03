@@ -24,10 +24,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   const metronomeVolumeRef = useRef(metronomeVolume)
   metronomeVolumeRef.current = metronomeVolume
 
-  // Sync metronome mute state
+  // Sync metronome mute state — apply volume or silence
   useEffect(() => {
     if (metronomeRef.current) {
-      metronomeRef.current.mute = !metronomeEnabled
+      metronomeRef.current.volume.value = metronomeEnabled ? volumeToDb(metronomeVolumeRef.current) : -Infinity
     }
   }, [metronomeEnabled])
 
@@ -41,7 +41,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
   // Sync metronome volume
   useEffect(() => {
     if (metronomeRef.current) {
-      metronomeRef.current.volume.value = volumeToDb(metronomeVolume)
+      metronomeRef.current.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolume) : -Infinity
     }
   }, [metronomeVolume])
 
@@ -111,7 +111,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
       if (beat) player = results[idx++]
       if (METRONOME_FILES[bpm]) {
         metronome = results[idx]
-        metronome.mute = !metronomeEnabledRef.current
       }
     } catch (e) {
       console.error('Failed to load audio:', e)
@@ -126,7 +125,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialBeatInd
     }
 
     if (metronome) {
-      metronome.volume.value = volumeToDb(metronomeVolumeRef.current)
+      metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
       metronome.sync().start(0)
       metronomeRef.current = metronome
     }
