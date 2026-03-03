@@ -5,29 +5,34 @@
   --font-serif: var(--font-roboto-slab);
   --font-georgia: var(--font-georgia);
 
-  --color-background: #e1c596;
-  --color-page: #F4EAD5;
-  --color-foreground: #1e293b;
+  --color-background: #0a0a0f;
+  --color-surface: #14141f;
+  --color-surface-light: #1e1e2e;
+  --color-foreground: #e2e2e8;
+  --color-foreground-muted: #8888a0;
 
-  --color-orange-cta: #CC4331;
-  --color-orange-cta-hover: #d95650;
+  --color-accent: #7c5cfc;
+  --color-accent-hover: #9b7fff;
 
-  --color-brown-900: #3E1C15;
+  --color-beat-active: #7c5cfc;
+  --color-beat-cell: #1a1a2a;
+  --color-beat-cell-border: #2a2a3a;
 
-  --color-border: #BF742E;
-  --color-text-body: #3E1C15;
-  --color-text-title: #4A251C;
-  --color-bg-title: #FFE8C5;
+  --color-border: #2a2a3a;
+
+  --color-playhead: #7c5cfc;
 }
 
 body {
   background-color: var(--color-background);
-  background-image: url('/img/background-tile.webp');
   color: var(--color-foreground);
 }
 
 @layer base {
-  blockquote p:first-child {
-    margin-top: 0;
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
   }
 }

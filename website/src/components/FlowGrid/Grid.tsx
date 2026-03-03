@@ -1,0 +1,95 @@
+'use client'
+
+import { useEffect, useRef, type RefObject } from 'react'
+import type { BarData } from '@/lib/rhymes'
+import type { PlayheadPosition } from '@/hooks/usePlayhead'
+import Bar from './Bar'
+
+type GridProps = {
+  bars: BarData[]
+  position: PlayheadPosition
+  isPlaying: boolean
+  playheadLineRef: RefObject<HTMLDivElement | null>
+}
+
+function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
+  const start = el.scrollTop
+  const delta = target - start
+  if (Math.abs(delta) < 1) return
+  const startTime = performance.now()
+  const step = (now: number) => {
+    const t = Math.min((now - startTime) / duration, 1)
+    const ease = t * (2 - t) // ease-out quad
+    el.scrollTop = start + delta * ease
+    if (t < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
+
+export default function Grid({ bars, position, isPlaying, playheadLineRef }: GridProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
+
+  // Position the playhead line over the current bar
+  // Depends on bars too — when old bars are removed, offsets shift
+  useEffect(() => {
+    const barEl = barRefsMap.current.get(position.bar)
+    const line = playheadLineRef.current
+    if (!barEl || !line) return
+
+    line.style.top = `${barEl.offsetTop}px`
+    line.style.height = `${barEl.offsetHeight}px`
+    line.style.display = isPlaying ? 'block' : 'none'
+  }, [position.bar, isPlaying, playheadLineRef, bars])
+
+  // Auto-scroll to keep current bar in upper quarter
+  useEffect(() => {
+    if (!isPlaying) return
+    const container = containerRef.current
+    const barEl = barRefsMap.current.get(position.bar)
+    if (!container || !barEl) return
+
+    const barTop = barEl.offsetTop
+    const scrollTarget = barTop
+
+    smoothScrollTo(container, Math.max(0, scrollTarget))
+  }, [position.bar, isPlaying])
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-y-auto px-2 sm:px-3 pt-0 pb-2 space-y-1 sm:space-y-1.5 relative"
+    >
+      {/* Playhead track — inset to match container padding so left% aligns with timeline */}
+      <div className="absolute inset-y-0 left-2 right-2 sm:left-3 sm:right-3 pointer-events-none z-10">
+        <div
+          ref={playheadLineRef}
+          className="absolute w-0.5 bg-accent rounded-full"
+          style={{
+            left: '0%',
+            top: 0,
+            height: 0,
+            boxShadow: '0 0 8px var(--color-accent)',
+            display: 'none',
+          }}
+        />
+      </div>
+
+      {bars.map((bar) => (
+        <div
+          key={bar.id}
+          ref={(el) => {
+            if (el) barRefsMap.current.set(bar.index, el)
+            else barRefsMap.current.delete(bar.index)
+          }}
+          className="relative"
+        >
+          <Bar
+            bar={bar}
+            currentBeat={position.bar === bar.index ? position.beat : null}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}

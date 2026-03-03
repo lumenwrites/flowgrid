@@ -14,6 +14,8 @@ The user opens the app, selects the beat/loop, and the rhyme dictionary (1-sylla
 Ideally, i'd be able to change BPM, to slow down or speed up the beats, according to their skill level (but that's an optional future feature, if it's really hard to do, I can always just pre-export loops at different bpms from logic).
 As the feature set grows, I expect it to approach some combination of a game and a very simplified DAW.
 
+Needs to be responsive and work equally well on desktop, tabled, phone.
+
 Desired features:
 - Select BPM. First, by simply selecting the track from the beats folder (each one has a bpm associated with it), later - manually adjusting the BPMs up and down and making the app modify tempo automatically.
 - Select the word list for rhymes (from ./rhyme-finder).

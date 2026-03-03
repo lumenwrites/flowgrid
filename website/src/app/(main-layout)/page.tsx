@@ -1,45 +1,66 @@
-import Container from '@/components/Layout/Container'
-import PostBox from '@/components/Posts/PostBox'
+'use client'
 
-const samplePosts = [
-  {
-    slug: 'getting-started',
-    title: 'Getting Started',
-    description:
-      'Welcome to the project. This is a sample post to demonstrate the layout and styling. Replace this with real content once your backend is connected.',
-    tags: [
-      { name: 'Guide', slug: 'guide' },
-      { name: 'Setup', slug: 'setup' },
-    ],
-  },
-  {
-    slug: 'design-system',
-    title: 'Design System',
-    description:
-      'This starter uses a warm literary aesthetic with parchment tones, serif headings, and Georgia body text. Customize the theme tokens in globals.css to match your project.',
-    tags: [
-      { name: 'Design', slug: 'design' },
-      { name: 'Tailwind', slug: 'tailwind' },
-    ],
-  },
-  {
-    slug: 'architecture-notes',
-    title: 'Architecture Notes',
-    description:
-      'The codebase follows a feature-based component structure with typed API wrappers, Supabase RPC patterns, and a route-group layout. See the references/ folder for full conventions.',
-    tags: [
-      { name: 'Architecture', slug: 'architecture' },
-      { name: 'Next.js', slug: 'nextjs' },
-    ],
-  },
-]
+import { useEffect } from 'react'
+import Toolbar from '@/components/Toolbar'
+import PlayButton from '@/components/PlayButton'
+import Grid from '@/components/FlowGrid/Grid'
+import Timeline from '@/components/FlowGrid/Timeline'
+import { useAudioEngine } from '@/hooks/useAudioEngine'
+import { usePlayhead } from '@/hooks/usePlayhead'
+import { useRhymes } from '@/hooks/useRhymes'
 
 export default function Home() {
+  const {
+    isPlaying,
+    selectedBeatIndex,
+    togglePlay,
+    changeBeat,
+    stop,
+  } = useAudioEngine()
+
+  const { position, playheadLineRef, timelineLineRef, resetPosition } = usePlayhead(isPlaying)
+
+  const {
+    wordLists,
+    selectedListId,
+    bars,
+    changeWordList,
+    extendBars,
+    regenerate,
+  } = useRhymes()
+
+  // Extend bars as playhead progresses
+  useEffect(() => {
+    extendBars(position.bar)
+  }, [position.bar, extendBars])
+
+  const handleStop = () => {
+    stop()
+    resetPosition()
+    regenerate()
+  }
+
   return (
-    <Container className="mt-4 flex flex-col gap-2">
-      {samplePosts.map((post) => (
-        <PostBox key={post.slug} post={post} />
-      ))}
-    </Container>
+    <>
+      <Toolbar
+        selectedBeatIndex={selectedBeatIndex}
+        onBeatChange={changeBeat}
+        wordLists={wordLists}
+        selectedListId={selectedListId}
+        onWordListChange={changeWordList}
+      />
+      <Timeline currentBeat={position.beat} lineRef={timelineLineRef} />
+      <Grid
+        bars={bars}
+        position={position}
+        isPlaying={isPlaying}
+        playheadLineRef={playheadLineRef}
+      />
+      <PlayButton
+        isPlaying={isPlaying}
+        onToggle={togglePlay}
+        onStop={handleStop}
+      />
+    </>
   )
 }
