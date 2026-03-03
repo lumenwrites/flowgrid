@@ -272,7 +272,10 @@ export default function Sidebar({
               <input
                 type="text"
                 value={seed}
-                readOnly
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10)
+                  if (!isNaN(n)) onSeedChange(n)
+                }}
                 className="flex-1 min-w-0 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
               />
               <button
