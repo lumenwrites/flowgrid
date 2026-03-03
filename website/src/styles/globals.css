@@ -28,6 +28,12 @@ body {
   color: var(--color-foreground);
 }
 
+@supports (height: 100dvh) {
+  body {
+    height: 100dvh !important;
+  }
+}
+
 @layer base {
   * {
     scrollbar-width: none;
