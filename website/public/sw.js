@@ -55,18 +55,20 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Everything else: cache-first
+  // Everything else: cache-first, then network (cache on success)
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
-      return fetch(request).then((response) => {
-        // Cache successful same-origin responses
-        if (response.ok && request.url.startsWith(self.location.origin)) {
-          const clone = response.clone()
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, clone))
-        }
-        return response
-      })
+      return fetch(request)
+        .then((response) => {
+          // Cache successful same-origin responses
+          if (response.ok && request.url.startsWith(self.location.origin)) {
+            const clone = response.clone()
+            caches.open(CACHE_VERSION).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => new Response('Offline', { status: 503, statusText: 'Offline' }))
     })
   )
 })
