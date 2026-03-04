@@ -172,7 +172,7 @@ export function generateBars(
   return bars
 }
 
-import wordListsData from '../../public/data/word-lists.json'
+import wordListsData from '@/data/word-lists.json'
 
 export function getWordLists(): WordList[] {
   return wordListsData as WordList[]
