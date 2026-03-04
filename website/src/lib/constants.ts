@@ -20,13 +20,13 @@ export type Beat = {
 }
 
 export const AVAILABLE_BEATS: Beat[] = [
-  { label: 'Drums 60', bpm: 60, file: '/loops/drums-loop-60bpm.wav', bars: 1 },
-  { label: 'Drums 80', bpm: 80, file: '/loops/drums-loop-80bpm.wav', bars: 1 },
-  { label: 'Drums 100', bpm: 100, file: '/loops/drums-loop-100bpm.wav', bars: 1 },
-  { label: 'Drums 120', bpm: 120, file: '/loops/drums-loop-120bpm.wav', bars: 1 },
-  { label: 'Scene to Rap 100', bpm: 100, file: '/loops/scene-to-rap-loop-100bpm.m4a', bars: 8 },
-  { label: 'YCCA 80', bpm: 80, file: '/loops/ycca-80bpm-8bars.m4a', bars: 8 },
-  { label: 'Freestyle Drums 100', bpm: 100, file: '/loops/freestyle-drums-100bpm-4bars.wav', bars: 4 },
+  { label: 'Drums 60bpm', bpm: 60,  bars: 1, file: '/loops/drums-loop-60bpm.wav', },
+  { label: 'Drums 80bpm', bpm: 80, bars: 1, file: '/loops/drums-loop-80bpm.wav', },
+  { label: 'Drums 100bpm', bpm: 100, bars: 1, file: '/loops/drums-loop-100bpm.wav', },
+  { label: 'Drums 120bpm', bpm: 120, bars: 1, file: '/loops/drums-loop-120bpm.wav', },
+  { label: 'Scene to Rap 100bpm', bpm: 100, bars: 8, file: '/loops/scene-to-rap-loop-100bpm.m4a', },
+  { label: 'YCCA 80bpm', bpm: 80, bars: 8, file: '/loops/ycca-80bpm-8bars.m4a', },
+  { label: 'Freestyle Drums 100bpm', bpm: 100, bars: 4, file: '/loops/freestyle-drums-100bpm-4bars.wav', },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
