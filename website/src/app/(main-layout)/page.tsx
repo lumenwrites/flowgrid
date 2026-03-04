@@ -66,15 +66,18 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     extendBars(position.bar)
   }, [position.bar, extendBars])
 
-  // Stop playback when preset runs out of bars
+  // Stop playback when we run out of bars (preset or fixed bar count)
   useEffect(() => {
-    if (!presetBars || presetBars.length === 0 || !isPlaying) return
-    if (position.bar >= presetBars.length) {
+    if (!isPlaying) return
+    const barLimit = presetBars
+      ? presetBars.length
+      : settings.barCount !== 0 ? bars.length : null
+    if (barLimit !== null && position.bar >= barLimit) {
       stop()
       resetPosition()
       regenerate()
     }
-  }, [position.bar, presetBars, isPlaying, stop, resetPosition, regenerate])
+  }, [position.bar, presetBars, bars.length, settings.barCount, isPlaying, stop, resetPosition, regenerate])
 
   const handleBeatChange = (index: number) => {
     changeBeat(index)
