@@ -1,0 +1,22 @@
+{
+  "words": [
+    "boat",
+    "coat",
+    "now",
+    "how",
+    "gold",
+    "old",
+    "eat",
+    "asleep",
+    "island",
+    "smiling",
+    "hook",
+    "book",
+    "cry",
+    "by",
+    "book",
+    "look"
+  ],
+  "pattern": "AABB",
+  "audio": "/examples/vocals-test.mp3"
+}

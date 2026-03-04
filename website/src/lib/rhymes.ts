@@ -172,6 +172,87 @@ export function generateBars(
   return bars
 }
 
+// Preset: a fixed sequence of words with a rhyme pattern for coloring.
+// Load via ?preset=name URL param → fetches /presets/name.json
+export type Preset = {
+  words: string[]
+  pattern: RhymePattern
+  audio?: string
+}
+
+export function generateBarsFromPreset(
+  preset: Preset,
+  barsPerLine: BarsPerLine = 1,
+  fillMode: FillMode = 'all',
+  introBars: number = 0,
+): BarData[] {
+  const { words, pattern } = preset
+
+  const introLines = Math.ceil(introBars / barsPerLine)
+  const placeholderColor = RHYME_COLORS[0]
+  const lineRhymes: { word: string; color: typeof RHYME_COLORS[0]; familyId: number }[] = []
+
+  for (let i = 0; i < introLines; i++) {
+    lineRhymes.push({ word: '', color: placeholderColor, familyId: -1 })
+  }
+
+  let colorIndex = 0
+
+  if (pattern === 'AABB') {
+    for (let i = 0; i < words.length; i += 2) {
+      const color = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      const familyId = colorIndex
+      colorIndex++
+      lineRhymes.push({ word: words[i], color, familyId })
+      if (i + 1 < words.length) {
+        lineRhymes.push({ word: words[i + 1], color, familyId })
+      }
+    }
+  } else {
+    // ABAB: lines 0&2 share color A, lines 1&3 share color B
+    for (let i = 0; i < words.length; i += 4) {
+      const colorA = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      colorIndex++
+      const colorB = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
+      colorIndex++
+      const group = [
+        { word: words[i], color: colorA, familyId: colorIndex - 1 },
+        { word: words[i + 1], color: colorB, familyId: colorIndex },
+        { word: words[i + 2], color: colorA, familyId: colorIndex - 1 },
+        { word: words[i + 3], color: colorB, familyId: colorIndex },
+      ]
+      for (let j = 0; j < 4 && i + j < words.length; j++) {
+        lineRhymes.push(group[j])
+      }
+    }
+  }
+
+  const bars: BarData[] = []
+  for (let lineIdx = 0; lineIdx < lineRhymes.length; lineIdx++) {
+    const rhyme = lineRhymes[lineIdx]
+    const visibleLineIdx = lineIdx - introLines
+    const posInPair = visibleLineIdx < 0 ? 0 : visibleLineIdx % 2
+    const rhymeHidden =
+      fillMode === 'all-blanks' ? true :
+      fillMode === 'setup-punchline' ? posInPair === 0 :
+      fillMode === 'off-the-cliff' ? posInPair === 1 :
+      false
+    for (let b = 0; b < barsPerLine; b++) {
+      const barIdx = lineIdx * barsPerLine + b
+      bars.push({
+        id: uid(),
+        index: barIdx,
+        rhymeWord: rhyme.word,
+        rhymeColor: rhyme.color,
+        familyId: rhyme.familyId,
+        rhymeHidden,
+      })
+    }
+  }
+
+  return bars
+}
+
 import wordListsData from '@/data/word-lists.json'
 
 export function getWordLists(): WordList[] {

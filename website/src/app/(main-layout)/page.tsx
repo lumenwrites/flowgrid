@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Toolbar from '@/components/Toolbar'
 import Sidebar from '@/components/Sidebar'
 import PlayButton from '@/components/PlayButton'
@@ -11,6 +11,8 @@ import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
+import { type Preset, generateBarsFromPreset } from '@/lib/rhymes'
+import { usePresetAudio } from '@/hooks/usePresetAudio'
 
 export default function Home() {
   const { settings, update, loaded } = useSettings()
@@ -22,6 +24,23 @@ export default function Home() {
 
 function FlowGrid({ settings, update }: { settings: Settings; update: <K extends keyof Settings>(key: K, value: Settings[K]) => void }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [preset, setPreset] = useState<Preset | null>(null)
+
+  useEffect(() => {
+    const name = new URLSearchParams(window.location.search).get('preset')
+    if (!name) return
+    fetch(`/presets/${name}.json`)
+      .then(r => r.json())
+      .then((data: Preset) => setPreset(data))
+      .catch(console.error)
+  }, [])
+
+  const presetBars = useMemo(() => {
+    if (!preset) return null
+    return generateBarsFromPreset(preset, settings.barsPerLine, settings.fillMode, settings.introBars)
+  }, [preset, settings.barsPerLine, settings.fillMode, settings.introBars])
+
+  usePresetAudio(preset?.audio ?? null)
 
   const {
     isPlaying,
@@ -46,6 +65,16 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   useEffect(() => {
     extendBars(position.bar)
   }, [position.bar, extendBars])
+
+  // Stop playback when preset runs out of bars
+  useEffect(() => {
+    if (!presetBars || presetBars.length === 0 || !isPlaying) return
+    if (position.bar >= presetBars.length) {
+      stop()
+      resetPosition()
+      regenerate()
+    }
+  }, [position.bar, presetBars, isPlaying, stop, resetPosition, regenerate])
 
   const handleBeatChange = (index: number) => {
     changeBeat(index)
@@ -73,7 +102,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
       <Grid
-        bars={bars}
+        bars={presetBars ?? bars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
