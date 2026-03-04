@@ -2,7 +2,6 @@ const CACHE_VERSION = 'flowgrid-v4'
 
 const PRECACHE_ASSETS = [
   '/',
-  '/data/word-lists.json',
   '/loops/drums-loop-60bpm.wav',
   '/loops/drums-loop-80bpm.wav',
   '/loops/drums-loop-100bpm.wav',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { type WordList, type BarData, loadWordLists, generateBars } from '@/lib/rhymes'
+import { type WordList, type BarData, getWordLists, generateBars } from '@/lib/rhymes'
 import { DEFAULT_BAR_COUNT, BARS_BUFFER, INFINITE_INITIAL_BARS, INFINITE_EXTEND_CHUNK, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
 export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, barCount: number = DEFAULT_BAR_COUNT, initialListId: string = 'elementary', fillMode: FillMode = 'all', seed: number = 42, introBars: number = 0) {
@@ -17,7 +17,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   seedRef.current = seed
   const introBarsRef = useRef(introBars)
   introBarsRef.current = introBars
-  const [wordLists, setWordLists] = useState<WordList[]>([])
+  const [wordLists] = useState<WordList[]>(() => getWordLists())
   const [selectedListId, setSelectedListId] = useState<string>(initialListId)
   const [bars, setBars] = useState<BarData[]>([])
   const selectedListRef = useRef<WordList | undefined>(undefined)
@@ -25,14 +25,6 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   // Keep ref in sync
   const selectedList = wordLists.find((l) => l.id === selectedListId)
   selectedListRef.current = selectedList
-
-  useEffect(() => {
-    let cancelled = false
-    loadWordLists().then((lists) => {
-      if (!cancelled) setWordLists(lists)
-    })
-    return () => { cancelled = true }
-  }, [])
 
   // Generate initial bars when word list or rhyme pattern changes
   useEffect(() => {
