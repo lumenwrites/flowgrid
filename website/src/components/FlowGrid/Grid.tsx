@@ -1,10 +1,47 @@
 'use client'
 
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useRef, useMemo, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
-import { BEATS_PER_BAR, type BarsPerLine } from '@/lib/constants'
+import { BEATS_PER_BAR, type BarsPerLine, type Loop } from '@/lib/constants'
 import Bar from './Bar'
+
+export type SectionStart = { bar: number; loopIndex: number }
+
+export type LoopInfo = {
+  sectionStarts: SectionStart[]
+  loops: Loop[]
+}
+
+type BarSeparator = { type: 'header'; name: string } | { type: 'divider' } | null
+
+function getBarSeparator(barIdx: number, loopInfo: LoopInfo | null): BarSeparator {
+  if (!loopInfo) return null
+  const { sectionStarts, loops } = loopInfo
+  const multiLoop = loops.length > 1
+
+  // Section headers at each section boundary
+  if (multiLoop) {
+    for (const s of sectionStarts) {
+      if (barIdx === s.bar) return { type: 'header', name: loops[s.loopIndex].name }
+    }
+  }
+
+  // Find which section this bar belongs to (last section starting at or before barIdx)
+  let sectionBar = 0
+  let sectionLoopIndex = 0
+  for (const s of sectionStarts) {
+    if (s.bar <= barIdx) { sectionBar = s.bar; sectionLoopIndex = s.loopIndex }
+    else break
+  }
+
+  const loop = loops[sectionLoopIndex]
+  if (loop.bars > 1 && barIdx > sectionBar && (barIdx - sectionBar) % loop.bars === 0) {
+    return { type: 'divider' }
+  }
+
+  return null
+}
 
 type GridProps = {
   bars: BarData[]
@@ -14,6 +51,7 @@ type GridProps = {
   barsPerLine: BarsPerLine
   introBars: number
   scrollToBar: number
+  loopInfo: LoopInfo | null
 }
 
 let scrollRafId: number | null = null
@@ -33,22 +71,64 @@ function smoothScrollTo(el: HTMLElement, target: number, duration = 250) {
   scrollRafId = requestAnimationFrame(step)
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar }: GridProps) {
+const SEPARATOR_CLASS = 'flex items-center px-1 h-5'
+
+function SectionHeader({ name }: { name: string }) {
+  return (
+    <div className={`${SEPARATOR_CLASS} gap-2`}>
+      <span className="text-xs font-semibold text-accent uppercase tracking-wide">{name}</span>
+      <div className="flex-1 border-t border-accent/40" />
+    </div>
+  )
+}
+
+function LoopDivider() {
+  return (
+    <div className={SEPARATOR_CLASS}>
+      <div className="flex-1 border-t border-dashed border-border" />
+    </div>
+  )
+}
+
+function SeparatorElement({ separator }: { separator: BarSeparator }) {
+  if (!separator) return null
+  if (separator.type === 'header') return <SectionHeader name={separator.name} />
+  return <LoopDivider />
+}
+
+// Given a wrapper element, find the bar content element inside it (last child).
+// Scroll targets use the wrapper (includes separator), playhead uses the bar content.
+function getBarContent(wrapper: HTMLElement): HTMLElement {
+  return (wrapper.lastElementChild as HTMLElement) ?? wrapper
+}
+
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar, loopInfo }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
+  // Single ref map: bar index → outer wrapper element (contains separator + bar content)
+  const wrapperRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 
-  // Position the playhead line over the current bar
-  // Depends on bars too — when old bars are removed, offsets shift
+  // Pre-compute separators for visible bars
+  const separatorMap = useMemo(() => {
+    const map = new Map<number, BarSeparator>()
+    for (const bar of bars) {
+      const sep = getBarSeparator(bar.index, loopInfo)
+      if (sep) map.set(bar.index, sep)
+    }
+    return map
+  }, [bars, loopInfo])
+
+  // Position the playhead line over the bar content (not the separator)
+  // Depends on separatorMap so it repositions immediately when separators change
   useEffect(() => {
-    const barEl = barRefsMap.current.get(position.bar)
+    const wrapper = wrapperRefsMap.current.get(position.bar)
     const line = playheadLineRef.current
-    if (!barEl || !line) return
+    if (!wrapper || !line) return
 
+    const barEl = getBarContent(wrapper)
     line.style.top = `${barEl.offsetTop}px`
     line.style.height = `${barEl.offsetHeight}px`
     line.style.display = 'block'
 
-    // Match rhyme color when over the rhyme cell (last beat of last bar in row)
     const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
     const isLastBeat = position.beat === BEATS_PER_BAR - 1
     const currentBar = bars.find((b) => b.index === position.bar)
@@ -61,19 +141,19 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
       line.style.backgroundColor = ''
       line.style.boxShadow = '0 0 8px var(--color-accent)'
     }
-  }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine])
+  }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine, separatorMap])
 
-  // Auto-scroll ~300ms before the next row starts (triggered by usePlayhead RAF)
+  // Auto-scroll — targets the wrapper so separator + bar are both visible
   useEffect(() => {
     if (scrollToBar < 0) return
     const container = containerRef.current
     if (!container) return
-    const barEl = barRefsMap.current.get(scrollToBar)
-    const scrollTarget = barEl ? barEl.offsetTop : 0
+    const wrapper = wrapperRefsMap.current.get(scrollToBar)
+    const scrollTarget = wrapper ? wrapper.offsetTop : 0
     smoothScrollTo(container, Math.max(0, scrollTarget))
   }, [scrollToBar])
 
-  // Ensure correct scroll position on first bar (initial load / stop)
+  // Reset scroll on stop
   useEffect(() => {
     if (position.bar === 0 && position.beat === 0) {
       const container = containerRef.current
@@ -81,12 +161,19 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     }
   }, [position.bar, position.beat])
 
+  function setRefs(barIndices: number[], el: HTMLDivElement | null) {
+    for (const idx of barIndices) {
+      if (el) wrapperRefsMap.current.set(idx, el)
+      else wrapperRefsMap.current.delete(idx)
+    }
+  }
+
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-hidden px-2 sm:px-3 pt-0 pb-2 space-y-1 sm:space-y-1.5 relative"
+      className="flex-1 overflow-y-hidden px-2 sm:px-3 pt-0 pb-2 relative"
     >
-      {/* Playhead track — inset to match container padding so left% aligns with timeline */}
+      {/* Playhead track */}
       <div className="absolute inset-y-0 left-2 right-2 sm:left-3 sm:right-3 pointer-events-none z-10">
         <div
           ref={playheadLineRef}
@@ -105,45 +192,47 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
         ? Array.from({ length: Math.ceil(bars.length / 2) }).map((_, rowIdx) => {
             const pair = bars.slice(rowIdx * 2, rowIdx * 2 + 2)
             const firstBar = pair[0]
+            const separator = separatorMap.get(firstBar.index) ?? null
             return (
               <div
                 key={firstBar.id}
-                ref={(el) => {
-                  for (const b of pair) {
-                    if (el) barRefsMap.current.set(b.index, el)
-                    else barRefsMap.current.delete(b.index)
-                  }
-                }}
-                className="relative grid grid-cols-2 gap-1 sm:gap-1.5"
+                ref={(el) => setRefs(pair.map(b => b.index), el)}
+                className={separator ? '' : 'mt-1 sm:mt-1.5'}
               >
-                {pair.map((bar, i) => (
-                  <Bar
-                    key={bar.id}
-                    bar={bar}
-                    currentBeat={position.bar === bar.index ? position.beat : null}
-                    isLastInLine={i === pair.length - 1}
-                    isIntro={bar.index < introBars}
-                  />
-                ))}
+                <SeparatorElement separator={separator} />
+                <div className="relative grid grid-cols-2 gap-1 sm:gap-1.5">
+                  {pair.map((bar, i) => (
+                    <Bar
+                      key={bar.id}
+                      bar={bar}
+                      currentBeat={position.bar === bar.index ? position.beat : null}
+                      isLastInLine={i === pair.length - 1}
+                      isIntro={bar.index < introBars}
+                    />
+                  ))}
+                </div>
               </div>
             )
           })
-        : bars.map((bar) => (
-            <div
-              key={bar.id}
-              ref={(el) => {
-                if (el) barRefsMap.current.set(bar.index, el)
-                else barRefsMap.current.delete(bar.index)
-              }}
-              className="relative"
-            >
-              <Bar
-                bar={bar}
-                currentBeat={position.bar === bar.index ? position.beat : null}
-                isIntro={bar.index < introBars}
-              />
-            </div>
-          ))}
+        : bars.map((bar) => {
+            const separator = separatorMap.get(bar.index) ?? null
+            return (
+              <div
+                key={bar.id}
+                ref={(el) => setRefs([bar.index], el)}
+                className={separator ? '' : 'mt-1 sm:mt-1.5'}
+              >
+                <SeparatorElement separator={separator} />
+                <div className="relative">
+                  <Bar
+                    bar={bar}
+                    currentBeat={position.bar === bar.index ? position.beat : null}
+                    isIntro={bar.index < introBars}
+                  />
+                </div>
+              </div>
+            )
+          })}
     </div>
   )
 }

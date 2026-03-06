@@ -7,8 +7,9 @@ All app source is in `website/src/`. The app is Next.js 16 + Tone.js + Tailwind.
 
 ## Key files to understand the app
 
-- `website/src/lib/constants.ts` — All config: tracks, metronome files, rhyme colors (4-shade), fill modes, bar count options, types
-- `website/src/hooks/useAudioEngine.ts` — Tone.js audio playback (track + metronome players, BPM-aware, volume control)
+- `website/src/lib/constants.ts` — All config: tracks (with loops), metronome files, rhyme colors (4-shade), fill modes, types
+- `website/src/hooks/useAudioEngine.ts` — Tone.js audio playback (multi-loop buffer loading, transition scheduling, metronome, volume)
+- `website/src/components/LoopSelector.tsx` — Loop buttons for multi-loop tracks (queue next loop during playback)
 - `website/src/hooks/usePlayhead.ts` — Beat tracking and smooth playhead position
 - `website/src/hooks/useRhymes.ts` — Word list loading, bar generation, infinite extending (seed-aware)
 - `website/src/hooks/useSettings.ts` — localStorage persistence (all settings including seed, fill mode, intro bars, metronome BPM, track/metronome volume)

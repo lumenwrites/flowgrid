@@ -22,7 +22,8 @@ website/src/
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
-│   ├── Sidebar.tsx                     — Slide-over settings panel (track, BPM, words, bars/line, bar count, intro bars, rhyme pattern, fill mode, seed)
+│   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes)
+│   ├── LoopSelector.tsx                — Loop buttons row above play button (multi-loop tracks only)
 │   └── PlayButton.tsx                  — Play/pause + stop at bottom center
 │
 ├── hooks/
@@ -32,7 +33,7 @@ website/src/
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Track definitions, metronome files, color palette, all config types
+│   ├── constants.ts                    — Track/Loop definitions, metronome files, color palette, all config types
 │   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
 │   └── utils.ts                        — cn() utility
 │
@@ -43,13 +44,15 @@ website/src/
 ## Audio Engine (`useAudioEngine`)
 
 - Uses **Tone.js** Transport as master clock
-- `Tone.Player` for track loop (synced to transport, looping)
+- Tracks have one or more loops; all loop audio buffers are pre-loaded on track selection
+- Active loop plays via a synced `Tone.Player` with `loop: true`
+- Loop transitions: a new player is created and synced to start at the boundary bar; the old player is stopped/disposed in a `Transport.schedule()` callback — seamless gapless switching
+- Pending transitions can be cancelled (user re-queues) via `Transport.clear()` + player disposal
 - Separate `Tone.Player` for metronome (synced, muted/unmuted live)
 - Track index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
-- Players created with `onload` callback → `Promise` wrapper → `await` before `.sync().start(0)`
 - BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
-- Reloads metronome when BPM changes while track is "None"
+- Returns `currentLoopIndex`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`
 
 ## Playhead (`usePlayhead`)
 
@@ -114,15 +117,22 @@ Sidebar (slides from left):
 
 ## Adding New Tracks
 
-1. Place audio file in `website/public/loops/`
+1. Place audio files in `website/public/loops/` (subdirectory for multi-loop tracks)
 2. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
    ```ts
-   { label: 'My Track 90', bpm: 90, file: '/loops/my-track-90bpm.wav', bars: 4 }
+   // Single-loop track
+   { label: 'My Track 90', bpm: 90, loops: [{ name: 'Loop', file: '/loops/my-track-90bpm.wav', bars: 4 }] }
+   // Multi-loop track
+   { label: 'My Song 120', bpm: 120, loops: [
+     { name: 'Verse', file: '/loops/my-song/verse-4bars.wav', bars: 4 },
+     { name: 'Chorus', file: '/loops/my-song/chorus-8bars.wav', bars: 8 },
+   ] }
    ```
 3. If a metronome at that BPM exists, add to `METRONOME_FILES`:
    ```ts
    90: '/loops/metronome-loop-90bpm.wav',
    ```
+4. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
 
 ## Key Design Decisions
 

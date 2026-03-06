@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { type WordList, type BarData, getWordLists, generateBars } from '@/lib/rhymes'
-import { DEFAULT_BAR_COUNT, BARS_BUFFER, INFINITE_INITIAL_BARS, INFINITE_EXTEND_CHUNK, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { BARS_BUFFER, INFINITE_INITIAL_BARS, INFINITE_EXTEND_CHUNK, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
-export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, barCount: number = DEFAULT_BAR_COUNT, initialListId: string = 'elementary', fillMode: FillMode = 'all', seed: number = 42, introBars: number = 0) {
-  const barCountRef = useRef(barCount)
-  barCountRef.current = barCount
+export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, initialListId: string = 'elementary', fillMode: FillMode = 'all', seed: number = 42, introBars: number = 0) {
   const rhymePatternRef = useRef(rhymePattern)
   rhymePatternRef.current = rhymePattern
   const barsPerLineRef = useRef(barsPerLine)
@@ -29,16 +27,13 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   // Generate initial bars when word list or rhyme pattern changes
   useEffect(() => {
     if (!selectedList) return
-    const count = barCount === 0 ? INFINITE_INITIAL_BARS : barCount + introBars
-    const newBars = generateBars(selectedList, count, 0, rhymePattern, barsPerLine, fillMode, seed, introBars)
+    const newBars = generateBars(selectedList, INFINITE_INITIAL_BARS, 0, rhymePattern, barsPerLine, fillMode, seed, introBars)
     setBars(newBars)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedListId, wordLists, rhymePattern, barsPerLine, barCount, fillMode, seed, introBars])
+  }, [selectedListId, wordLists, rhymePattern, barsPerLine, fillMode, seed, introBars])
 
   const extendBars = useCallback(
     (currentBar: number) => {
-      // Only extend in infinite mode
-      if (barCountRef.current !== 0) return
       const list = selectedListRef.current
       if (!list) return
       setBars((prev) => {
@@ -62,7 +57,7 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   const regenerate = useCallback(() => {
     const list = selectedListRef.current
     if (!list) return
-    const count = barCountRef.current === 0 ? INFINITE_INITIAL_BARS : barCountRef.current + introBarsRef.current
+    const count = INFINITE_INITIAL_BARS
     const newBars = generateBars(list, count, 0, rhymePatternRef.current, barsPerLineRef.current, fillModeRef.current, seedRef.current, introBarsRef.current)
     setBars(newBars)
   }, [])

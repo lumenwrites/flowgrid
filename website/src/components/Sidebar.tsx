@@ -1,6 +1,6 @@
 'use client'
 
-import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 import { randomSeed } from '@/lib/utils'
 import type { WordList } from '@/lib/rhymes'
 
@@ -17,8 +17,6 @@ type SidebarProps = {
   onBarsPerLineChange: (value: BarsPerLine) => void
   rhymePattern: RhymePattern
   onRhymePatternChange: (pattern: RhymePattern) => void
-  barCount: number
-  onBarCountChange: (count: number) => void
   fillMode: FillMode
   onFillModeChange: (mode: FillMode) => void
   introBars: number
@@ -46,8 +44,6 @@ export default function Sidebar({
   onBarsPerLineChange,
   rhymePattern,
   onRhymePatternChange,
-  barCount,
-  onBarCountChange,
   fillMode,
   onFillModeChange,
   introBars,

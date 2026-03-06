@@ -8,12 +8,20 @@ function volumeToDb(v: number): number {
   return v === 0 ? -Infinity : 20 * Math.log10(v / 100)
 }
 
+type PendingTransition = {
+  eventId: number
+  player: Tone.Player
+}
+
 export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIndex: number = DEFAULT_TRACK_INDEX, metronomeBpm: number = DEFAULT_BPM, trackVolume: number = 100, metronomeVolume: number = 100) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedTrackIndex, setSelectedTrackIndex] = useState(initialTrackIndex)
+  const [currentLoopIndex, setCurrentLoopIndex] = useState(0)
   const selectedTrackIndexRef = useRef(initialTrackIndex)
   const playerRef = useRef<Tone.Player | null>(null)
   const metronomeRef = useRef<Tone.Player | null>(null)
+  const buffersRef = useRef<Tone.ToneAudioBuffer[]>([])
+  const pendingRef = useRef<PendingTransition | null>(null)
   const isLoadedRef = useRef(false)
   const metronomeEnabledRef = useRef(metronomeEnabled)
   metronomeEnabledRef.current = metronomeEnabled
@@ -23,34 +31,31 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   trackVolumeRef.current = trackVolume
   const metronomeVolumeRef = useRef(metronomeVolume)
   metronomeVolumeRef.current = metronomeVolume
+  const currentLoopIndexRef = useRef(0)
 
-  // Sync metronome mute state — apply volume or silence
   useEffect(() => {
     if (metronomeRef.current) {
       metronomeRef.current.volume.value = metronomeEnabled ? volumeToDb(metronomeVolumeRef.current) : -Infinity
     }
   }, [metronomeEnabled])
 
-  // Sync track volume (0-100 → dB, 0 = -Infinity)
   useEffect(() => {
     if (playerRef.current) {
       playerRef.current.volume.value = volumeToDb(trackVolume)
     }
   }, [trackVolume])
 
-  // Sync metronome volume
   useEffect(() => {
     if (metronomeRef.current) {
       metronomeRef.current.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolume) : -Infinity
     }
   }, [metronomeVolume])
 
-  // Reload when metronomeBpm changes and track is None (different metronome file needed)
   useEffect(() => {
     if (!isLoadedRef.current) return
     if (selectedTrackIndexRef.current !== NONE_TRACK_INDEX) return
     const wasPlaying = Tone.getTransport().state === 'started'
-    loadTrack(NONE_TRACK_INDEX).then(() => {
+    loadTrack(NONE_TRACK_INDEX, 0).then(() => {
       if (wasPlaying) {
         Tone.getTransport().start()
         setIsPlaying(true)
@@ -59,12 +64,23 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metronomeBpm])
 
-  const loadTrack = useCallback(async (trackIndex: number) => {
-    // Stop and reset transport position (don't cancel — that kills the playhead loop)
+  function cancelPendingTransition() {
+    const pending = pendingRef.current
+    if (!pending) return
+    Tone.getTransport().clear(pending.eventId)
+    pending.player.unsync()
+    pending.player.dispose()
+    pendingRef.current = null
+  }
+
+  const loadTrack = useCallback(async (trackIndex: number, loopIndex: number = 0) => {
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
 
+    cancelPendingTransition()
+
     if (playerRef.current) {
+      playerRef.current.unsync()
       playerRef.current.dispose()
       playerRef.current = null
     }
@@ -72,13 +88,18 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       metronomeRef.current.dispose()
       metronomeRef.current = null
     }
-
+    buffersRef.current = []
     isLoadedRef.current = false
 
     const track = trackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[trackIndex]
     const bpm = track ? track.bpm : metronomeBpmRef.current
 
-    // Helper: create a player and return a promise that resolves when loaded
+    function loadBuffer(url: string): Promise<Tone.ToneAudioBuffer> {
+      return new Promise((resolve, reject) => {
+        const buf = new Tone.ToneAudioBuffer(url, () => resolve(buf), (e) => reject(e))
+      })
+    }
+
     function createPlayer(url: string, loop: boolean): Promise<Tone.Player> {
       return new Promise((resolve, reject) => {
         const p = new Tone.Player({
@@ -90,57 +111,83 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       })
     }
 
-    // Create track player (if a track is selected)
-    let player: Tone.Player | null = null
-    let metronome: Tone.Player | null = null
-
     try {
-      const loadPromises: Promise<Tone.Player>[] = []
-
-      if (track) {
-        loadPromises.push(createPlayer(track.file, true))
-      }
-
+      // Load all loop buffers + the initial player + metronome in parallel
+      const loopBufferPromises = track ? track.loops.map(l => loadBuffer(l.file)) : []
       const metronomeFile = METRONOME_FILES[bpm]
-      if (metronomeFile) {
-        loadPromises.push(createPlayer(metronomeFile, true))
+      const metronomePromise = metronomeFile ? createPlayer(metronomeFile, true) : null
+
+      const [loopBuffers, metronome] = await Promise.all([
+        Promise.all(loopBufferPromises),
+        metronomePromise,
+      ])
+
+      buffersRef.current = loopBuffers
+
+      // Create the initial loop player
+      if (track && loopBuffers.length > 0) {
+        const player = new Tone.Player(loopBuffers[loopIndex]).toDestination()
+        player.loop = true
+        player.volume.value = volumeToDb(trackVolumeRef.current)
+        player.sync().start(0)
+        playerRef.current = player
       }
 
-      const results = await Promise.all(loadPromises)
-      let idx = 0
-      if (track) player = results[idx++]
-      if (METRONOME_FILES[bpm]) {
-        metronome = results[idx]
+      if (metronome) {
+        metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
+        metronome.sync().start(0)
+        metronomeRef.current = metronome
       }
+
+      Tone.getTransport().bpm.value = bpm
+      isLoadedRef.current = true
+      setSelectedTrackIndex(trackIndex)
+      selectedTrackIndexRef.current = trackIndex
+      setCurrentLoopIndex(loopIndex)
+      currentLoopIndexRef.current = loopIndex
     } catch (e) {
       console.error('Failed to load audio:', e)
-      return
     }
+  }, [])
 
-    // Apply current volume and sync to transport
-    if (player) {
-      player.volume.value = volumeToDb(trackVolumeRef.current)
-      player.sync().start(0)
-      playerRef.current = player
-    }
+  const scheduleTransition = useCallback((loopIndex: number, atBar: number) => {
+    const buffers = buffersRef.current
+    if (!buffers[loopIndex]) return
 
-    if (metronome) {
-      metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
-      metronome.sync().start(0)
-      metronomeRef.current = metronome
-    }
+    cancelPendingTransition()
 
-    Tone.getTransport().bpm.value = bpm
-    isLoadedRef.current = true
-    setSelectedTrackIndex(trackIndex)
-    selectedTrackIndexRef.current = trackIndex
+    const newPlayer = new Tone.Player(buffers[loopIndex]).toDestination()
+    newPlayer.loop = true
+    newPlayer.volume.value = volumeToDb(trackVolumeRef.current)
+    newPlayer.sync().start(`${atBar}:0:0`)
+
+    const eventId = Tone.getTransport().schedule((time) => {
+      if (playerRef.current) {
+        playerRef.current.unsync()
+        playerRef.current.stop()
+        playerRef.current.dispose()
+      }
+      playerRef.current = newPlayer
+      pendingRef.current = null
+
+      Tone.getDraw().schedule(() => {
+        setCurrentLoopIndex(loopIndex)
+        currentLoopIndexRef.current = loopIndex
+      }, time)
+    }, `${atBar}:0:0`)
+
+    pendingRef.current = { eventId, player: newPlayer }
+  }, [])
+
+  const cancelTransition = useCallback(() => {
+    cancelPendingTransition()
   }, [])
 
   const togglePlay = useCallback(async () => {
     await Tone.start()
 
     if (!isLoadedRef.current) {
-      await loadTrack(selectedTrackIndexRef.current)
+      await loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current)
     }
 
     const transport = Tone.getTransport()
@@ -156,7 +203,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   const changeTrack = useCallback(
     async (trackIndex: number) => {
       const wasPlaying = Tone.getTransport().state === 'started'
-      await loadTrack(trackIndex)
+      await loadTrack(trackIndex, 0)
 
       if (wasPlaying) {
         Tone.getTransport().start()
@@ -166,7 +213,13 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     [loadTrack]
   )
 
+  const setLoopIndex = useCallback((loopIndex: number) => {
+    setCurrentLoopIndex(loopIndex)
+    currentLoopIndexRef.current = loopIndex
+  }, [])
+
   const stop = useCallback(() => {
+    cancelPendingTransition()
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
     setIsPlaying(false)
@@ -188,8 +241,12 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   return {
     isPlaying,
     selectedTrackIndex,
+    currentLoopIndex,
     togglePlay,
     changeTrack,
     stop,
+    scheduleTransition,
+    cancelTransition,
+    setLoopIndex,
   }
 }

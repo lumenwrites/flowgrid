@@ -1,7 +1,9 @@
-const CACHE_VERSION = 'flowgrid-v4'
+const CACHE_VERSION = 'flowgrid-v5'
 
 const PRECACHE_ASSETS = [
   '/',
+  '/loops/basic-drums-80bpm/verse-4bars.wav',
+  '/loops/basic-drums-80bpm/chorus-4bars.wav',
   '/loops/drums-loop-60bpm.wav',
   '/loops/drums-loop-80bpm.wav',
   '/loops/drums-loop-100bpm.wav',

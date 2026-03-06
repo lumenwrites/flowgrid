@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { DEFAULT_TRACK_INDEX, DEFAULT_BAR_COUNT, DEFAULT_BPM, DEFAULT_SEED, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { DEFAULT_TRACK_INDEX, DEFAULT_BPM, DEFAULT_SEED, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
 const STORAGE_KEY = 'flowgrid-settings'
 
@@ -11,7 +11,6 @@ export type Settings = {
   selectedListId: string
   barsPerLine: BarsPerLine
   rhymePattern: RhymePattern
-  barCount: number
   fillMode: FillMode
   introBars: number
   metronomeBpm: number
@@ -27,7 +26,6 @@ const DEFAULTS: Settings = {
   selectedListId: 'elementary',
   barsPerLine: 1,
   rhymePattern: 'AABB',
-  barCount: DEFAULT_BAR_COUNT,
   fillMode: 'all',
   introBars: 0,
   metronomeBpm: DEFAULT_BPM,

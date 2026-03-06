@@ -12,21 +12,30 @@ export const RHYME_COLORS = [
   { bg: '#4c1d95', border: '#5b21b6', activeBg: '#5b21b6', activeBorder: '#8b5cf6' }, // violet
 ]
 
+export type Loop = {
+  name: string
+  file: string
+  bars: number
+}
+
 export type Track = {
   label: string
   bpm: number
-  file: string
-  bars: number // how many bars the loop contains
+  loops: Loop[]
 }
 
 export const AVAILABLE_TRACKS: Track[] = [
-  { label: 'Drums 60bpm', bpm: 60,  bars: 1, file: '/loops/drums-loop-60bpm.wav', },
-  { label: 'Drums 80bpm', bpm: 80, bars: 1, file: '/loops/drums-loop-80bpm.wav', },
-  { label: 'Drums 100bpm', bpm: 100, bars: 1, file: '/loops/drums-loop-100bpm.wav', },
-  { label: 'Drums 120bpm', bpm: 120, bars: 1, file: '/loops/drums-loop-120bpm.wav', },
-  { label: 'Scene to Rap 100bpm', bpm: 100, bars: 8, file: '/loops/scene-to-rap-loop-100bpm.m4a', },
-  { label: 'YCCA 80bpm', bpm: 80, bars: 8, file: '/loops/ycca-80bpm-8bars.m4a', },
-  { label: 'Freestyle Drums 100bpm', bpm: 100, bars: 4, file: '/loops/freestyle-drums-100bpm-4bars.wav', },
+  { label: 'Basic Drums 80bpm', bpm: 80, loops: [
+    { name: 'Verse', file: '/loops/basic-drums-80bpm/verse-4bars.wav', bars: 4 },
+    { name: 'Chorus', file: '/loops/basic-drums-80bpm/chorus-4bars.wav', bars: 4 },
+  ]},
+  { label: 'Drums 60bpm', bpm: 60, loops: [{ name: 'Loop', file: '/loops/drums-loop-60bpm.wav', bars: 1 }] },
+  { label: 'Drums 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/loops/drums-loop-80bpm.wav', bars: 1 }] },
+  { label: 'Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/drums-loop-100bpm.wav', bars: 1 }] },
+  { label: 'Drums 120bpm', bpm: 120, loops: [{ name: 'Loop', file: '/loops/drums-loop-120bpm.wav', bars: 1 }] },
+  { label: 'Scene to Rap 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
+  { label: 'YCCA 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/loops/ycca-80bpm-8bars.m4a', bars: 8 }] },
+  { label: 'Freestyle Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/freestyle-drums-100bpm-4bars.wav', bars: 4 }] },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
@@ -37,7 +46,7 @@ export const METRONOME_FILES: Record<number, string> = {
 }
 
 export const NONE_TRACK_INDEX = -1
-export const DEFAULT_TRACK_INDEX = 1 // Drums 80
+export const DEFAULT_TRACK_INDEX = 0 // Basic Drums 80 (multi-loop)
 export const DEFAULT_BPM = 80 // Used when no track is selected
 
 export const INTRO_BAR_OPTIONS = [0, 1, 2, 4, 6, 8]
@@ -45,11 +54,9 @@ export const METRONOME_BPM_OPTIONS = [60, 80, 100, 120]
 
 export const DEFAULT_SEED = 42
 
-export const DEFAULT_BAR_COUNT = 0 // 0 = infinite
-export const BAR_COUNT_OPTIONS = [0, 8, 16, 24, 32, 48, 64]
-export const INFINITE_INITIAL_BARS = 48 // initial bars in infinite mode (fill the screen)
-export const INFINITE_EXTEND_CHUNK = 24 // how many more to generate when running low
-export const BARS_BUFFER = 16 // extend when fewer than this many bars remain ahead
+export const INFINITE_INITIAL_BARS = 48
+export const INFINITE_EXTEND_CHUNK = 24
+export const BARS_BUFFER = 16
 
 export type RhymePattern = 'AABB' | 'ABAB'
 export const RHYME_PATTERNS: { value: RhymePattern; label: string }[] = [
