@@ -166,54 +166,6 @@ export default function Sidebar({
             </select>
           </div>
 
-          {/* Bars per line */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Bars per line</label>
-            <select
-              value={barsPerLine}
-              onChange={(e) => onBarsPerLineChange(Number(e.target.value) as BarsPerLine)}
-              className={selectClass}
-            >
-              {BARS_PER_LINE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Bar count */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Bars</label>
-            <select
-              value={barCount}
-              onChange={(e) => onBarCountChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              {BAR_COUNT_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n === 0 ? 'Infinite' : `${n} bars`}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Intro bars */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Intro bars</label>
-            <select
-              value={introBars}
-              onChange={(e) => onIntroBarsChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              {INTRO_BAR_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n === 0 ? 'None' : n === 1 ? '1 bar' : `${n} bars`}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Rhyme pattern */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Rhyme pattern</label>
@@ -241,6 +193,55 @@ export default function Sidebar({
               {FILL_MODES.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Bars per line */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Bars per line</label>
+            <select
+              value={barsPerLine}
+              onChange={(e) => onBarsPerLineChange(Number(e.target.value) as BarsPerLine)}
+              className={selectClass}
+            >
+              {BARS_PER_LINE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Bar count */}
+          {/* Always keep it infinite? */}
+          {/* <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Bars</label>
+            <select
+              value={barCount}
+              onChange={(e) => onBarCountChange(Number(e.target.value))}
+              className={selectClass}
+            >
+              {BAR_COUNT_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n === 0 ? 'Infinite' : `${n} bars`}
+                </option>
+              ))}
+            </select>
+          </div> */}
+
+          {/* Intro bars */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-foreground">Intro bars</label>
+            <select
+              value={introBars}
+              onChange={(e) => onIntroBarsChange(Number(e.target.value))}
+              className={selectClass}
+            >
+              {INTRO_BAR_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n === 0 ? 'None' : n === 1 ? '1 bar' : `${n} bars`}
                 </option>
               ))}
             </select>

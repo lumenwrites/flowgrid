@@ -38,18 +38,25 @@ export default function Toolbar({
             <circle cx="12" cy="12" r="1.5" fill="currentColor" />
           </svg>
         </button>
-        <label className="text-xs text-foreground-muted">Metronome</label>
         <button
           onClick={() => onMetronomeChange(!metronomeEnabled)}
-          className={`relative w-10 h-5 rounded-full transition-colors ${
-            metronomeEnabled ? 'bg-accent' : 'bg-surface-light'
-          }`}
+          className="p-1.5 rounded hover:bg-surface-light transition-colors"
           aria-label="Toggle metronome"
         >
-          <span
-            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-              metronomeEnabled ? 'translate-x-5' : 'translate-x-0'
+          <div
+            className={`w-[18px] h-[18px] transition-colors ${
+              metronomeEnabled ? 'bg-accent' : 'bg-foreground-muted'
             }`}
+            style={{
+              maskImage: 'url(/metronome.png)',
+              WebkitMaskImage: 'url(/metronome.png)',
+              maskSize: 'contain',
+              WebkitMaskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              WebkitMaskRepeat: 'no-repeat',
+              maskPosition: 'center',
+              WebkitMaskPosition: 'center',
+            }}
           />
         </button>
       </div>
