@@ -44,11 +44,11 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const {
     isPlaying,
-    selectedBeatIndex,
+    selectedTrackIndex,
     togglePlay,
-    changeBeat,
+    changeTrack,
     stop,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedBeatIndex, settings.metronomeBpm, settings.beatVolume, settings.metronomeVolume)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume)
 
   const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
@@ -79,9 +79,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [position.bar, presetBars, bars.length, settings.barCount, isPlaying, stop, resetPosition, regenerate])
 
-  const handleBeatChange = (index: number) => {
-    changeBeat(index)
-    update('selectedBeatIndex', index)
+  const handleTrackChange = (index: number) => {
+    changeTrack(index)
+    update('selectedTrackIndex', index)
   }
 
   const handleWordListChange = (id: string) => {
@@ -117,12 +117,13 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         isPlaying={isPlaying}
         onToggle={togglePlay}
         onStop={handleStop}
+        selectedTrackIndex={selectedTrackIndex}
+        onTrackChange={handleTrackChange}
       />
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        selectedBeatIndex={selectedBeatIndex}
-        onBeatChange={handleBeatChange}
+        selectedTrackIndex={selectedTrackIndex}
         wordLists={wordLists}
         selectedListId={selectedListId}
         onWordListChange={handleWordListChange}
@@ -140,8 +141,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
         seed={settings.seed}
         onSeedChange={(v) => update('seed', v)}
-        beatVolume={settings.beatVolume}
-        onBeatVolumeChange={(v) => update('beatVolume', v)}
+        trackVolume={settings.trackVolume}
+        onTrackVolumeChange={(v) => update('trackVolume', v)}
         metronomeVolume={settings.metronomeVolume}
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
         audioOffset={settings.audioOffset}

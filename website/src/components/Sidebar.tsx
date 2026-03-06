@@ -1,6 +1,6 @@
 'use client'
 
-import { AVAILABLE_BEATS, NONE_BEAT_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, BAR_COUNT_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 import { randomSeed } from '@/lib/utils'
 import type { WordList } from '@/lib/rhymes'
 
@@ -9,8 +9,7 @@ const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-
 type SidebarProps = {
   open: boolean
   onClose: () => void
-  selectedBeatIndex: number
-  onBeatChange: (index: number) => void
+  selectedTrackIndex: number
   wordLists: WordList[]
   selectedListId: string
   onWordListChange: (id: string) => void
@@ -28,8 +27,8 @@ type SidebarProps = {
   onMetronomeBpmChange: (bpm: number) => void
   seed: number
   onSeedChange: (seed: number) => void
-  beatVolume: number
-  onBeatVolumeChange: (volume: number) => void
+  trackVolume: number
+  onTrackVolumeChange: (volume: number) => void
   metronomeVolume: number
   onMetronomeVolumeChange: (volume: number) => void
   audioOffset: number
@@ -39,8 +38,7 @@ type SidebarProps = {
 export default function Sidebar({
   open,
   onClose,
-  selectedBeatIndex,
-  onBeatChange,
+  selectedTrackIndex,
   wordLists,
   selectedListId,
   onWordListChange,
@@ -58,8 +56,8 @@ export default function Sidebar({
   onMetronomeBpmChange,
   seed,
   onSeedChange,
-  beatVolume,
-  onBeatVolumeChange,
+  trackVolume,
+  onTrackVolumeChange,
   metronomeVolume,
   onMetronomeVolumeChange,
   audioOffset,
@@ -106,25 +104,8 @@ export default function Sidebar({
         </div>
 
         <div className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
-          {/* Beat */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Beat</label>
-            <select
-              value={selectedBeatIndex}
-              onChange={(e) => onBeatChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              <option value={NONE_BEAT_INDEX}>None</option>
-              {AVAILABLE_BEATS.map((beat, i) => (
-                <option key={i} value={i}>
-                  {beat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Metronome BPM — only when no beat selected */}
-          {selectedBeatIndex === NONE_BEAT_INDEX && (
+          {/* Metronome BPM — only when no track selected */}
+          {selectedTrackIndex === NONE_TRACK_INDEX && (
             <div className="space-y-1.5">
               <label className="text-sm text-foreground">Metronome BPM</label>
               <select
@@ -141,16 +122,16 @@ export default function Sidebar({
             </div>
           )}
 
-          {/* Beat volume — only when a beat is selected */}
-          {selectedBeatIndex !== NONE_BEAT_INDEX && (
+          {/* Track volume — only when a track is selected */}
+          {selectedTrackIndex !== NONE_TRACK_INDEX && (
             <div className="space-y-1.5">
-              <label className="text-sm text-foreground">Beat volume — {beatVolume}%</label>
+              <label className="text-sm text-foreground">Track volume — {trackVolume}%</label>
               <input
                 type="range"
                 min={0}
                 max={100}
-                value={beatVolume}
-                onChange={(e) => onBeatVolumeChange(Number(e.target.value))}
+                value={trackVolume}
+                onChange={(e) => onTrackVolumeChange(Number(e.target.value))}
                 className="w-full accent-accent"
               />
             </div>

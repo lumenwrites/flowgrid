@@ -22,17 +22,17 @@ website/src/
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
-│   ├── Sidebar.tsx                     — Slide-over settings panel (beat, BPM, words, bars/line, bar count, intro bars, rhyme pattern, fill mode, seed)
+│   ├── Sidebar.tsx                     — Slide-over settings panel (track, BPM, words, bars/line, bar count, intro bars, rhyme pattern, fill mode, seed)
 │   └── PlayButton.tsx                  — Play/pause + stop at bottom center
 │
 ├── hooks/
-│   ├── useAudioEngine.ts               — Tone.js: Transport, Player (beat + metronome), play/pause/stop
+│   ├── useAudioEngine.ts               — Tone.js: Transport, Player (track + metronome), play/pause/stop
 │   ├── usePlayhead.ts                  — Tone.Loop + RAF for beat position + smooth playhead line
 │   ├── useRhymes.ts                    — Word list loading, bar generation, extending
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Beat definitions, metronome files, color palette, all config types
+│   ├── constants.ts                    — Track definitions, metronome files, color palette, all config types
 │   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
 │   └── utils.ts                        — cn() utility
 │
@@ -43,13 +43,13 @@ website/src/
 ## Audio Engine (`useAudioEngine`)
 
 - Uses **Tone.js** Transport as master clock
-- `Tone.Player` for beat loop (synced to transport, looping)
+- `Tone.Player` for track loop (synced to transport, looping)
 - Separate `Tone.Player` for metronome (synced, muted/unmuted live)
-- Beat index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
+- Track index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
 - Players created with `onload` callback → `Promise` wrapper → `await` before `.sync().start(0)`
-- BPM set from the beat's config when a beat is selected; from `metronomeBpm` setting when "None"
+- BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
-- Reloads metronome when BPM changes while beat is "None"
+- Reloads metronome when BPM changes while track is "None"
 
 ## Playhead (`usePlayhead`)
 
@@ -74,7 +74,7 @@ website/src/
 ## Settings (`useSettings`)
 
 - Single `flowgrid-settings` key in localStorage
-- Persisted: metronomeEnabled, selectedBeatIndex, selectedListId, barsPerLine, rhymePattern, barCount, fillMode, introBars, metronomeBpm, seed
+- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, barCount, fillMode, introBars, metronomeBpm, seed
 - Loads on mount with defaults fallback, saves on every change
 - `loaded` flag prevents rendering before hydration (avoids flash)
 
@@ -100,8 +100,8 @@ Sidebar (slides from left):
 ┌──────────────┐
 │ SETTINGS  [✕] │
 │               │
-│ Beat      [▼] │
-│ BPM       [▼] │  ← only when beat=None
+│ Track     [▼] │
+│ BPM       [▼] │  ← only when track=None
 │ Words     [▼] │
 │ Bars/line [▼] │
 │ Bars      [▼] │
@@ -112,16 +112,16 @@ Sidebar (slides from left):
 └──────────────┘
 ```
 
-## Adding New Beats
+## Adding New Tracks
 
-1. Place audio file in `website/public/beats/`
-2. Add entry to `AVAILABLE_BEATS` in `website/src/lib/constants.ts`:
+1. Place audio file in `website/public/loops/`
+2. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
    ```ts
-   { label: 'My Beat 90', bpm: 90, file: '/beats/my-beat-90bpm.wav', bars: 4 }
+   { label: 'My Track 90', bpm: 90, file: '/loops/my-track-90bpm.wav', bars: 4 }
    ```
 3. If a metronome at that BPM exists, add to `METRONOME_FILES`:
    ```ts
-   90: '/beats/metronome-loop-90bpm.wav',
+   90: '/loops/metronome-loop-90bpm.wav',
    ```
 
 ## Key Design Decisions
@@ -130,5 +130,5 @@ Sidebar (slides from left):
 - **Line-level rhyme generation** — patterns (AABB/ABAB) apply to lines not individual bars, so they work correctly regardless of bars-per-line setting
 - **Settings in page.tsx** — all state lives at the page level and flows down via props (no context needed for this scale)
 - **localStorage for persistence** — simplest cross-platform solution, works in PWA contexts on all platforms
-- **No BPM control when beat selected** — each beat file has its own tempo; BPM only user-selectable in "None" mode for metronome
+- **No BPM control when track selected** — each track file has its own tempo; BPM only user-selectable in "None" mode for metronome
 - **Seeded PRNG** — mulberry32 for deterministic rhyme generation; seed persisted so reloads produce the same sequence

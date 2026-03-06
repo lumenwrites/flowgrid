@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { DEFAULT_BEAT_INDEX, DEFAULT_BAR_COUNT, DEFAULT_BPM, DEFAULT_SEED, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { DEFAULT_TRACK_INDEX, DEFAULT_BAR_COUNT, DEFAULT_BPM, DEFAULT_SEED, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
 const STORAGE_KEY = 'flowgrid-settings'
 
 export type Settings = {
   metronomeEnabled: boolean
-  selectedBeatIndex: number
+  selectedTrackIndex: number
   selectedListId: string
   barsPerLine: BarsPerLine
   rhymePattern: RhymePattern
@@ -16,14 +16,14 @@ export type Settings = {
   introBars: number
   metronomeBpm: number
   seed: number
-  beatVolume: number
+  trackVolume: number
   metronomeVolume: number
   audioOffset: number
 }
 
 const DEFAULTS: Settings = {
   metronomeEnabled: false,
-  selectedBeatIndex: DEFAULT_BEAT_INDEX,
+  selectedTrackIndex: DEFAULT_TRACK_INDEX,
   selectedListId: 'elementary',
   barsPerLine: 1,
   rhymePattern: 'AABB',
@@ -32,7 +32,7 @@ const DEFAULTS: Settings = {
   introBars: 0,
   metronomeBpm: DEFAULT_BPM,
   seed: DEFAULT_SEED,
-  beatVolume: 100,
+  trackVolume: 100,
   metronomeVolume: 100,
   audioOffset: 0,
 }
