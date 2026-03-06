@@ -72,6 +72,13 @@ export const FILL_MODES: { value: FillMode; label: string }[] = [
   { value: 'all-blanks', label: 'All Blanks' },
 ]
 
+export type SectionStart = { bar: number; loopIndex: number }
+
+export type LoopInfo = {
+  sectionStarts: SectionStart[]
+  loops: Loop[]
+}
+
 export type BarsPerLine = 1 | 2
 export const BARS_PER_LINE_OPTIONS: { value: BarsPerLine; label: string }[] = [
   { value: 1, label: '1 bar — Rap' },

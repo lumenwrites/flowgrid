@@ -6,16 +6,20 @@ import Sidebar from '@/components/Sidebar'
 import PlayButton from '@/components/PlayButton'
 import LoopSelector from '@/components/LoopSelector'
 import Grid from '@/components/FlowGrid/Grid'
-import type { LoopInfo, SectionStart } from '@/components/FlowGrid/Grid'
 import Timeline from '@/components/FlowGrid/Timeline'
 import { useAudioEngine } from '@/hooks/useAudioEngine'
 import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart } from '@/lib/constants'
 import { type Preset, generateBarsFromPreset } from '@/lib/rhymes'
 import { usePresetAudio } from '@/hooks/usePresetAudio'
+
+function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
+  if (loopBars <= 0) return currentBar
+  return epochBar + Math.ceil((currentBar - epochBar + 1) / loopBars) * loopBars
+}
 
 export default function Home() {
   const { settings, update, loaded } = useSettings()
@@ -77,28 +81,25 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const currentTrack = selectedTrackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndex]
   const currentLoop = currentTrack?.loops[currentLoopIndex] ?? null
   const multiLoop = (currentTrack?.loops.length ?? 0) > 1
-  const lastSection = sectionStarts[sectionStarts.length - 1]
 
-  function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
-    if (loopBars <= 0) return currentBar
-    return epochBar + Math.ceil((currentBar - epochBar + 1) / loopBars) * loopBars
-  }
+  const resetLoopState = useCallback((loopIndex: number) => {
+    setSectionStarts([{ bar: 0, loopIndex }])
+    setQueuedLoopIndex(null)
+    setTransitionBar(null)
+    transitionBarRef.current = null
+  }, [])
 
   const handleSelectLoop = useCallback((index: number) => {
     if (!currentTrack) return
 
     if (!isPlaying) {
       setLoopIndex(index)
-      setQueuedLoopIndex(null)
-      setTransitionBar(null)
-      transitionBarRef.current = null
-      setSectionStarts([{ bar: 0, loopIndex: index }])
+      resetLoopState(index)
       cancelTransition()
       return
     }
 
     if (index === currentLoopIndex && queuedLoopIndex !== null) {
-      // Clicking current loop clears the queue — remove the pending section entry
       setSectionStarts(prev => prev.slice(0, -1))
       setQueuedLoopIndex(null)
       setTransitionBar(null)
@@ -112,16 +113,18 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     const nextLoop = currentTrack.loops[index]
     if (!nextLoop || !currentLoop) return
 
-    const boundary = getNextBoundary(position.bar, lastSection.bar, currentLoop.bars)
-    // Add the section to sectionStarts immediately (so the header is always stable in the DOM)
-    // If re-queuing, replace the pending entry; otherwise append
+    // Use the committed (currently playing) section as epoch, not the pending one
+    const committedSection = queuedLoopIndex !== null
+      ? sectionStarts[sectionStarts.length - 2]
+      : sectionStarts[sectionStarts.length - 1]
+    const boundary = getNextBoundary(position.bar, committedSection.bar, currentLoop.bars)
     const base = queuedLoopIndex !== null ? sectionStarts.slice(0, -1) : sectionStarts
     setSectionStarts([...base, { bar: boundary, loopIndex: index }])
     setQueuedLoopIndex(index)
     setTransitionBar(boundary)
     transitionBarRef.current = boundary
     scheduleTransition(index, boundary)
-  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, lastSection, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex])
+  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState])
 
   // When playhead crosses the transition boundary, just clear the queue (section already in sectionStarts)
   useEffect(() => {
@@ -151,10 +154,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const handleTrackChange = (index: number) => {
     changeTrack(index)
     update('selectedTrackIndex', index)
-    setSectionStarts([{ bar: 0, loopIndex: 0 }])
-    setQueuedLoopIndex(null)
-    setTransitionBar(null)
-    transitionBarRef.current = null
+    resetLoopState(0)
   }
 
   const handleWordListChange = (id: string) => {
@@ -166,16 +166,13 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     stop()
     resetPosition()
     regenerate()
-    setSectionStarts([{ bar: 0, loopIndex: currentLoopIndex }])
-    setQueuedLoopIndex(null)
-    setTransitionBar(null)
-    transitionBarRef.current = null
+    resetLoopState(currentLoopIndex)
   }
 
-  const loopInfo: LoopInfo | null = currentTrack ? {
-    sectionStarts,
-    loops: currentTrack.loops,
-  } : null
+  const loopInfo: LoopInfo | null = useMemo(() => {
+    if (!currentTrack) return null
+    return { sectionStarts, loops: currentTrack.loops }
+  }, [currentTrack, sectionStarts])
 
   return (
     <>

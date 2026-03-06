@@ -3,15 +3,8 @@
 import { useEffect, useRef, useMemo, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
-import { BEATS_PER_BAR, type BarsPerLine, type Loop } from '@/lib/constants'
+import { BEATS_PER_BAR, type BarsPerLine, type LoopInfo } from '@/lib/constants'
 import Bar from './Bar'
-
-export type SectionStart = { bar: number; loopIndex: number }
-
-export type LoopInfo = {
-  sectionStarts: SectionStart[]
-  loops: Loop[]
-}
 
 type BarSeparator = { type: 'header'; name: string } | { type: 'divider' } | null
 
