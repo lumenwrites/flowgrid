@@ -32,7 +32,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 - **Fill modes** — Controls which rhyme words are revealed:
   - *All Rhymes* — every line shows its word (default)
   - *Setup Punchline* — first line shows `????`, second reveals the word
-  - *Off the Cliff* — first line shows the word, second shows `????`
+  - *Off the Cliff* (chasing rhymes) — first line shows the word, second shows `????`
   - *All Blanks* — every line shows `????` (full freestyle)
   - Hidden cells still show their rhyme color so you can see the pattern.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.

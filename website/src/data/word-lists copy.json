@@ -13296,9 +13296,9 @@
     ]
   },
   {
-    "id": "all-rhymes",
-    "name": "All Rhymes",
-    "description": "Contains all the words from the 1, 2, and 3-syllable word lists.",
+    "id": "the-mega-list",
+    "name": "The MEGA List",
+    "description": "The ULTIMATE rhyme list, containing ALL words from the 1, 2, and 3-syllable word packs.",
     "difficulty": 3,
     "freepaid": "PAID",
     "publicList": true,
@@ -23725,8 +23725,8 @@
     ]
   },
   {
-    "id": "rap-dictionary",
-    "name": "Rap Dictionary",
+    "id": "the-rappers-toolkit",
+    "name": "The Rappers Toolkit",
     "description": "If you love to rap, you will use these words A LOT!",
     "difficulty": 2,
     "freepaid": "FREE",
@@ -25612,7 +25612,7 @@
     "description": "Get wild with this nature-themed word pack!",
     "difficulty": 1,
     "freepaid": "PAID",
-    "publicList": false,
+    "publicList": true,
     "tags": [],
     "words": [
       {
@@ -26803,7 +26803,7 @@
     "description": "All food words to get you cooking!",
     "difficulty": 1,
     "freepaid": "PAID",
-    "publicList": false,
+    "publicList": true,
     "tags": [],
     "words": [
       {

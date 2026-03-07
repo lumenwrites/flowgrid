@@ -297,6 +297,9 @@ export function buildDisplayBars(rhymePool: BarData[], loopInfo: LoopInfo | null
 
 import wordListsData from '@/data/word-lists.json'
 
+type WordListRaw = WordList & { publicList?: boolean }
+
 export function getWordLists(): WordList[] {
-  return wordListsData as WordList[]
+  const lists = wordListsData as WordListRaw[]
+  return lists.filter((l) => l.publicList !== false)
 }
