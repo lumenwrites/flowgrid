@@ -26,23 +26,23 @@ export type Track = {
 
 export const AVAILABLE_TRACKS: Track[] = [
   { label: 'Basic Drums 80bpm', bpm: 80, loops: [
-    { name: 'Verse', file: '/loops/basic-drums-80bpm/verse-4bars.wav', bars: 4 },
-    { name: 'Chorus', file: '/loops/basic-drums-80bpm/chorus-4bars.wav', bars: 4 },
+    { name: 'Verse', file: '/tracks/basic-drums-80bpm/verse-4bars.wav', bars: 4 },
+    { name: 'Chorus', file: '/tracks/basic-drums-80bpm/chorus-4bars.wav', bars: 4 },
   ]},
-  { label: 'Drums 60bpm', bpm: 60, loops: [{ name: 'Loop', file: '/loops/drums-loop-60bpm.wav', bars: 1 }] },
-  { label: 'Drums 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/loops/drums-loop-80bpm.wav', bars: 1 }] },
-  { label: 'Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/drums-loop-100bpm.wav', bars: 1 }] },
-  { label: 'Drums 120bpm', bpm: 120, loops: [{ name: 'Loop', file: '/loops/drums-loop-120bpm.wav', bars: 1 }] },
-  { label: 'Scene to Rap 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
-  { label: 'YCCA 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/loops/ycca-80bpm-8bars.m4a', bars: 8 }] },
-  { label: 'Freestyle Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/loops/freestyle-drums-100bpm-4bars.wav', bars: 4 }] },
+  { label: 'Drums 60bpm', bpm: 60, loops: [{ name: 'Loop', file: '/tracks/drums-loop-60bpm.wav', bars: 1 }] },
+  { label: 'Drums 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/drums-loop-80bpm.wav', bars: 1 }] },
+  { label: 'Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/drums-loop-100bpm.wav', bars: 1 }] },
+  { label: 'Drums 120bpm', bpm: 120, loops: [{ name: 'Loop', file: '/tracks/drums-loop-120bpm.wav', bars: 1 }] },
+  { label: 'Scene to Rap 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
+  { label: 'YCCA 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/ycca-80bpm-8bars.m4a', bars: 8 }] },
+  { label: 'Freestyle Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/freestyle-drums-100bpm-4bars.wav', bars: 4 }] },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
-  60: '/loops/metronome-loop-60bpm.wav',
-  80: '/loops/metronome-loop-80bpm.wav',
-  100: '/loops/metronome-loop-100bpm.wav',
-  120: '/loops/metronome-loop-120bpm.wav',
+  60: '/tracks/metronome-loop-60bpm.wav',
+  80: '/tracks/metronome-loop-80bpm.wav',
+  100: '/tracks/metronome-loop-100bpm.wav',
+  120: '/tracks/metronome-loop-120bpm.wav',
 }
 
 export const NONE_TRACK_INDEX = -1
