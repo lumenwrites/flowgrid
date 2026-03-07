@@ -56,13 +56,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     togglePlay,
     changeTrack,
     stop,
+    seekToBar: seekToBarAudio,
     scheduleTransition,
     cancelTransition,
     setLoopIndex,
     loadMix,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm)
 
-  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
+  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
   const {
     wordLists,
@@ -266,6 +267,32 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const activeLoopInfo = mixLoopInfo ?? loopInfo
 
+  const handleBeatClick = useCallback((barIndex: number, beat: number) => {
+    const info = activeLoopInfo
+    let sectionStartBar = 0
+    let targetLoopIndex = currentLoopIndex
+    if (info) {
+      for (const s of info.sectionStarts) {
+        if (s.bar <= barIndex) { sectionStartBar = s.bar; targetLoopIndex = s.loopIndex }
+        else break
+      }
+    }
+
+    if (activeMixIndex !== null) {
+      seekToBarAudio(barIndex, beat)
+    } else if (currentTrack) {
+      seekToBarAudio(barIndex, beat, targetLoopIndex, sectionStartBar)
+      setSectionStarts(prev => prev.filter(s => s.bar <= barIndex))
+      setQueuedLoopIndex(null)
+      setTransitionBar(null)
+      transitionBarRef.current = null
+    } else {
+      seekToBarAudio(barIndex, beat)
+    }
+
+    seekTo(barIndex, beat)
+  }, [activeLoopInfo, currentLoopIndex, activeMixIndex, currentTrack, seekToBarAudio, seekTo])
+
   // Remap the flat rhyme pool so instrumental sections get blank bars and
   // non-instrumental sections pull rhymes sequentially (preserving pair alignment).
   // bars/mixBars = rhyme pool; loopInfo/mixLoopInfo = section structure.
@@ -295,6 +322,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         introBars={activeMix ? 0 : settings.introBars}
         scrollToBar={scrollToBar}
         loopInfo={activeLoopInfo}
+        onBeatClick={handleBeatClick}
       />
       {currentTrack && (multiLoop || hasMixes) && (
         <LoopSelector

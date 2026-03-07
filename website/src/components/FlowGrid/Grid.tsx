@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo, type RefObject } from 'react'
+import { useEffect, useRef, useMemo, useCallback, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
 import { BEATS_PER_BAR, type BarsPerLine, type LoopInfo } from '@/lib/constants'
@@ -45,6 +45,7 @@ type GridProps = {
   introBars: number
   scrollToBar: number
   loopInfo: LoopInfo | null
+  onBeatClick?: (barIndex: number, beat: number) => void
 }
 
 let scrollRafId: number | null = null
@@ -95,10 +96,12 @@ function getBarContent(wrapper: HTMLElement): HTMLElement {
   return (wrapper.lastElementChild as HTMLElement) ?? wrapper
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar, loopInfo }: GridProps) {
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar, loopInfo, onBeatClick }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   // Single ref map: bar index → outer wrapper element (contains separator + bar content)
   const wrapperRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
+  const userScrollingRef = useRef(false)
+  const userScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Pre-compute separators for visible bars
   const separatorMap = useMemo(() => {
@@ -136,9 +139,33 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     }
   }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine, separatorMap])
 
+  // Detect user scrolling to suppress auto-scroll
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    function handleUserScroll() {
+      userScrollingRef.current = true
+      if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
+      userScrollTimeoutRef.current = setTimeout(() => { userScrollingRef.current = false }, 5000)
+    }
+    container.addEventListener('wheel', handleUserScroll, { passive: true })
+    container.addEventListener('touchmove', handleUserScroll, { passive: true })
+    return () => {
+      container.removeEventListener('wheel', handleUserScroll)
+      container.removeEventListener('touchmove', handleUserScroll)
+      if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
+    }
+  }, [])
+
+  const handleBeatClick = useCallback((barIndex: number, beat: number) => {
+    userScrollingRef.current = false
+    if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
+    onBeatClick?.(barIndex, beat)
+  }, [onBeatClick])
+
   // Auto-scroll — targets the wrapper so separator + bar are both visible
   useEffect(() => {
-    if (scrollToBar < 0) return
+    if (scrollToBar < 0 || userScrollingRef.current) return
     const container = containerRef.current
     if (!container) return
     const wrapper = wrapperRefsMap.current.get(scrollToBar)
@@ -164,7 +191,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-hidden px-2 sm:px-3 pt-0 pb-2 relative"
+      className="flex-1 overflow-y-auto px-2 sm:px-3 pt-0 pb-2 relative"
     >
       {/* Playhead track */}
       <div className="absolute inset-y-0 left-2 right-2 sm:left-3 sm:right-3 pointer-events-none z-10">
@@ -201,6 +228,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
                       currentBeat={position.bar === bar.index ? position.beat : null}
                       isLastInLine={i === pair.length - 1}
                       isIntro={bar.index < introBars}
+                      onBeatClick={(beat) => handleBeatClick(bar.index, beat)}
                     />
                   ))}
                 </div>
@@ -221,6 +249,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
                     bar={bar}
                     currentBeat={position.bar === bar.index ? position.beat : null}
                     isIntro={bar.index < introBars}
+                    onBeatClick={(beat) => handleBeatClick(bar.index, beat)}
                   />
                 </div>
               </div>

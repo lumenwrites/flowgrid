@@ -9,9 +9,10 @@ type BarProps = {
   currentBeat: number | null
   isLastInLine?: boolean
   isIntro?: boolean
+  onBeatClick?: (beat: number) => void
 }
 
-export default function Bar({ bar, currentBeat, isLastInLine = true, isIntro = false }: BarProps) {
+export default function Bar({ bar, currentBeat, isLastInLine = true, isIntro = false, onBeatClick }: BarProps) {
   return (
     <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
       {Array.from({ length: BEATS_PER_BAR }).map((_, beatIdx) => {
@@ -23,6 +24,7 @@ export default function Bar({ bar, currentBeat, isLastInLine = true, isIntro = f
             rhymeWord={showRhyme ? bar.rhymeWord : undefined}
             rhymeColor={showRhyme ? bar.rhymeColor : undefined}
             rhymeHidden={showRhyme ? bar.rhymeHidden : undefined}
+            onClick={onBeatClick ? () => onBeatClick(beatIdx) : undefined}
           />
         )
       })}

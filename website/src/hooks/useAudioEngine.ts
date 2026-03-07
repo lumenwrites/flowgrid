@@ -367,6 +367,60 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     currentLoopIndexRef.current = loopIndex
   }, [])
 
+  const seekToBar = useCallback((targetBar: number, beat: number = 0, loopIndex?: number, syncStartBar?: number) => {
+    if (!isLoadedRef.current) return
+
+    const transport = Tone.getTransport()
+    const wasPlaying = transport.state === 'started'
+    transport.pause()
+    cancelPendingTransition()
+
+    if (loopIndex !== undefined && loopIndex !== currentLoopIndexRef.current) {
+      const buffers = buffersRef.current
+      if (buffers[loopIndex]) {
+        if (playerRef.current) {
+          playerRef.current.unsync()
+          playerRef.current.dispose()
+        }
+
+        const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
+        let newPlayer: Tone.Player | Tone.GrainPlayer
+
+        if (track?.bpmVariants) {
+          const p = new Tone.Player(buffers[loopIndex]).toDestination()
+          p.loop = true
+          newPlayer = p
+        } else {
+          const rate = track ? trackBpmRef.current / track.bpm : 1
+          const p = new Tone.GrainPlayer(buffers[loopIndex]).toDestination()
+          p.loop = true
+          p.grainSize = 0.1
+          p.overlap = 0.05
+          p.playbackRate = rate
+          newPlayer = p
+        }
+
+        newPlayer.volume.value = volumeToDb(trackVolumeRef.current)
+        playerRef.current = newPlayer
+        setCurrentLoopIndex(loopIndex)
+        currentLoopIndexRef.current = loopIndex
+      }
+    }
+
+    const startBar = syncStartBar ?? 0
+    if (playerRef.current) {
+      playerRef.current.unsync()
+      playerRef.current.sync().start(`${startBar}:0:0`)
+    }
+    if (metronomeRef.current) {
+      metronomeRef.current.unsync()
+      metronomeRef.current.sync().start(0)
+    }
+
+    transport.position = `${targetBar}:${beat}:0`
+    if (wasPlaying) transport.start()
+  }, [])
+
   const stop = useCallback(() => {
     cancelPendingTransition()
     Tone.getTransport().stop()
@@ -405,6 +459,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     togglePlay,
     changeTrack,
     stop,
+    seekToBar,
     scheduleTransition,
     cancelTransition,
     setLoopIndex,

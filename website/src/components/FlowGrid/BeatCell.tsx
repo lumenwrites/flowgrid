@@ -8,6 +8,7 @@ type BeatCellProps = {
   rhymeWord?: string
   rhymeColor?: RhymeColor
   rhymeHidden?: boolean
+  onClick?: () => void
 }
 
 export default function BeatCell({
@@ -15,13 +16,15 @@ export default function BeatCell({
   rhymeWord,
   rhymeColor,
   rhymeHidden,
+  onClick,
 }: BeatCellProps) {
   const hasRhyme = rhymeWord && rhymeColor
 
   return (
     <div
+      onClick={onClick}
       className={cn(
-        'flex items-center justify-center rounded-md border',
+        'flex items-center justify-center rounded-md border cursor-pointer',
         'h-12 sm:h-14',
         hasRhyme
           ? ''
