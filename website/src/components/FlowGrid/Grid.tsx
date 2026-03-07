@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo, useCallback, useState, type RefObject } from 'react'
+import { useEffect, useRef, useMemo, useCallback, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
 import { BEATS_PER_BAR, type BarsPerLine, type LoopInfo } from '@/lib/constants'
@@ -100,8 +100,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
   const containerRef = useRef<HTMLDivElement>(null)
   // Single ref map: bar index → outer wrapper element (contains separator + bar content)
   const wrapperRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
-  const [autoScrollPaused, setAutoScrollPaused] = useState(false)
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // const autoScrollPausedRef = useRef(false)
 
   // Pre-compute separators for visible bars
   const separatorMap = useMemo(() => {
@@ -139,39 +138,33 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     }
   }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine, separatorMap])
 
-  // Detect user scrolling to suppress auto-scroll
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    function handleUserScroll() {
-      setAutoScrollPaused(true)
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-      scrollTimeoutRef.current = setTimeout(() => setAutoScrollPaused(false), 5000)
-    }
-    container.addEventListener('wheel', handleUserScroll, { passive: true })
-    container.addEventListener('touchmove', handleUserScroll, { passive: true })
-    return () => {
-      container.removeEventListener('wheel', handleUserScroll)
-      container.removeEventListener('touchmove', handleUserScroll)
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-    }
-  }, [])
+  // // Pause auto-scroll when user scrolls manually; re-engages on beat click
+  // useEffect(() => {
+  //   const container = containerRef.current
+  //   if (!container) return
+  //   function handleUserScroll() { autoScrollPausedRef.current = true }
+  //   container.addEventListener('wheel', handleUserScroll, { passive: true })
+  //   container.addEventListener('touchmove', handleUserScroll, { passive: true })
+  //   return () => {
+  //     container.removeEventListener('wheel', handleUserScroll)
+  //     container.removeEventListener('touchmove', handleUserScroll)
+  //   }
+  // }, [])
 
   const handleBeatClick = useCallback((barIndex: number, beat: number) => {
-    setAutoScrollPaused(false)
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+    // autoScrollPausedRef.current = false
     onBeatClick?.(barIndex, beat)
   }, [onBeatClick])
 
   // Auto-scroll — targets the wrapper so separator + bar are both visible
   useEffect(() => {
-    if (scrollToBar < 0 || autoScrollPaused) return
+    if (scrollToBar < 0) return
     const container = containerRef.current
     if (!container) return
     const wrapper = wrapperRefsMap.current.get(scrollToBar)
     const scrollTarget = wrapper ? wrapper.offsetTop : 0
     smoothScrollTo(container, Math.max(0, scrollTarget))
-  }, [scrollToBar, autoScrollPaused])
+  }, [scrollToBar])
 
   // Reset scroll on stop
   useEffect(() => {

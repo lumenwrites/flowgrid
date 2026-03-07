@@ -282,10 +282,13 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       seekToBarAudio(barIndex, beat)
     } else if (currentTrack) {
       seekToBarAudio(barIndex, beat, targetLoopIndex, sectionStartBar)
-      setSectionStarts(prev => prev.filter(s => s.bar <= barIndex))
-      setQueuedLoopIndex(null)
-      setTransitionBar(null)
-      transitionBarRef.current = null
+      // When seeking to a different section: clear transition state but keep section
+      // headers visible (don't trim sectionStarts)
+      if (targetLoopIndex !== currentLoopIndex) {
+        setQueuedLoopIndex(null)
+        setTransitionBar(null)
+        transitionBarRef.current = null
+      }
     } else {
       seekToBarAudio(barIndex, beat)
     }

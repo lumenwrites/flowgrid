@@ -72,7 +72,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Basic Drums 60/80/100/120bpm', dir: '/tracks/basic-drums', bpm: 80,
+    label: 'Basic Drums 60/80/100/120bpm', dir: '/tracks/basic-drums', bpm: 80,  barsPerLine: 1,
     bpmVariants: [60, 80, 100, 120],
     loops: [
       { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
@@ -95,7 +95,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   { label: 'Scene to Rap 100bpm',    dir: '/tracks/scene-to-rap-100bpm',    bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: '01-loop-8bars-100bpm.m4a', bars: 8 }] },
-  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
+  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  barsPerLine: 1,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
