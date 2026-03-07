@@ -1,22 +1,18 @@
 'use client'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBook } from '@fortawesome/free-solid-svg-icons'
 import HamburgerButton from './HamburgerButton'
 
 type ToolbarProps = {
-  metronomeEnabled: boolean
-  metronomeTicking: boolean
-  beat: number
-  onMetronomeChange: (enabled: boolean) => void
   onOpenSettings: () => void
+  onOpenDictionary: () => void
   onRandomizeSeed: () => void
 }
 
 export default function Toolbar({
-  metronomeEnabled,
-  metronomeTicking,
-  beat,
-  onMetronomeChange,
   onOpenSettings,
+  onOpenDictionary,
   onRandomizeSeed,
 }: ToolbarProps) {
   return (
@@ -43,27 +39,12 @@ export default function Toolbar({
           </svg>
         </button>
         <button
-          onClick={() => onMetronomeChange(!metronomeEnabled)}
-          className="p-1.5 rounded hover:bg-surface-light transition-colors"
-          aria-label="Toggle metronome"
-        >
-          <div
-            className={`w-[18px] h-[18px] transition-colors ${
-              metronomeEnabled ? 'bg-accent' : 'bg-foreground-muted'
-            }`}
-            style={{
-              maskImage: 'url(/metronome.png)',
-              WebkitMaskImage: 'url(/metronome.png)',
-              maskSize: 'contain',
-              WebkitMaskSize: 'contain',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-              maskPosition: 'center',
-              WebkitMaskPosition: 'center',
-              transform: metronomeTicking && beat % 2 === 1 ? 'scaleX(-1)' : undefined,
-            }}
-          />
-        </button>
+        onClick={onOpenDictionary}
+        className="p-1.5 rounded hover:bg-surface-light transition-colors text-foreground-muted hover:text-foreground"
+        aria-label="Open rhyme settings"
+      >
+        <FontAwesomeIcon icon={faBook} />
+      </button>
       </div>
     </div>
   )

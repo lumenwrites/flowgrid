@@ -1,24 +1,14 @@
 'use client'
 
-import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, BPM_MIN, BPM_MAX, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
-import { randomSeed } from '@/lib/utils'
-import type { WordList } from '@/lib/rhymes'
-
+import { NONE_TRACK_INDEX, BARS_PER_LINE_OPTIONS, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, BPM_MIN, BPM_MAX, type BarsPerLine } from '@/lib/constants'
 const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
 
 type SidebarProps = {
   open: boolean
   onClose: () => void
   selectedTrackIndex: number
-  wordLists: WordList[]
-  selectedListId: string
-  onWordListChange: (id: string) => void
   barsPerLine: BarsPerLine
   onBarsPerLineChange: (value: BarsPerLine) => void
-  rhymePattern: RhymePattern
-  onRhymePatternChange: (pattern: RhymePattern) => void
-  fillMode: FillMode
-  onFillModeChange: (mode: FillMode) => void
   introBars: number
   onIntroBarsChange: (count: number) => void
   trackBpm: number
@@ -27,8 +17,6 @@ type SidebarProps = {
   onTrackBpmChange: (bpm: number) => void
   metronomeBpm: number
   onMetronomeBpmChange: (bpm: number) => void
-  seed: number
-  onSeedChange: (seed: number) => void
   trackVolume: number
   onTrackVolumeChange: (volume: number) => void
   metronomeVolume: number
@@ -41,15 +29,8 @@ export default function Sidebar({
   open,
   onClose,
   selectedTrackIndex,
-  wordLists,
-  selectedListId,
-  onWordListChange,
   barsPerLine,
   onBarsPerLineChange,
-  rhymePattern,
-  onRhymePatternChange,
-  fillMode,
-  onFillModeChange,
   introBars,
   onIntroBarsChange,
   trackBpm,
@@ -58,8 +39,6 @@ export default function Sidebar({
   onTrackBpmChange,
   metronomeBpm,
   onMetronomeBpmChange,
-  seed,
-  onSeedChange,
   trackVolume,
   onTrackVolumeChange,
   metronomeVolume,
@@ -192,54 +171,6 @@ export default function Sidebar({
             />
           </div>
 
-          {/* Word list */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Words</label>
-            <select
-              value={selectedListId}
-              onChange={(e) => onWordListChange(e.target.value)}
-              className={selectClass}
-            >
-              {wordLists.map((list) => (
-                <option key={list.id} value={list.id}>
-                  {list.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Rhyme pattern */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Rhyme pattern</label>
-            <select
-              value={rhymePattern}
-              onChange={(e) => onRhymePatternChange(e.target.value as RhymePattern)}
-              className={selectClass}
-            >
-              {RHYME_PATTERNS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Fill mode */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Fill mode</label>
-            <select
-              value={fillMode}
-              onChange={(e) => onFillModeChange(e.target.value as FillMode)}
-              className={selectClass}
-            >
-              {FILL_MODES.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Bars per line */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Bars per line</label>
@@ -287,28 +218,6 @@ export default function Sidebar({
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Seed */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Seed</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={seed}
-                onChange={(e) => {
-                  const n = parseInt(e.target.value, 10)
-                  if (!isNaN(n)) onSeedChange(n)
-                }}
-                className="flex-1 min-w-0 bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border font-mono"
-              />
-              <button
-                onClick={() => onSeedChange(randomSeed())}
-                className="px-3 py-1.5 bg-surface-light text-foreground-muted text-sm rounded border border-border hover:bg-accent/20 hover:text-foreground transition-colors"
-              >
-                Shuffle
-              </button>
-            </div>
           </div>
 
           {/* Audio offset */}

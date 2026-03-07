@@ -20,6 +20,10 @@ type PlaybackToolbarProps = {
   onStop: () => void
   selectedTrackIndex: number
   onTrackChange: (index: number) => void
+  metronomeEnabled: boolean
+  metronomeTicking: boolean
+  beat: number
+  onMetronomeChange: (enabled: boolean) => void
 }
 
 export default function PlaybackToolbar({
@@ -28,6 +32,10 @@ export default function PlaybackToolbar({
   onStop,
   selectedTrackIndex,
   onTrackChange,
+  metronomeEnabled,
+  metronomeTicking,
+  beat,
+  onMetronomeChange,
 }: PlaybackToolbarProps) {
   const [trackModalOpen, setTrackModalOpen] = useState(false)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
@@ -96,6 +104,29 @@ export default function PlaybackToolbar({
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-lg" />
+          </button>
+
+          <button
+            onClick={() => onMetronomeChange(!metronomeEnabled)}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-light border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted transition-colors"
+            aria-label="Toggle metronome"
+          >
+            <div
+              className={`w-5 h-5 transition-colors ${
+                metronomeEnabled ? 'bg-accent' : 'bg-foreground-muted'
+              }`}
+              style={{
+                maskImage: 'url(/metronome.png)',
+                WebkitMaskImage: 'url(/metronome.png)',
+                maskSize: 'contain',
+                WebkitMaskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                WebkitMaskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                WebkitMaskPosition: 'center',
+                transform: metronomeTicking && beat % 2 === 1 ? 'scaleX(-1)' : undefined,
+              }}
+            />
           </button>
         </div>
 

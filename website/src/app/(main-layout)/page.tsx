@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Toolbar from '@/components/Toolbar'
 import Sidebar from '@/components/Sidebar'
+import DictionaryModal from '@/components/DictionaryModal'
 import PlaybackToolbar from '@/components/PlaybackToolbar'
 import LoopSelector from '@/components/LoopSelector'
 import Grid from '@/components/FlowGrid/Grid'
@@ -31,6 +32,7 @@ export default function Home() {
 
 function FlowGrid({ settings, update }: { settings: Settings; update: <K extends keyof Settings>(key: K, value: Settings[K]) => void }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dictionaryModalOpen, setDictionaryModalOpen] = useState(false)
   const [preset, setPreset] = useState<Preset | null>(null)
 
   useEffect(() => {
@@ -308,11 +310,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   return (
     <>
       <Toolbar
-        metronomeEnabled={settings.metronomeEnabled}
-        metronomeTicking={isPlaying && settings.metronomeEnabled}
-        beat={position.beat}
-        onMetronomeChange={(v) => update('metronomeEnabled', v)}
         onOpenSettings={() => setSidebarOpen(true)}
+        onOpenDictionary={() => setDictionaryModalOpen(true)}
         onRandomizeSeed={() => update('seed', randomSeed())}
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
@@ -344,20 +343,17 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onStop={handleStop}
         selectedTrackIndex={selectedTrackIndex}
         onTrackChange={handleTrackChange}
+        metronomeEnabled={settings.metronomeEnabled}
+        metronomeTicking={isPlaying && settings.metronomeEnabled}
+        beat={position.beat}
+        onMetronomeChange={(v) => update('metronomeEnabled', v)}
       />
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         selectedTrackIndex={selectedTrackIndex}
-        wordLists={wordLists}
-        selectedListId={selectedListId}
-        onWordListChange={handleWordListChange}
         barsPerLine={settings.barsPerLine}
         onBarsPerLineChange={(v) => update('barsPerLine', v)}
-        rhymePattern={settings.rhymePattern}
-        onRhymePatternChange={(v) => update('rhymePattern', v)}
-        fillMode={settings.fillMode}
-        onFillModeChange={(v) => update('fillMode', v)}
         introBars={settings.introBars}
         onIntroBarsChange={(v) => update('introBars', v)}
         trackBpm={settings.trackBpm}
@@ -366,14 +362,25 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onTrackBpmChange={(v) => update('trackBpm', v)}
         metronomeBpm={settings.metronomeBpm}
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
-        seed={settings.seed}
-        onSeedChange={(v) => update('seed', v)}
         trackVolume={settings.trackVolume}
         onTrackVolumeChange={(v) => update('trackVolume', v)}
         metronomeVolume={settings.metronomeVolume}
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
         audioOffset={settings.audioOffset}
         onAudioOffsetChange={(v) => update('audioOffset', v)}
+      />
+      <DictionaryModal
+        open={dictionaryModalOpen}
+        onClose={() => setDictionaryModalOpen(false)}
+        wordLists={wordLists}
+        selectedListId={selectedListId}
+        onWordListChange={handleWordListChange}
+        rhymePattern={settings.rhymePattern}
+        onRhymePatternChange={(v) => update('rhymePattern', v)}
+        fillMode={settings.fillMode}
+        onFillModeChange={(v) => update('fillMode', v)}
+        seed={settings.seed}
+        onSeedChange={(v) => update('seed', v)}
       />
     </>
   )
