@@ -17,7 +17,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 
 ## Implemented features
 
-- **Track selection** — Choose from available tracks (drums at various BPMs, scene-to-rap, etc.) or "None" for metronome-only mode. Each track has its own BPM, and the transport matches it automatically.
+- **Track selection** — Choose from available tracks (Villain Song, Basic Drums, Hoedown, Scene to Rap, YCCA, etc.) or "None" for metronome-only mode. Each track has its own BPM, and the transport matches it automatically.
 - **Multi-loop tracks** — Tracks can have multiple loops (e.g. Verse, Chorus), each with its own audio file and bar count. A row of loop buttons appears above the play bar for multi-loop tracks. Tapping a loop queues it to start after the current loop's next cycle boundary (queue depth of 1). Tapping the current loop while something is queued cancels the queue. The grid shows section headers (e.g. "[Chorus]") at loop transitions and thin dividers where a loop repeats. Single-loop tracks work identically to before — no loop buttons shown.
 - **Mixes** — Tracks can optionally have mixes (e.g. Instrumental, Lyrics, Scat) — full-length audio files with a defined section structure. Mix buttons appear next to loop buttons, separated by a vertical divider, with squarish corners. Clicking a mix loads the full audio (non-looping) with section headers in the grid matching the song structure. Mixes can optionally provide a `rhymes` array for custom words; otherwise normal random rhymes are used. Auto-stops at the end. Clicking a loop button exits mix mode.
 - **Track preview** — The track picker modal has a preview button on each track that plays the Lyrics mix (or first mix, or first loop as fallback) using a standalone Audio element — no interaction with the grid or transport.
@@ -35,7 +35,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
   - *All Blanks* — every line shows `????` (full freestyle)
   - Hidden cells still show their rhyme color so you can see the pattern.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
-- **Custom BPM** — When a track is selected, a BPM slider (40-200) appears in the sidebar, defaulting to the track's native BPM. Adjusting it changes tempo in real time with pitch preservation via Tone.js GrainPlayer (granular synthesis). A "Reset" button appears when BPM differs from native. BPM resets to the track's native value when switching tracks. Persisted in settings.
+- **Custom BPM** — When a track is selected, a BPM control appears in the sidebar, defaulting to the track's native BPM. Tracks with `bpmVariants` (e.g. Basic Drums at 60/80/100/120) show a dropdown and switch between pre-rendered audio files for artifact-free playback. Other tracks show a slider (40-200, 10-step) that adjusts tempo in real time with pitch preservation via Tone.js GrainPlayer (granular synthesis). BPM resets to the track's native value when switching tracks. Persisted in settings.
 - **Metronome BPM** — When track is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
 - **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: track, volumes, metronome BPM, words, bars per line, intro bars, rhyme pattern, fill mode, seed, audio offset.
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.
@@ -71,9 +71,22 @@ tracks/
 │   └── {bpm}bpm.wav
 ├── {track-slug}/               — each track gets a directory
 │   ├── loops/                  — repeating sections
-│   │   └── {name}.wav
+│   │   └── {NN}-{name}-{bars}bars-{bpm}bpm.wav
 │   └── mixes/                  — full-length versions (optional)
 │       └── {name}.wav
 ```
+
+### Loop file naming convention
+
+Loop files follow the pattern: `{NN}-{name}-{bars}bars-{bpm}bpm.{ext}`
+
+- `{NN}` — two-digit order prefix (01, 02, 03...) so files sort naturally
+- `{name}` — section name (verse, chorus, intro, break, etc.)
+- `{bars}bars` — number of bars in the loop (e.g. 4bars, 8bars)
+- `{bpm}bpm` — BPM of the audio file
+
+Examples: `01-verse-8bars-80bpm.wav`, `02-chorus-4bars-120bpm.wav`, `03-break-2bars-120bpm.wav`
+
+For **variant tracks** (multiple pre-rendered BPMs), the Loop config `file` field omits the BPM suffix (e.g. `01-verse-4bars.wav`) and `loopUrl()` appends `-{bpm}bpm` dynamically based on the selected BPM. For **non-variant tracks**, the `file` field is the full filename including BPM.
 
 Track `dir` field in constants.ts points to the directory; loop/mix `file` fields are just filenames. Path helpers `loopUrl()` and `mixUrl()` resolve full paths. New tracks should be added to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`.

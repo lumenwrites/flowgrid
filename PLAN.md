@@ -22,9 +22,9 @@ website/src/
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
-│   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes)
+│   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes, BPM)
 │   ├── LoopSelector.tsx                — Loop buttons + mix buttons row above play button
-│   └── PlaybackToolbar.tsx              — Play/pause + stop at bottom center
+│   └── PlaybackToolbar.tsx             — Play/pause + stop at bottom center, track picker modal with preview
 │
 ├── hooks/
 │   ├── useAudioEngine.ts               — Tone.js: Transport, Player (track + metronome), play/pause/stop
@@ -45,9 +45,14 @@ website/src/
 
 - Uses **Tone.js** Transport as master clock
 - Tracks have one or more loops; all loop audio buffers are pre-loaded on track selection
-- Active loop plays via a synced `Tone.Player` with `loop: true`
+- **Dual player strategy** based on track type:
+  - Tracks with `bpmVariants`: uses `Tone.Player` — loads pre-rendered audio files at the closest available BPM for artifact-free playback
+  - Tracks without variants: uses `Tone.GrainPlayer` (granular synthesis, `grainSize=0.1`, `overlap=0.05`) — adjusts `playbackRate` for pitch-preserving tempo changes
+  - Mixes always use `Tone.GrainPlayer` with the same playbackRate logic
+- Active loop plays via a synced player with `loop: true`
 - Loop transitions: a new player is created and synced to start at the boundary bar; the old player is stopped/disposed in a `Transport.schedule()` callback — seamless gapless switching
 - Pending transitions can be cancelled (user re-queues) via `Transport.clear()` + player disposal
+- `stop()` re-syncs active player and metronome to bar 0 so playback resumes immediately from the beginning
 - Separate `Tone.Player` for metronome (synced, muted/unmuted live)
 - Track index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
 - BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
@@ -78,7 +83,7 @@ website/src/
 ## Settings (`useSettings`)
 
 - Single `flowgrid-settings` key in localStorage
-- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, fillMode, introBars, metronomeBpm, seed, trackVolume, metronomeVolume, audioOffset
+- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, fillMode, introBars, metronomeBpm, trackBpm, seed, trackVolume, metronomeVolume, audioOffset
 - Loads on mount with defaults fallback, saves on every change
 - `loaded` flag prevents rendering before hydration (avoids flash)
 
@@ -120,20 +125,27 @@ Sidebar (slides from left):
 ## Adding New Tracks
 
 1. Create directory `website/public/tracks/{slug}/loops/` and place loop audio files there
-2. For tracks with mixes, also create `website/public/tracks/{slug}/mixes/`
-3. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
+2. Name loop files: `{NN}-{name}-{bars}bars-{bpm}bpm.{ext}` (e.g. `01-verse-8bars-120bpm.wav`)
+3. For tracks with mixes, also create `website/public/tracks/{slug}/mixes/`
+4. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
    ```ts
-   // Single-loop track
-   { label: 'My Track 90', dir: '/tracks/my-track-90bpm', bpm: 90,
-     loops: [{ name: 'Loop', file: 'loop.wav', bars: 4 }] }
+   // Single-loop track (file includes full name with BPM)
+   { label: 'My Track 90bpm', dir: '/tracks/my-track-90bpm', bpm: 90,
+     loops: [{ name: 'Loop', file: '01-loop-4bars-90bpm.wav', bars: 4 }] }
    // Multi-loop track
-   { label: 'My Song 120', dir: '/tracks/my-song-120bpm', bpm: 120,
+   { label: 'My Song 120bpm', dir: '/tracks/my-song-120bpm', bpm: 120,
      loops: [
-       { name: 'Verse', file: 'verse.wav', bars: 4 },
-       { name: 'Chorus', file: 'chorus.wav', bars: 8 },
+       { name: 'Verse', file: '01-verse-8bars-120bpm.wav', bars: 8 },
+       { name: 'Chorus', file: '02-chorus-4bars-120bpm.wav', bars: 4 },
+     ] }
+   // Variant track (file omits BPM — loopUrl appends it dynamically)
+   { label: 'Drums', dir: '/tracks/drums', bpm: 80, bpmVariants: [60, 80, 100, 120],
+     loops: [
+       { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
+       { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
      ] }
    // Track with mixes (optional rhymes array per mix)
-   { label: 'Song 80', dir: '/tracks/song-80bpm', bpm: 80, barsPerLine: 2,
+   { label: 'Song 80bpm', dir: '/tracks/song-80bpm', bpm: 80, barsPerLine: 2,
      loops: [...],
      mixes: [
        { name: 'Instrumental', file: 'instrumental.wav',
@@ -142,11 +154,11 @@ Sidebar (slides from left):
          sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
      ] }
    ```
-4. If a metronome at that BPM exists, add to `METRONOME_FILES`:
+5. If a metronome at that BPM exists, add to `METRONOME_FILES`:
    ```ts
    90: '/tracks/metronome/90bpm.wav',
    ```
-5. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
+6. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
 
 ## Key Design Decisions
 
@@ -154,5 +166,5 @@ Sidebar (slides from left):
 - **Line-level rhyme generation** — patterns (AABB/ABAB) apply to lines not individual bars, so they work correctly regardless of bars-per-line setting
 - **Settings in page.tsx** — all state lives at the page level and flows down via props (no context needed for this scale)
 - **localStorage for persistence** — simplest cross-platform solution, works in PWA contexts on all platforms
-- **No BPM control when track selected** — each track file has its own tempo; BPM only user-selectable in "None" mode for metronome
+- **Custom BPM with dual strategy** — variant tracks (pre-rendered at multiple BPMs) use a dropdown and swap audio files; non-variant tracks use GrainPlayer with a slider (40-200, step 10) for live pitch-preserving tempo changes
 - **Seeded PRNG** — mulberry32 for deterministic rhyme generation; seed persisted so reloads produce the same sequence

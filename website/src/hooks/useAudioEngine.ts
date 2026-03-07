@@ -8,6 +8,14 @@ function volumeToDb(v: number): number {
   return v === 0 ? -Infinity : 20 * Math.log10(v / 100)
 }
 
+function closestVariant(bpm: number, variants: number[]): number {
+  let best = variants[0]
+  for (const v of variants) {
+    if (Math.abs(v - bpm) < Math.abs(best - bpm)) best = v
+  }
+  return best
+}
+
 type PendingTransition = {
   eventId: number
   player: Tone.Player | Tone.GrainPlayer
@@ -66,25 +74,37 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metronomeBpm])
 
-  // Live BPM adjustment — update transport + player rates without reloading
+  // Live BPM adjustment
   useEffect(() => {
     if (!isLoadedRef.current) return
     if (selectedTrackIndexRef.current === NONE_TRACK_INDEX) return
     const track = AVAILABLE_TRACKS[selectedTrackIndexRef.current]
     if (!track) return
-    const rate = trackBpm / track.bpm
 
-    Tone.getTransport().bpm.value = trackBpm
-
-    if (playerRef.current instanceof Tone.GrainPlayer) {
-      playerRef.current.playbackRate = rate
+    if (track.bpmVariants) {
+      // Variant track: reload with the new audio files
+      const wasPlaying = Tone.getTransport().state === 'started'
+      loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current, trackBpm).then(() => {
+        if (wasPlaying) {
+          Tone.getTransport().start()
+          setIsPlaying(true)
+        }
+      })
+    } else {
+      // Non-variant: live GrainPlayer rate adjustment
+      const rate = trackBpm / track.bpm
+      Tone.getTransport().bpm.value = trackBpm
+      if (playerRef.current instanceof Tone.GrainPlayer) {
+        playerRef.current.playbackRate = rate
+      }
+      if (metronomeRef.current) {
+        metronomeRef.current.playbackRate = rate
+      }
+      if (pendingRef.current?.player instanceof Tone.GrainPlayer) {
+        pendingRef.current.player.playbackRate = rate
+      }
     }
-    if (metronomeRef.current) {
-      metronomeRef.current.playbackRate = rate
-    }
-    if (pendingRef.current?.player instanceof Tone.GrainPlayer) {
-      pendingRef.current.player.playbackRate = rate
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackBpm])
 
   function cancelPendingTransition() {
@@ -118,7 +138,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const track = trackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[trackIndex]
     const nativeBpm = track ? track.bpm : metronomeBpmRef.current
     const effectiveBpm = bpmOverride ?? (track ? trackBpmRef.current : metronomeBpmRef.current)
-    const rate = track ? effectiveBpm / nativeBpm : 1
+    const hasVariants = !!track?.bpmVariants
+    const variantBpm = hasVariants ? closestVariant(effectiveBpm, track!.bpmVariants!) : undefined
+    const transportBpm = variantBpm ?? effectiveBpm
+    const rate = hasVariants ? 1 : (track ? effectiveBpm / nativeBpm : 1)
 
     function loadBuffer(url: string): Promise<Tone.ToneAudioBuffer> {
       return new Promise((resolve, reject) => {
@@ -138,8 +161,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     }
 
     try {
-      const loopBufferPromises = track ? track.loops.map(l => loadBuffer(loopUrl(track, l))) : []
-      const metronomeFile = METRONOME_FILES[nativeBpm]
+      const loopBufferPromises = track
+        ? track.loops.map(l => loadBuffer(loopUrl(track, l, variantBpm)))
+        : []
+      const metronomeFile = METRONOME_FILES[variantBpm ?? nativeBpm]
       const metronomePromise = metronomeFile ? createPlayer(metronomeFile, true) : null
 
       const [loopBuffers, metronome] = await Promise.all([
@@ -149,26 +174,33 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
       buffersRef.current = loopBuffers
 
-      // GrainPlayer for pitch-preserving time stretch on loop tracks
       if (track && loopBuffers.length > 0) {
-        const player = new Tone.GrainPlayer(loopBuffers[loopIndex]).toDestination()
-        player.loop = true
-        player.grainSize = 0.1
-        player.overlap = 0.05
-        player.playbackRate = rate
-        player.volume.value = volumeToDb(trackVolumeRef.current)
-        player.sync().start(0)
-        playerRef.current = player
+        if (hasVariants) {
+          const player = new Tone.Player(loopBuffers[loopIndex]).toDestination()
+          player.loop = true
+          player.volume.value = volumeToDb(trackVolumeRef.current)
+          player.sync().start(0)
+          playerRef.current = player
+        } else {
+          const player = new Tone.GrainPlayer(loopBuffers[loopIndex]).toDestination()
+          player.loop = true
+          player.grainSize = 0.1
+          player.overlap = 0.05
+          player.playbackRate = rate
+          player.volume.value = volumeToDb(trackVolumeRef.current)
+          player.sync().start(0)
+          playerRef.current = player
+        }
       }
 
       if (metronome) {
-        metronome.playbackRate = rate
+        if (!hasVariants) metronome.playbackRate = rate
         metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
         metronome.sync().start(0)
         metronomeRef.current = metronome
       }
 
-      Tone.getTransport().bpm.value = effectiveBpm
+      Tone.getTransport().bpm.value = transportBpm
       isLoadedRef.current = true
       setSelectedTrackIndex(trackIndex)
       selectedTrackIndexRef.current = trackIndex
@@ -186,13 +218,22 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
 
     const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
-    const rate = track ? trackBpmRef.current / track.bpm : 1
+    let newPlayer: Tone.Player | Tone.GrainPlayer
 
-    const newPlayer = new Tone.GrainPlayer(buffers[loopIndex]).toDestination()
-    newPlayer.loop = true
-    newPlayer.grainSize = 0.1
-    newPlayer.overlap = 0.05
-    newPlayer.playbackRate = rate
+    if (track?.bpmVariants) {
+      const p = new Tone.Player(buffers[loopIndex]).toDestination()
+      p.loop = true
+      newPlayer = p
+    } else {
+      const rate = track ? trackBpmRef.current / track.bpm : 1
+      const p = new Tone.GrainPlayer(buffers[loopIndex]).toDestination()
+      p.loop = true
+      p.grainSize = 0.1
+      p.overlap = 0.05
+      p.playbackRate = rate
+      newPlayer = p
+    }
+
     newPlayer.volume.value = volumeToDb(trackVolumeRef.current)
     newPlayer.sync().start(`${atBar}:0:0`)
 
@@ -330,6 +371,17 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
+
+    // Re-sync player to bar 0 (it may have been synced to a later bar from a loop transition)
+    if (playerRef.current) {
+      playerRef.current.unsync()
+      playerRef.current.sync().start(0)
+    }
+    if (metronomeRef.current) {
+      metronomeRef.current.unsync()
+      metronomeRef.current.sync().start(0)
+    }
+
     setIsPlaying(false)
   }, [])
 

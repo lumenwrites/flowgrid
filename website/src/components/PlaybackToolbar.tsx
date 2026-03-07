@@ -11,7 +11,7 @@ function getPreviewUrl(track: Track): string | null {
     if (lyrics) return mixUrl(track, lyrics)
     return mixUrl(track, track.mixes[0])
   }
-  return track.loops[0] ? loopUrl(track, track.loops[0]) : null
+  return track.loops[0] ? loopUrl(track, track.loops[0], track.bpmVariants ? track.bpm : undefined) : null
 }
 
 type PlaybackToolbarProps = {

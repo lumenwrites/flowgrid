@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'flowgrid-v6'
+const CACHE_VERSION = 'flowgrid-v8'
 
 const PRECACHE_ASSETS = [
   '/',
@@ -8,23 +8,28 @@ const PRECACHE_ASSETS = [
   '/tracks/metronome/100bpm.wav',
   '/tracks/metronome/120bpm.wav',
   // Villain Song
-  '/tracks/villain-song-80bpm/loops/verse.wav',
-  '/tracks/villain-song-80bpm/loops/chorus.wav',
+  '/tracks/villain-song-80bpm/loops/01-verse-8bars-80bpm.wav',
+  '/tracks/villain-song-80bpm/loops/02-chorus-8bars-80bpm.wav',
   '/tracks/villain-song-80bpm/mixes/instrumental.wav',
   '/tracks/villain-song-80bpm/mixes/lyrics.wav',
   '/tracks/villain-song-80bpm/mixes/scat.wav',
-  // Basic Drums
-  '/tracks/basic-drums-80bpm/loops/verse.wav',
-  '/tracks/basic-drums-80bpm/loops/chorus.wav',
-  // Drums
-  '/tracks/drums-60bpm/loops/loop.wav',
-  '/tracks/drums-80bpm/loops/loop.wav',
-  '/tracks/drums-100bpm/loops/loop.wav',
-  '/tracks/drums-120bpm/loops/loop.wav',
+  // Basic Drums (BPM variants)
+  '/tracks/basic-drums/loops/01-verse-4bars-60bpm.wav',
+  '/tracks/basic-drums/loops/01-verse-4bars-80bpm.wav',
+  '/tracks/basic-drums/loops/01-verse-4bars-100bpm.wav',
+  '/tracks/basic-drums/loops/01-verse-4bars-120bpm.wav',
+  '/tracks/basic-drums/loops/02-chorus-4bars-60bpm.wav',
+  '/tracks/basic-drums/loops/02-chorus-4bars-80bpm.wav',
+  '/tracks/basic-drums/loops/02-chorus-4bars-100bpm.wav',
+  '/tracks/basic-drums/loops/02-chorus-4bars-120bpm.wav',
+  // Hoedown
+  '/tracks/hoedown/loops/01-intro-4bars-120bpm.wav',
+  '/tracks/hoedown/loops/02-verse-8bars-120bpm.wav',
+  '/tracks/hoedown/loops/03-break-2bars-120bpm.wav',
+  '/tracks/hoedown/mixes/instrumental.wav',
   // Other tracks
-  '/tracks/scene-to-rap-100bpm/loops/loop.m4a',
-  '/tracks/ycca-80bpm/loops/loop.m4a',
-  '/tracks/freestyle-drums-100bpm/loops/loop.wav',
+  '/tracks/scene-to-rap-100bpm/loops/01-loop-8bars-100bpm.m4a',
+  '/tracks/ycca-80bpm/loops/01-loop-8bars-80bpm.m4a',
   // App assets
   '/img/logo.png',
   '/img/background-tile.webp',

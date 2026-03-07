@@ -23,6 +23,7 @@ type SidebarProps = {
   onIntroBarsChange: (count: number) => void
   trackBpm: number
   nativeBpm: number
+  bpmVariants?: number[]
   onTrackBpmChange: (bpm: number) => void
   metronomeBpm: number
   onMetronomeBpmChange: (bpm: number) => void
@@ -53,6 +54,7 @@ export default function Sidebar({
   onIntroBarsChange,
   trackBpm,
   nativeBpm,
+  bpmVariants,
   onTrackBpmChange,
   metronomeBpm,
   onMetronomeBpmChange,
@@ -128,8 +130,8 @@ export default function Sidebar({
           {selectedTrackIndex !== NONE_TRACK_INDEX && (
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-sm text-foreground">BPM — {trackBpm}</label>
-                {trackBpm !== nativeBpm && (
+                <label className="text-sm text-foreground">BPM{!bpmVariants && ` — ${trackBpm}`}</label>
+                {!bpmVariants && trackBpm !== nativeBpm && (
                   <button
                     onClick={() => onTrackBpmChange(nativeBpm)}
                     className="text-xs text-foreground-muted hover:text-foreground transition-colors"
@@ -138,15 +140,27 @@ export default function Sidebar({
                   </button>
                 )}
               </div>
-              <input
-                type="range"
-                min={BPM_MIN}
-                max={BPM_MAX}
-                step={10}
-                value={trackBpm}
-                onChange={(e) => onTrackBpmChange(Number(e.target.value))}
-                className="w-full accent-accent"
-              />
+              {bpmVariants ? (
+                <select
+                  value={trackBpm}
+                  onChange={(e) => onTrackBpmChange(Number(e.target.value))}
+                  className={selectClass}
+                >
+                  {bpmVariants.map((bpm) => (
+                    <option key={bpm} value={bpm}>{bpm} BPM</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="range"
+                  min={BPM_MIN}
+                  max={BPM_MAX}
+                  step={10}
+                  value={trackBpm}
+                  onChange={(e) => onTrackBpmChange(Number(e.target.value))}
+                  className="w-full accent-accent"
+                />
+              )}
             </div>
           )}
 

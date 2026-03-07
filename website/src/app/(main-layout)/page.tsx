@@ -216,6 +216,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
+  // Variant BPM change reloads audio from bar 0 — reset grid to match
+  useEffect(() => {
+    if (!currentTrack?.bpmVariants) return
+    resetLoopState(currentLoopIndex)
+    resetPosition()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.trackBpm])
+
   const handleTrackChange = (index: number) => {
     const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
     const newBpm = track ? track.bpm : settings.metronomeBpm
@@ -305,6 +313,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onIntroBarsChange={(v) => update('introBars', v)}
         trackBpm={settings.trackBpm}
         nativeBpm={currentTrack?.bpm ?? settings.metronomeBpm}
+        bpmVariants={currentTrack?.bpmVariants}
         onTrackBpmChange={(v) => update('trackBpm', v)}
         metronomeBpm={settings.metronomeBpm}
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}

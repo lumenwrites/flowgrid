@@ -37,6 +37,7 @@ export type Track = {
   loops: Loop[]
   mixes?: Mix[]
   barsPerLine?: BarsPerLine
+  bpmVariants?: number[]
 }
 
 const VILLAIN_SONG_SECTIONS: MixSection[] = [
@@ -57,8 +58,8 @@ export const AVAILABLE_TRACKS: Track[] = [
   {
     label: 'Villain Song 80bpm', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
     loops: [
-      { name: 'Verse', file: 'verse.wav', bars: 8 },
-      { name: 'Chorus', file: 'chorus.wav', bars: 8 },
+      { name: 'Verse', file: '01-verse-8bars-80bpm.wav', bars: 8 },
+      { name: 'Chorus', file: '02-chorus-8bars-80bpm.wav', bars: 8 },
     ],
     mixes: [
       { name: 'Instrumental', file: 'instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
@@ -67,19 +68,30 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Basic Drums 80bpm', dir: '/tracks/basic-drums-80bpm', bpm: 80, 
+    label: 'Basic Drums 60/80/100/120bpm', dir: '/tracks/basic-drums', bpm: 80,
+    bpmVariants: [60, 80, 100, 120],
     loops: [
-      { name: 'Verse', file: 'verse.wav', bars: 4 },
-      { name: 'Chorus', file: 'chorus.wav', bars: 4 },
+      { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
+      { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
     ],
   },
-  { label: 'Drums 60bpm',  dir: '/tracks/drums-60bpm',  bpm: 60,  loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
-  { label: 'Drums 80bpm',  dir: '/tracks/drums-80bpm',  bpm: 80,  loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
-  { label: 'Drums 100bpm', dir: '/tracks/drums-100bpm', bpm: 100, loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
-  { label: 'Drums 120bpm', dir: '/tracks/drums-120bpm', bpm: 120, loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
-  { label: 'Scene to Rap 100bpm',    dir: '/tracks/scene-to-rap-100bpm',    bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: 'loop.m4a', bars: 8 }] },
-  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  loops: [{ name: 'Loop', file: 'loop.m4a', bars: 8 }] },
-  { label: 'Freestyle Drums 100bpm', dir: '/tracks/freestyle-drums-100bpm', bpm: 100, loops: [{ name: 'Loop', file: 'loop.wav', bars: 4 }] },
+  {
+    label: 'Hoedown 120bpm', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
+    loops: [
+      { name: 'Intro', file: '01-intro-4bars-120bpm.wav', bars: 4 },
+      { name: 'Verse', file: '02-verse-8bars-120bpm.wav', bars: 8 },
+      { name: 'Break', file: '03-break-2bars-120bpm.wav', bars: 2 },
+    ],
+    mixes: [
+      { name: 'Instrumental', file: 'instrumental.wav', sections: [
+        { name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 },
+        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 },
+        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 }, { name: 'Outro', bars: 3 },
+      ]},
+    ],
+  },
+  { label: 'Scene to Rap 100bpm',    dir: '/tracks/scene-to-rap-100bpm',    bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: '01-loop-8bars-100bpm.m4a', bars: 8 }] },
+  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
@@ -89,7 +101,11 @@ export const METRONOME_FILES: Record<number, string> = {
   120: '/tracks/metronome/120bpm.wav',
 }
 
-export function loopUrl(track: Track, loop: Loop): string {
+export function loopUrl(track: Track, loop: Loop, variantBpm?: number): string {
+  if (variantBpm !== undefined) {
+    const dot = loop.file.lastIndexOf('.')
+    return `${track.dir}/loops/${loop.file.substring(0, dot)}-${variantBpm}bpm${loop.file.substring(dot)}`
+  }
   return `${track.dir}/loops/${loop.file}`
 }
 
