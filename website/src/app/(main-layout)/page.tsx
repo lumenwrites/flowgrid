@@ -218,9 +218,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const handleTrackChange = (index: number) => {
     setActiveExampleIndex(null)
+    stop()
     changeTrack(index)
     update('selectedTrackIndex', index)
+    resetPosition()
+    regenerate()
     resetLoopState(0)
+    const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
+    if (track?.barsPerLine) update('barsPerLine', track.barsPerLine)
   }
 
   const handleWordListChange = (id: string) => {

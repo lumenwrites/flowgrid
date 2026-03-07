@@ -35,6 +35,7 @@ export type Track = {
   bpm: number
   loops: Loop[]
   examples?: Example[]
+  barsPerLine?: BarsPerLine
 }
 
 const VILLAIN_SONG_SECTIONS: ExampleSection[] = [
@@ -52,7 +53,7 @@ const VILLAIN_SONG_RHYMES = [
 ]
 
 export const AVAILABLE_TRACKS: Track[] = [
-  { label: 'Villain Song 80bpm', bpm: 80, loops: [
+  { label: 'Villain Song 80bpm', bpm: 80, barsPerLine: 2, loops: [
     { name: 'Verse', file: '/tracks/villain-song-80bpm/loops/verse.wav', bars: 8 },
     { name: 'Chorus', file: '/tracks/villain-song-80bpm/loops/chorus.wav', bars: 8 },
   ], examples: [
@@ -68,7 +69,7 @@ export const AVAILABLE_TRACKS: Track[] = [
   { label: 'Drums 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/drums-loop-80bpm.wav', bars: 1 }] },
   { label: 'Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/drums-loop-100bpm.wav', bars: 1 }] },
   { label: 'Drums 120bpm', bpm: 120, loops: [{ name: 'Loop', file: '/tracks/drums-loop-120bpm.wav', bars: 1 }] },
-  { label: 'Scene to Rap 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
+  { label: 'Scene to Rap 100bpm', bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: '/tracks/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
   { label: 'YCCA 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/ycca-80bpm-8bars.m4a', bars: 8 }] },
   { label: 'Freestyle Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/freestyle-drums-100bpm-4bars.wav', bars: 4 }] },
 ]

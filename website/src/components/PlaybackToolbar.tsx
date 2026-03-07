@@ -1,9 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faStop, faMusic, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX } from '@/lib/constants'
+import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type Track } from '@/lib/constants'
+
+function getPreviewUrl(track: Track): string | null {
+  if (track.examples) {
+    const lyrics = track.examples.find(e => e.name === 'Lyrics')
+    if (lyrics) return lyrics.file
+    return track.examples[0].file
+  }
+  return track.loops[0]?.file ?? null
+}
 
 type PlaybackToolbarProps = {
   isPlaying: boolean
@@ -21,6 +30,35 @@ export default function PlaybackToolbar({
   onTrackChange,
 }: PlaybackToolbarProps) {
   const [trackModalOpen, setTrackModalOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  const stopPreview = useCallback(() => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause()
+      previewAudioRef.current = null
+    }
+    setPreviewIndex(null)
+  }, [])
+
+  function handlePreview(index: number) {
+    if (previewIndex === index) {
+      stopPreview()
+      return
+    }
+    stopPreview()
+    const url = getPreviewUrl(AVAILABLE_TRACKS[index])
+    if (!url) return
+    const audio = new Audio(url)
+    audio.addEventListener('ended', () => setPreviewIndex(null))
+    audio.play()
+    previewAudioRef.current = audio
+    setPreviewIndex(index)
+  }
+
+  useEffect(() => {
+    if (!trackModalOpen) stopPreview()
+  }, [trackModalOpen, stopPreview])
 
   useEffect(() => {
     if (!trackModalOpen) return
@@ -74,7 +112,7 @@ export default function PlaybackToolbar({
       {trackModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => setTrackModalOpen(false)} />
-          <div className="relative bg-surface border border-border rounded-lg w-72 max-h-[70vh] flex flex-col shadow-xl">
+          <div className="relative bg-surface border border-border rounded-lg w-80 max-h-[70vh] flex flex-col shadow-xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="text-sm font-bold text-foreground tracking-wider">SELECT TRACK</h3>
               <button
@@ -97,17 +135,34 @@ export default function PlaybackToolbar({
                 No track
               </button>
               {AVAILABLE_TRACKS.map((track, i) => (
-                <button
+                <div
                   key={i}
-                  onClick={() => handleSelectTrack(i)}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                  className={`flex items-center transition-colors ${
                     selectedTrackIndex === i
-                      ? 'bg-accent/15 text-accent'
-                      : 'text-foreground hover:bg-surface-light'
+                      ? 'bg-accent/15'
+                      : 'hover:bg-surface-light'
                   }`}
                 >
-                  {track.label}
-                </button>
+                  <button
+                    onClick={() => handleSelectTrack(i)}
+                    className={`flex-1 text-left px-4 py-2.5 text-sm transition-colors ${
+                      selectedTrackIndex === i ? 'text-accent' : 'text-foreground'
+                    }`}
+                  >
+                    {track.label}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handlePreview(i) }}
+                    className={`shrink-0 w-8 h-8 mr-2 flex items-center justify-center rounded-full transition-colors ${
+                      previewIndex === i
+                        ? 'text-accent'
+                        : 'text-foreground-muted hover:text-foreground'
+                    }`}
+                    aria-label={`Preview ${track.label}`}
+                  >
+                    <FontAwesomeIcon icon={previewIndex === i ? faVolumeHigh : faPlay} className="text-xs" />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
