@@ -23,7 +23,7 @@ website/src/
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
 │   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes)
-│   ├── LoopSelector.tsx                — Loop buttons + example buttons row above play button
+│   ├── LoopSelector.tsx                — Loop buttons + mix buttons row above play button
 │   └── PlaybackToolbar.tsx              — Play/pause + stop at bottom center
 │
 ├── hooks/
@@ -33,7 +33,7 @@ website/src/
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Track/Loop/Example/SectionStart/LoopInfo types, metronome files, color palette, all config
+│   ├── constants.ts                    — Track/Loop/Mix/SectionStart/LoopInfo types, path helpers, metronome files, color palette, all config
 │   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
 │   └── utils.ts                        — cn() utility
 │
@@ -52,8 +52,8 @@ website/src/
 - Track index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
 - BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
-- `playExample(audioUrl)` loads and plays a one-shot (non-looping) audio file, replacing the current loop player
-- Returns `currentLoopIndex`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`, `playExample()`
+- `loadMix(audioUrl)` loads a one-shot (non-looping) audio file, replacing the current loop player (does not auto-play)
+- Returns `currentLoopIndex`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`, `loadMix()`
 
 ## Playhead (`usePlayhead`)
 
@@ -97,7 +97,7 @@ website/src/
 │ [    ] [    ] [    ] [honey]        │
 │           ...                       │
 ├─────────────────────────────────────┤
-│  [Verse] [Chorus] | [Inst] [Lyr]    │  ← LoopSelector (loops + examples)
+│  [Verse] [Chorus] | [Inst] [Lyr]    │  ← LoopSelector (loops + mixes)
 ├─────────────────────────────────────┤
 │           [▶ / ⏸] [⏹]              │  ← PlaybackToolbar
 └─────────────────────────────────────┘
@@ -119,29 +119,34 @@ Sidebar (slides from left):
 
 ## Adding New Tracks
 
-1. Place audio files in `website/public/loops/` (subdirectory for multi-loop tracks)
-2. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
+1. Create directory `website/public/tracks/{slug}/loops/` and place loop audio files there
+2. For tracks with mixes, also create `website/public/tracks/{slug}/mixes/`
+3. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
    ```ts
    // Single-loop track
-   { label: 'My Track 90', bpm: 90, loops: [{ name: 'Loop', file: '/loops/my-track-90bpm.wav', bars: 4 }] }
+   { label: 'My Track 90', dir: '/tracks/my-track-90bpm', bpm: 90,
+     loops: [{ name: 'Loop', file: 'loop.wav', bars: 4 }] }
    // Multi-loop track
-   { label: 'My Song 120', bpm: 120, loops: [
-     { name: 'Verse', file: '/tracks/my-song/loops/verse-4bars.wav', bars: 4 },
-     { name: 'Chorus', file: '/tracks/my-song/loops/chorus-8bars.wav', bars: 8 },
-   ] }
-   // Track with examples (optional rhymes array per example)
-   { label: 'Song 80', bpm: 80, loops: [...], examples: [
-     { name: 'Instrumental', file: '/tracks/song/examples/inst.wav',
-       sections: [{ name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }] },
-     { name: 'Lyrics', file: '/tracks/song/examples/lyrics.wav',
-       sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
-   ] }
+   { label: 'My Song 120', dir: '/tracks/my-song-120bpm', bpm: 120,
+     loops: [
+       { name: 'Verse', file: 'verse.wav', bars: 4 },
+       { name: 'Chorus', file: 'chorus.wav', bars: 8 },
+     ] }
+   // Track with mixes (optional rhymes array per mix)
+   { label: 'Song 80', dir: '/tracks/song-80bpm', bpm: 80, barsPerLine: 2,
+     loops: [...],
+     mixes: [
+       { name: 'Instrumental', file: 'instrumental.wav',
+         sections: [{ name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }] },
+       { name: 'Lyrics', file: 'lyrics.wav',
+         sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
+     ] }
    ```
-3. If a metronome at that BPM exists, add to `METRONOME_FILES`:
+4. If a metronome at that BPM exists, add to `METRONOME_FILES`:
    ```ts
-   90: '/loops/metronome-loop-90bpm.wav',
+   90: '/tracks/metronome/90bpm.wav',
    ```
-4. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
+5. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
 
 ## Key Design Decisions
 

@@ -19,7 +19,9 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 
 - **Track selection** — Choose from available tracks (drums at various BPMs, scene-to-rap, etc.) or "None" for metronome-only mode. Each track has its own BPM, and the transport matches it automatically.
 - **Multi-loop tracks** — Tracks can have multiple loops (e.g. Verse, Chorus), each with its own audio file and bar count. A row of loop buttons appears above the play bar for multi-loop tracks. Tapping a loop queues it to start after the current loop's next cycle boundary (queue depth of 1). Tapping the current loop while something is queued cancels the queue. The grid shows section headers (e.g. "[Chorus]") at loop transitions and thin dividers where a loop repeats. Single-loop tracks work identically to before — no loop buttons shown.
-- **Example tracks** — Tracks can optionally have example versions (e.g. Instrumental, Lyrics, Scat) — full-length audio files with a defined section structure. Example buttons appear next to loop buttons, separated by a vertical divider, with squarish corners. Clicking an example plays the full audio once (non-looping), with section headers in the grid matching the song structure. Examples can optionally provide a `rhymes` array for custom words; otherwise normal random rhymes are used. Auto-stops at the end and returns to loop mode. Clicking a loop button or stop during example playback exits example mode.
+- **Mixes** — Tracks can optionally have mixes (e.g. Instrumental, Lyrics, Scat) — full-length audio files with a defined section structure. Mix buttons appear next to loop buttons, separated by a vertical divider, with squarish corners. Clicking a mix loads the full audio (non-looping) with section headers in the grid matching the song structure. Mixes can optionally provide a `rhymes` array for custom words; otherwise normal random rhymes are used. Auto-stops at the end. Clicking a loop button exits mix mode.
+- **Track preview** — The track picker modal has a preview button on each track that plays the Lyrics mix (or first mix, or first loop as fallback) using a standalone Audio element — no interaction with the grid or transport.
+- **Track-specific barsPerLine** — Tracks can specify a `barsPerLine` value; selecting the track auto-switches the grid layout.
 - **Metronome toggle** — Enable/disable a metronome click that plays alongside the track (separate loop files matched by BPM). Toggle lives in the toolbar for quick access.
 - **Word list selection** — Pick from 9 curated word lists (elementary, rapper's toolkit, etc.) sourced from the rhyme-finder.
 - **Bars per line** — 1 bar per line (4 beats, suited for rap) or 2 bars per line (8 beats, suited for improv musicals). Timeline, playhead, and rhyme placement all adapt.
@@ -54,16 +56,23 @@ Minimalist dark theme.
 - **Toolbar** (top): hamburger menu, FLOWGRID label, dice (randomize seed), metronome toggle. Respects safe area insets on mobile.
 - **Timeline**: Numbered beats (1-4 or 1-8 depending on bars per line) with subdivision ticks
 - **Grid**: Scrolling bars with rhyme words, playhead overlay
-- **Loop selector** (above play bar): Loop buttons for multi-loop tracks + example buttons for tracks with examples (hidden when neither applies)
+- **Loop selector** (above play bar): Loop buttons for multi-loop tracks + mix buttons for tracks with mixes (hidden when neither applies)
 - **Play button** (bottom center): Play/pause and stop controls
 - **Sidebar** (left slide-over): All settings dropdowns, volume sliders. Scrollable on small screens. Respects safe area insets.
 
 ## Audio files
 
-`./loops/` (repo root) and `website/public/loops/` contain:
-- `drums-loop-{bpm}bpm.wav` — drum loops at 60, 80, 100, 120 BPM (1 bar each)
-- `metronome-loop-{bpm}bpm.wav` — metronome clicks at matching BPMs
-- `scene-to-rap-loop-100bpm.m4a` — 8-bar musical loop at 100 BPM
-- `basic-drums-80bpm/verse-4bars.wav`, `chorus-4bars.wav` — multi-loop drum track (Verse + Chorus)
+All audio lives in `website/public/tracks/` with a standardized structure:
 
-Track files in `website/public/tracks/` are served directly. Multi-loop tracks use subdirectories. New tracks should be added there and registered in `website/src/lib/constants.ts` (`AVAILABLE_TRACKS` array). Tracks with examples have an `examples/` subdirectory with full-length audio files plus a `loops/` subdirectory for the loop files. Metronome files are matched by BPM via the `METRONOME_FILES` map.
+```
+tracks/
+├── metronome/                  — metronome clicks by BPM
+│   └── {bpm}bpm.wav
+├── {track-slug}/               — each track gets a directory
+│   ├── loops/                  — repeating sections
+│   │   └── {name}.wav
+│   └── mixes/                  — full-length versions (optional)
+│       └── {name}.wav
+```
+
+Track `dir` field in constants.ts points to the directory; loop/mix `file` fields are just filenames. Path helpers `loopUrl()` and `mixUrl()` resolve full paths. New tracks should be added to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`.

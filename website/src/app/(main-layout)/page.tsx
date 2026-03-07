@@ -12,7 +12,7 @@ import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, mixUrl } from '@/lib/constants'
 import { type Preset, generateBarsFromPreset } from '@/lib/rhymes'
 import { usePresetAudio } from '@/hooks/usePresetAudio'
 
@@ -59,7 +59,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     scheduleTransition,
     cancelTransition,
     setLoopIndex,
-    loadExample,
+    loadMix,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume)
 
   const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
@@ -79,39 +79,39 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const [transitionBar, setTransitionBar] = useState<number | null>(null)
   const transitionBarRef = useRef<number | null>(null)
 
-  const [activeExampleIndex, setActiveExampleIndex] = useState<number | null>(null)
+  const [activeMixIndex, setActiveMixIndex] = useState<number | null>(null)
 
   const currentTrack = selectedTrackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndex]
   const currentLoop = currentTrack?.loops[currentLoopIndex] ?? null
   const multiLoop = (currentTrack?.loops.length ?? 0) > 1
-  const hasExamples = (currentTrack?.examples?.length ?? 0) > 0
+  const hasMixes = (currentTrack?.mixes?.length ?? 0) > 0
 
-  const activeExample = activeExampleIndex !== null ? currentTrack?.examples?.[activeExampleIndex] ?? null : null
-  const exampleTotalBars = activeExample ? activeExample.sections.reduce((sum, s) => sum + s.bars, 0) : 0
+  const activeMix = activeMixIndex !== null ? currentTrack?.mixes?.[activeMixIndex] ?? null : null
+  const mixTotalBars = activeMix ? activeMix.sections.reduce((sum, s) => sum + s.bars, 0) : 0
 
-  const exampleBars = useMemo(() => {
-    if (!activeExample) return null
-    if (activeExample.rhymes) {
+  const mixBars = useMemo(() => {
+    if (!activeMix) return null
+    if (activeMix.rhymes) {
       return generateBarsFromPreset(
-        { words: activeExample.rhymes, pattern: settings.rhymePattern },
+        { words: activeMix.rhymes, pattern: settings.rhymePattern },
         settings.barsPerLine, settings.fillMode, 0,
       )
     }
-    return bars.slice(0, exampleTotalBars)
-  }, [activeExample, exampleTotalBars, bars, settings.rhymePattern, settings.barsPerLine, settings.fillMode])
+    return bars.slice(0, mixTotalBars)
+  }, [activeMix, mixTotalBars, bars, settings.rhymePattern, settings.barsPerLine, settings.fillMode])
 
-  const exampleLoopInfo: LoopInfo | null = useMemo(() => {
-    if (!activeExample) return null
+  const mixLoopInfo: LoopInfo | null = useMemo(() => {
+    if (!activeMix) return null
     const starts: SectionStart[] = []
     const fakeLoops: Loop[] = []
     let bar = 0
-    for (const section of activeExample.sections) {
+    for (const section of activeMix.sections) {
       starts.push({ bar, loopIndex: fakeLoops.length })
       fakeLoops.push({ name: section.name, file: '', bars: section.bars })
       bar += section.bars
     }
     return { sectionStarts: starts, loops: fakeLoops }
-  }, [activeExample])
+  }, [activeMix])
 
   const resetLoopState = useCallback((loopIndex: number) => {
     setSectionStarts([{ bar: 0, loopIndex }])
@@ -120,8 +120,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     transitionBarRef.current = null
   }, [])
 
-  const handleExitExample = useCallback(async () => {
-    setActiveExampleIndex(null)
+  const handleExitMix = useCallback(async () => {
+    setActiveMixIndex(null)
     stop()
     resetPosition()
     regenerate()
@@ -129,22 +129,22 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     await changeTrack(settings.selectedTrackIndex)
   }, [stop, resetPosition, regenerate, resetLoopState, changeTrack, settings.selectedTrackIndex])
 
-  const handleSelectExample = useCallback(async (index: number) => {
-    if (!currentTrack?.examples) return
-    if (index === activeExampleIndex) return
-    const example = currentTrack.examples[index]
-    if (!example) return
-    setActiveExampleIndex(index)
+  const handleSelectMix = useCallback(async (index: number) => {
+    if (!currentTrack?.mixes) return
+    if (index === activeMixIndex) return
+    const mix = currentTrack.mixes[index]
+    if (!mix) return
+    setActiveMixIndex(index)
     resetLoopState(0)
     resetPosition()
-    await loadExample(example.file)
-  }, [currentTrack, activeExampleIndex, resetLoopState, resetPosition, loadExample])
+    await loadMix(mixUrl(currentTrack, mix))
+  }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix])
 
   const handleSelectLoop = useCallback((index: number) => {
     if (!currentTrack) return
 
-    if (activeExampleIndex !== null) {
-      handleExitExample()
+    if (activeMixIndex !== null) {
+      handleExitMix()
       return
     }
 
@@ -180,7 +180,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setTransitionBar(boundary)
     transitionBarRef.current = boundary
     scheduleTransition(index, boundary)
-  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeExampleIndex, handleExitExample])
+  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeMixIndex, handleExitMix])
 
   // When playhead crosses the transition boundary, just clear the queue (section already in sectionStarts)
   useEffect(() => {
@@ -207,17 +207,17 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [position.bar, presetBars, isPlaying, stop, resetPosition, regenerate])
 
-  // Auto-stop when example finishes (keep example active so user can replay)
+  // Auto-stop when mix finishes (keep mix active so user can replay)
   useEffect(() => {
-    if (!isPlaying || !activeExample) return
-    if (position.bar >= exampleTotalBars) {
+    if (!isPlaying || !activeMix) return
+    if (position.bar >= mixTotalBars) {
       stop()
       resetPosition()
     }
-  }, [position.bar, isPlaying, activeExample, exampleTotalBars, stop, resetPosition])
+  }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
   const handleTrackChange = (index: number) => {
-    setActiveExampleIndex(null)
+    setActiveMixIndex(null)
     stop()
     changeTrack(index)
     update('selectedTrackIndex', index)
@@ -236,7 +236,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const handleStop = () => {
     stop()
     resetPosition()
-    if (activeExampleIndex === null) {
+    if (activeMixIndex === null) {
       regenerate()
       resetLoopState(currentLoopIndex)
     }
@@ -259,24 +259,24 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
       <Grid
-        bars={exampleBars ?? presetBars ?? bars}
+        bars={mixBars ?? presetBars ?? bars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
         barsPerLine={settings.barsPerLine}
-        introBars={activeExample ? 0 : settings.introBars}
+        introBars={activeMix ? 0 : settings.introBars}
         scrollToBar={scrollToBar}
-        loopInfo={exampleLoopInfo ?? loopInfo}
+        loopInfo={mixLoopInfo ?? loopInfo}
       />
-      {currentTrack && (multiLoop || hasExamples) && (
+      {currentTrack && (multiLoop || hasMixes) && (
         <LoopSelector
           loops={currentTrack.loops}
           currentLoopIndex={currentLoopIndex}
           queuedLoopIndex={queuedLoopIndex}
           onSelectLoop={handleSelectLoop}
-          examples={currentTrack.examples}
-          activeExampleIndex={activeExampleIndex}
-          onSelectExample={handleSelectExample}
+          mixes={currentTrack.mixes}
+          activeMixIndex={activeMixIndex}
+          onSelectMix={handleSelectMix}
         />
       )}
       <PlaybackToolbar

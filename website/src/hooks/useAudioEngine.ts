@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
-import { AVAILABLE_TRACKS, METRONOME_FILES, DEFAULT_TRACK_INDEX, DEFAULT_BPM, NONE_TRACK_INDEX } from '@/lib/constants'
+import { AVAILABLE_TRACKS, METRONOME_FILES, DEFAULT_TRACK_INDEX, DEFAULT_BPM, NONE_TRACK_INDEX, loopUrl } from '@/lib/constants'
 
 function volumeToDb(v: number): number {
   return v === 0 ? -Infinity : 20 * Math.log10(v / 100)
@@ -113,7 +113,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
     try {
       // Load all loop buffers + the initial player + metronome in parallel
-      const loopBufferPromises = track ? track.loops.map(l => loadBuffer(l.file)) : []
+      const loopBufferPromises = track ? track.loops.map(l => loadBuffer(loopUrl(track, l))) : []
       const metronomeFile = METRONOME_FILES[bpm]
       const metronomePromise = metronomeFile ? createPlayer(metronomeFile, true) : null
 
@@ -213,7 +213,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     [loadTrack]
   )
 
-  const loadExample = useCallback(async (audioUrl: string) => {
+  const loadMix = useCallback(async (audioUrl: string) => {
     const transport = Tone.getTransport()
     transport.stop()
     transport.position = 0
@@ -298,6 +298,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     scheduleTransition,
     cancelTransition,
     setLoopIndex,
-    loadExample,
+    loadMix,
   }
 }

@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type Track } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type Track, loopUrl, mixUrl } from '@/lib/constants'
 
 function getPreviewUrl(track: Track): string | null {
-  if (track.examples) {
-    const lyrics = track.examples.find(e => e.name === 'Lyrics')
-    if (lyrics) return lyrics.file
-    return track.examples[0].file
+  if (track.mixes) {
+    const lyrics = track.mixes.find(m => m.name === 'Lyrics')
+    if (lyrics) return mixUrl(track, lyrics)
+    return mixUrl(track, track.mixes[0])
   }
-  return track.loops[0]?.file ?? null
+  return track.loops[0] ? loopUrl(track, track.loops[0]) : null
 }
 
 type PlaybackToolbarProps = {

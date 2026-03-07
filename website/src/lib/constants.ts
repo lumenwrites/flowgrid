@@ -18,27 +18,28 @@ export type Loop = {
   bars: number
 }
 
-export type ExampleSection = {
+export type MixSection = {
   name: string
   bars: number
 }
 
-export type Example = {
+export type Mix = {
   name: string
   file: string
-  sections: ExampleSection[]
+  sections: MixSection[]
   rhymes?: string[]
 }
 
 export type Track = {
   label: string
+  dir: string
   bpm: number
   loops: Loop[]
-  examples?: Example[]
+  mixes?: Mix[]
   barsPerLine?: BarsPerLine
 }
 
-const VILLAIN_SONG_SECTIONS: ExampleSection[] = [
+const VILLAIN_SONG_SECTIONS: MixSection[] = [
   { name: 'Verse 1', bars: 8 },
   { name: 'Chorus', bars: 8 },
   { name: 'Verse 2', bars: 8 },
@@ -53,32 +54,47 @@ const VILLAIN_SONG_RHYMES = [
 ]
 
 export const AVAILABLE_TRACKS: Track[] = [
-  { label: 'Villain Song 80bpm', bpm: 80, barsPerLine: 2, loops: [
-    { name: 'Verse', file: '/tracks/villain-song-80bpm/loops/verse.wav', bars: 8 },
-    { name: 'Chorus', file: '/tracks/villain-song-80bpm/loops/chorus.wav', bars: 8 },
-  ], examples: [
-    { name: 'Instrumental', file: '/tracks/villain-song-80bpm/examples/instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
-    { name: 'Lyrics', file: '/tracks/villain-song-80bpm/examples/lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
-    { name: 'Scat', file: '/tracks/villain-song-80bpm/examples/scat.wav', sections: VILLAIN_SONG_SECTIONS },
-  ]},
-  { label: 'Basic Drums 80bpm', bpm: 80, loops: [
-    { name: 'Verse', file: '/tracks/basic-drums-80bpm/verse-4bars.wav', bars: 4 },
-    { name: 'Chorus', file: '/tracks/basic-drums-80bpm/chorus-4bars.wav', bars: 4 },
-  ]},
-  { label: 'Drums 60bpm', bpm: 60, loops: [{ name: 'Loop', file: '/tracks/drums-loop-60bpm.wav', bars: 1 }] },
-  { label: 'Drums 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/drums-loop-80bpm.wav', bars: 1 }] },
-  { label: 'Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/drums-loop-100bpm.wav', bars: 1 }] },
-  { label: 'Drums 120bpm', bpm: 120, loops: [{ name: 'Loop', file: '/tracks/drums-loop-120bpm.wav', bars: 1 }] },
-  { label: 'Scene to Rap 100bpm', bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: '/tracks/scene-to-rap-loop-100bpm.m4a', bars: 8 }] },
-  { label: 'YCCA 80bpm', bpm: 80, loops: [{ name: 'Loop', file: '/tracks/ycca-80bpm-8bars.m4a', bars: 8 }] },
-  { label: 'Freestyle Drums 100bpm', bpm: 100, loops: [{ name: 'Loop', file: '/tracks/freestyle-drums-100bpm-4bars.wav', bars: 4 }] },
+  {
+    label: 'Villain Song 80bpm', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
+    loops: [
+      { name: 'Verse', file: 'verse.wav', bars: 8 },
+      { name: 'Chorus', file: 'chorus.wav', bars: 8 },
+    ],
+    mixes: [
+      { name: 'Instrumental', file: 'instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
+      { name: 'Lyrics', file: 'lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
+      { name: 'Scat', file: 'scat.wav', sections: VILLAIN_SONG_SECTIONS },
+    ],
+  },
+  {
+    label: 'Basic Drums 80bpm', dir: '/tracks/basic-drums-80bpm', bpm: 80,
+    loops: [
+      { name: 'Verse', file: 'verse.wav', bars: 4 },
+      { name: 'Chorus', file: 'chorus.wav', bars: 4 },
+    ],
+  },
+  { label: 'Drums 60bpm',  dir: '/tracks/drums-60bpm',  bpm: 60,  loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
+  { label: 'Drums 80bpm',  dir: '/tracks/drums-80bpm',  bpm: 80,  loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
+  { label: 'Drums 100bpm', dir: '/tracks/drums-100bpm', bpm: 100, loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
+  { label: 'Drums 120bpm', dir: '/tracks/drums-120bpm', bpm: 120, loops: [{ name: 'Loop', file: 'loop.wav', bars: 1 }] },
+  { label: 'Scene to Rap 100bpm',    dir: '/tracks/scene-to-rap-100bpm',    bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: 'loop.m4a', bars: 8 }] },
+  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  loops: [{ name: 'Loop', file: 'loop.m4a', bars: 8 }] },
+  { label: 'Freestyle Drums 100bpm', dir: '/tracks/freestyle-drums-100bpm', bpm: 100, loops: [{ name: 'Loop', file: 'loop.wav', bars: 4 }] },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {
-  60: '/tracks/metronome-loop-60bpm.wav',
-  80: '/tracks/metronome-loop-80bpm.wav',
-  100: '/tracks/metronome-loop-100bpm.wav',
-  120: '/tracks/metronome-loop-120bpm.wav',
+  60:  '/tracks/metronome/60bpm.wav',
+  80:  '/tracks/metronome/80bpm.wav',
+  100: '/tracks/metronome/100bpm.wav',
+  120: '/tracks/metronome/120bpm.wav',
+}
+
+export function loopUrl(track: Track, loop: Loop): string {
+  return `${track.dir}/loops/${loop.file}`
+}
+
+export function mixUrl(track: Track, mix: Mix): string {
+  return `${track.dir}/mixes/${mix.file}`
 }
 
 export const NONE_TRACK_INDEX = -1
