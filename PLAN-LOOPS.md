@@ -190,13 +190,13 @@ When the user queues a new loop, the next separator (which was a dashed divider)
 
 ### New component: `LoopSelector.tsx`
 
-Positioned between the Grid and PlayButton. Only rendered when the selected track has more than one loop.
+Positioned between the Grid and PlaybackToolbar. Only rendered when the selected track has more than one loop.
 
 ```
 ┌─────────────────────────────────────────┐
 │  [ Verse ]  [[ Chorus ]]  [ Bridge ]    │  ← loop buttons
 ├─────────────────────────────────────────┤
-│  [stop]  [play]           Basic Drums ▼ │  ← existing PlayButton
+│  [stop]  [play]           Basic Drums ▼ │  ← existing PlaybackToolbar
 └─────────────────────────────────────────┘
 ```
 
@@ -238,7 +238,7 @@ FlowGrid component:
   <Timeline />           — unchanged
   <Grid />               — new props: loop state for separators
   <LoopSelector />       — NEW: only shown when track has >1 loop
-  <PlayButton />         — unchanged
+  <PlaybackToolbar />    — unchanged
   <Sidebar />            — barCount dropdown removed
 ```
 

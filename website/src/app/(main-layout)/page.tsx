@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Toolbar from '@/components/Toolbar'
 import Sidebar from '@/components/Sidebar'
-import PlayButton from '@/components/PlayButton'
+import PlaybackToolbar from '@/components/PlaybackToolbar'
 import LoopSelector from '@/components/LoopSelector'
 import Grid from '@/components/FlowGrid/Grid'
 import Timeline from '@/components/FlowGrid/Timeline'
@@ -201,7 +201,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
           onSelectLoop={handleSelectLoop}
         />
       )}
-      <PlayButton
+      <PlaybackToolbar
         isPlaying={isPlaying}
         onToggle={togglePlay}
         onStop={handleStop}

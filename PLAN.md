@@ -24,7 +24,7 @@ website/src/
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
 │   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes)
 │   ├── LoopSelector.tsx                — Loop buttons row above play button (multi-loop tracks only)
-│   └── PlayButton.tsx                  — Play/pause + stop at bottom center
+│   └── PlaybackToolbar.tsx              — Play/pause + stop at bottom center
 │
 ├── hooks/
 │   ├── useAudioEngine.ts               — Tone.js: Transport, Player (track + metronome), play/pause/stop
@@ -96,7 +96,7 @@ website/src/
 │ [    ] [    ] [    ] [honey]        │
 │           ...                       │
 ├─────────────────────────────────────┤
-│           [▶ / ⏸] [⏹]              │  ← PlayButton
+│           [▶ / ⏸] [⏹]              │  ← PlaybackToolbar
 └─────────────────────────────────────┘
 
 Sidebar (slides from left):
