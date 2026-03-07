@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useMemo, useCallback, type RefObject } from 'react'
+import { useEffect, useRef, useMemo, useCallback, useState, type RefObject } from 'react'
 import type { BarData } from '@/lib/rhymes'
 import type { PlayheadPosition } from '@/hooks/usePlayhead'
 import { BEATS_PER_BAR, type BarsPerLine, type LoopInfo } from '@/lib/constants'
@@ -100,8 +100,8 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
   const containerRef = useRef<HTMLDivElement>(null)
   // Single ref map: bar index → outer wrapper element (contains separator + bar content)
   const wrapperRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
-  const userScrollingRef = useRef(false)
-  const userScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [autoScrollPaused, setAutoScrollPaused] = useState(false)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Pre-compute separators for visible bars
   const separatorMap = useMemo(() => {
@@ -144,34 +144,34 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     const container = containerRef.current
     if (!container) return
     function handleUserScroll() {
-      userScrollingRef.current = true
-      if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
-      userScrollTimeoutRef.current = setTimeout(() => { userScrollingRef.current = false }, 5000)
+      setAutoScrollPaused(true)
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = setTimeout(() => setAutoScrollPaused(false), 5000)
     }
     container.addEventListener('wheel', handleUserScroll, { passive: true })
     container.addEventListener('touchmove', handleUserScroll, { passive: true })
     return () => {
       container.removeEventListener('wheel', handleUserScroll)
       container.removeEventListener('touchmove', handleUserScroll)
-      if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
     }
   }, [])
 
   const handleBeatClick = useCallback((barIndex: number, beat: number) => {
-    userScrollingRef.current = false
-    if (userScrollTimeoutRef.current) clearTimeout(userScrollTimeoutRef.current)
+    setAutoScrollPaused(false)
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
     onBeatClick?.(barIndex, beat)
   }, [onBeatClick])
 
   // Auto-scroll — targets the wrapper so separator + bar are both visible
   useEffect(() => {
-    if (scrollToBar < 0 || userScrollingRef.current) return
+    if (scrollToBar < 0 || autoScrollPaused) return
     const container = containerRef.current
     if (!container) return
     const wrapper = wrapperRefsMap.current.get(scrollToBar)
     const scrollTarget = wrapper ? wrapper.offsetTop : 0
     smoothScrollTo(container, Math.max(0, scrollTarget))
-  }, [scrollToBar])
+  }, [scrollToBar, autoScrollPaused])
 
   // Reset scroll on stop
   useEffect(() => {

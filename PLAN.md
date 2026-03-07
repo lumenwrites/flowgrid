@@ -58,7 +58,7 @@ website/src/
 - BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
 - `loadMix(audioUrl)` loads a one-shot (non-looping) audio file, replacing the current loop player (does not auto-play)
-- `seekToBar(targetBar, loopIndex?, syncStartBar?)` — pauses transport, swaps player buffer if crossing section boundaries, re-syncs player to section start bar, seeks transport, resumes if was playing. For mixes (no loopIndex), just seeks transport position
+- `seekToBar(targetBar, beat?, loopIndex?, syncStartBar?)` — pauses transport, swaps player buffer if crossing section boundaries, re-syncs player to section start bar, seeks transport to `bar:beat:0`, resumes if was playing. For mixes (no loopIndex), just seeks transport position
 - Returns `currentLoopIndex`, `seekToBar()`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`, `loadMix()`
 
 ## Playhead (`usePlayhead`)
@@ -66,8 +66,8 @@ website/src/
 - RAF loop reads `transport.seconds` every frame → computes bar/beat/globalBeat → React state update only on beat change
 - Smooth sub-beat playhead line position (direct DOM mutation for performance)
 - Supports `barsPerLine` parameter — playhead position calculated across full row width
-- `setBar(bar)` — manual position update for seeking (sets position, playhead line, and scroll tracking)
-- Returns `position` (bar, beat, globalBeat), refs for playhead/timeline lines, `resetPosition`, `setBar`
+- `seekTo(bar, beat?)` — manual position update for seeking (sets position, playhead line, scroll tracking, and a brief guard window to prevent RAF from overwriting the position before the transport stabilizes)
+- Returns `position` (bar, beat, globalBeat), refs for playhead/timeline lines, `resetPosition`, `seekTo`
 
 ## Rhyme Generation (`useRhymes` + `lib/rhymes.ts`)
 
