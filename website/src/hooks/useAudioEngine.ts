@@ -213,6 +213,56 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     [loadTrack]
   )
 
+  const loadExample = useCallback(async (audioUrl: string) => {
+    const transport = Tone.getTransport()
+    transport.stop()
+    transport.position = 0
+
+    cancelPendingTransition()
+
+    if (playerRef.current) {
+      playerRef.current.unsync()
+      playerRef.current.dispose()
+      playerRef.current = null
+    }
+
+    const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
+    const bpm = track ? track.bpm : metronomeBpmRef.current
+    transport.bpm.value = bpm
+
+    function createPlayerFromUrl(url: string): Promise<Tone.Player> {
+      return new Promise((resolve, reject) => {
+        const p = new Tone.Player({
+          url,
+          loop: false,
+          onload: () => resolve(p),
+          onerror: (e) => reject(e),
+        }).toDestination()
+      })
+    }
+
+    const metronomeFile = METRONOME_FILES[bpm]
+    const [player, metronome] = await Promise.all([
+      createPlayerFromUrl(audioUrl),
+      !metronomeRef.current && metronomeFile
+        ? createPlayerFromUrl(metronomeFile).then(p => { p.loop = true; return p })
+        : null,
+    ])
+
+    player.volume.value = volumeToDb(trackVolumeRef.current)
+    player.sync().start(0)
+    playerRef.current = player
+    isLoadedRef.current = true
+
+    if (metronome) {
+      metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
+      metronome.sync().start(0)
+      metronomeRef.current = metronome
+    }
+
+    setIsPlaying(false)
+  }, [])
+
   const setLoopIndex = useCallback((loopIndex: number) => {
     setCurrentLoopIndex(loopIndex)
     currentLoopIndexRef.current = loopIndex
@@ -248,5 +298,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     scheduleTransition,
     cancelTransition,
     setLoopIndex,
+    loadExample,
   }
 }

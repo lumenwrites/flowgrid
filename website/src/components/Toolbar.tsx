@@ -4,6 +4,8 @@ import HamburgerButton from './HamburgerButton'
 
 type ToolbarProps = {
   metronomeEnabled: boolean
+  metronomeTicking: boolean
+  beat: number
   onMetronomeChange: (enabled: boolean) => void
   onOpenSettings: () => void
   onRandomizeSeed: () => void
@@ -11,6 +13,8 @@ type ToolbarProps = {
 
 export default function Toolbar({
   metronomeEnabled,
+  metronomeTicking,
+  beat,
   onMetronomeChange,
   onOpenSettings,
   onRandomizeSeed,
@@ -56,6 +60,7 @@ export default function Toolbar({
               WebkitMaskRepeat: 'no-repeat',
               maskPosition: 'center',
               WebkitMaskPosition: 'center',
+              transform: metronomeTicking && beat % 2 === 1 ? 'scaleX(-1)' : undefined,
             }}
           />
         </button>

@@ -23,7 +23,7 @@ website/src/
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
 │   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes)
-│   ├── LoopSelector.tsx                — Loop buttons row above play button (multi-loop tracks only)
+│   ├── LoopSelector.tsx                — Loop buttons + example buttons row above play button
 │   └── PlaybackToolbar.tsx              — Play/pause + stop at bottom center
 │
 ├── hooks/
@@ -33,7 +33,7 @@ website/src/
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Track/Loop/SectionStart/LoopInfo types, metronome files, color palette, all config
+│   ├── constants.ts                    — Track/Loop/Example/SectionStart/LoopInfo types, metronome files, color palette, all config
 │   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
 │   └── utils.ts                        — cn() utility
 │
@@ -52,7 +52,8 @@ website/src/
 - Track index `-1` = "None" (metronome-only mode, BPM user-selectable from 60/80/100/120)
 - BPM set from the track's config when a track is selected; from `metronomeBpm` setting when "None"
 - Metronome files matched by BPM via `METRONOME_FILES` record
-- Returns `currentLoopIndex`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`
+- `playExample(audioUrl)` loads and plays a one-shot (non-looping) audio file, replacing the current loop player
+- Returns `currentLoopIndex`, `scheduleTransition()`, `cancelTransition()`, `setLoopIndex()`, `playExample()`
 
 ## Playhead (`usePlayhead`)
 
@@ -96,7 +97,7 @@ website/src/
 │ [    ] [    ] [    ] [honey]        │
 │           ...                       │
 ├─────────────────────────────────────┤
-│  [Verse] [Chorus]                   │  ← LoopSelector (multi-loop tracks only)
+│  [Verse] [Chorus] | [Inst] [Lyr]    │  ← LoopSelector (loops + examples)
 ├─────────────────────────────────────┤
 │           [▶ / ⏸] [⏹]              │  ← PlaybackToolbar
 └─────────────────────────────────────┘
@@ -125,8 +126,15 @@ Sidebar (slides from left):
    { label: 'My Track 90', bpm: 90, loops: [{ name: 'Loop', file: '/loops/my-track-90bpm.wav', bars: 4 }] }
    // Multi-loop track
    { label: 'My Song 120', bpm: 120, loops: [
-     { name: 'Verse', file: '/loops/my-song/verse-4bars.wav', bars: 4 },
-     { name: 'Chorus', file: '/loops/my-song/chorus-8bars.wav', bars: 8 },
+     { name: 'Verse', file: '/tracks/my-song/loops/verse-4bars.wav', bars: 4 },
+     { name: 'Chorus', file: '/tracks/my-song/loops/chorus-8bars.wav', bars: 8 },
+   ] }
+   // Track with examples (optional rhymes array per example)
+   { label: 'Song 80', bpm: 80, loops: [...], examples: [
+     { name: 'Instrumental', file: '/tracks/song/examples/inst.wav',
+       sections: [{ name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }] },
+     { name: 'Lyrics', file: '/tracks/song/examples/lyrics.wav',
+       sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
    ] }
    ```
 3. If a metronome at that BPM exists, add to `METRONOME_FILES`:

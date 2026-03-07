@@ -18,13 +18,48 @@ export type Loop = {
   bars: number
 }
 
+export type ExampleSection = {
+  name: string
+  bars: number
+}
+
+export type Example = {
+  name: string
+  file: string
+  sections: ExampleSection[]
+  rhymes?: string[]
+}
+
 export type Track = {
   label: string
   bpm: number
   loops: Loop[]
+  examples?: Example[]
 }
 
+const VILLAIN_SONG_SECTIONS: ExampleSection[] = [
+  { name: 'Verse 1', bars: 8 },
+  { name: 'Chorus', bars: 8 },
+  { name: 'Verse 2', bars: 8 },
+  { name: 'Chorus', bars: 8 },
+]
+
+const VILLAIN_SONG_RHYMES = [
+  'dawn', 'gone', 'made', 'laid',
+  'see', 'me', 'door', 'poor',
+  'squid', 'did', 'okay', 'Ray',
+  'see', 'me', 'door', 'poor',
+]
+
 export const AVAILABLE_TRACKS: Track[] = [
+  { label: 'Villain Song 80bpm', bpm: 80, loops: [
+    { name: 'Verse', file: '/tracks/villain-song-80bpm/loops/verse.wav', bars: 8 },
+    { name: 'Chorus', file: '/tracks/villain-song-80bpm/loops/chorus.wav', bars: 8 },
+  ], examples: [
+    { name: 'Instrumental', file: '/tracks/villain-song-80bpm/examples/instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
+    { name: 'Lyrics', file: '/tracks/villain-song-80bpm/examples/lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
+    { name: 'Scat', file: '/tracks/villain-song-80bpm/examples/scat.wav', sections: VILLAIN_SONG_SECTIONS },
+  ]},
   { label: 'Basic Drums 80bpm', bpm: 80, loops: [
     { name: 'Verse', file: '/tracks/basic-drums-80bpm/verse-4bars.wav', bars: 4 },
     { name: 'Chorus', file: '/tracks/basic-drums-80bpm/chorus-4bars.wav', bars: 4 },
@@ -46,7 +81,7 @@ export const METRONOME_FILES: Record<number, string> = {
 }
 
 export const NONE_TRACK_INDEX = -1
-export const DEFAULT_TRACK_INDEX = 0 // Basic Drums 80 (multi-loop)
+export const DEFAULT_TRACK_INDEX = 0 // Villain Song 80bpm (multi-loop + examples)
 export const DEFAULT_BPM = 80 // Used when no track is selected
 
 export const INTRO_BAR_OPTIONS = [0, 1, 2, 4, 6, 8]
