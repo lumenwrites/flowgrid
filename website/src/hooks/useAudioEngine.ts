@@ -76,6 +76,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   const loadTrack = useCallback(async (trackIndex: number, loopIndex: number = 0) => {
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
+    Tone.getTransport().cancel()
 
     cancelPendingTransition()
 
@@ -164,7 +165,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const eventId = Tone.getTransport().schedule((time) => {
       if (playerRef.current) {
         playerRef.current.unsync()
-        playerRef.current.stop()
+        playerRef.current.stop(time)
         playerRef.current.dispose()
       }
       playerRef.current = newPlayer
@@ -217,6 +218,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const transport = Tone.getTransport()
     transport.stop()
     transport.position = 0
+    transport.cancel()
 
     cancelPendingTransition()
 
@@ -224,6 +226,12 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       playerRef.current.unsync()
       playerRef.current.dispose()
       playerRef.current = null
+    }
+
+    // Re-sync metronome after cancel cleared its transport events
+    if (metronomeRef.current) {
+      metronomeRef.current.unsync()
+      metronomeRef.current.sync().start(0)
     }
 
     const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
