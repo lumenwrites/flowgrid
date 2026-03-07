@@ -11,18 +11,19 @@ Shows a grid of bars (4 beats per bar), with a playhead running through them row
 [        ] [        ] [        ] [honey]    <- cyan
 ```
 
-App comes with loops of tracks. Each loop runs forever. The user selects a track, a word list, presses play, and practices rapping/singing along.
+App comes with tracks, each containing one or more loops (e.g. Verse, Chorus). The user selects a track and a word list, presses play, and practices rapping/singing along. For multi-loop tracks, loop buttons appear above the play bar — tap one to queue it as the next loop after the current one finishes its cycle.
 
 Needs to be responsive and work equally well on desktop, tablet, phone.
 
 ## Implemented features
 
-- **Track selection** — Choose from available loops (drums at various BPMs, scene-to-rap, etc.) or "None" for metronome-only mode. Each loop has its own BPM baked into the filename, and the transport matches it automatically.
+- **Track selection** — Choose from available tracks (drums at various BPMs, scene-to-rap, etc.) or "None" for metronome-only mode. Each track has its own BPM, and the transport matches it automatically.
+- **Multi-loop tracks** — Tracks can have multiple loops (e.g. Verse, Chorus), each with its own audio file and bar count. A row of loop buttons appears above the play bar for multi-loop tracks. Tapping a loop queues it to start after the current loop's next cycle boundary (queue depth of 1). Tapping the current loop while something is queued cancels the queue. The grid shows section headers (e.g. "[Chorus]") at loop transitions and thin dividers where a loop repeats. Single-loop tracks work identically to before — no loop buttons shown.
 - **Metronome toggle** — Enable/disable a metronome click that plays alongside the track (separate loop files matched by BPM). Toggle lives in the toolbar for quick access.
 - **Word list selection** — Pick from 9 curated word lists (elementary, rapper's toolkit, etc.) sourced from the rhyme-finder.
 - **Bars per line** — 1 bar per line (4 beats, suited for rap) or 2 bars per line (8 beats, suited for improv musicals). Timeline, playhead, and rhyme placement all adapt.
 - **Rhyme patterns** — AABB (couplets: consecutive lines rhyme) or ABAB (alternating: lines 1&3 rhyme, 2&4 rhyme). Patterns work correctly with both 1 and 2 bars per line.
-- **Bar count** — Generate a fixed number of bars (8, 16, 24, 32, 48, 64) or infinite (generates ahead continuously as you play).
+- **Infinite grid** — The grid always appears infinite, generating bars ahead as playback progresses. Bars extend automatically in chunks.
 - **Intro bars** — Optional 1/2/4/6/8 intro bars where the track plays but rhyme words are hidden, giving time to get into the groove. Rhyme patterns start fresh after intro bars so the first visible line always begins a complete pair.
 - **Fill modes** — Controls which rhyme words are revealed:
   - *All Rhymes* — every line shows its word (default)
@@ -32,7 +33,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
   - Hidden cells still show their rhyme color so you can see the pattern.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
 - **Metronome BPM** — When track is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
-- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: track, volumes, metronome BPM, words, bars per line, bar count, intro bars, rhyme pattern, fill mode, seed, audio offset.
+- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: track, volumes, metronome BPM, words, bars per line, intro bars, rhyme pattern, fill mode, seed, audio offset.
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.
 - **Playhead sync** — Smooth playhead line tracks position via RAF, with beat-level highlighting via Tone.Loop + Draw.schedule. Playhead stays visible when paused. Turns the rhyme's color when over the rhyme cell.
 - **Auto-scroll** — Grid smoothly scrolls to keep the current bar near the top. Scroll starts one beat early so the animation completes before the next row begins.
@@ -52,6 +53,7 @@ Minimalist dark theme.
 - **Toolbar** (top): hamburger menu, FLOWGRID label, dice (randomize seed), metronome toggle. Respects safe area insets on mobile.
 - **Timeline**: Numbered beats (1-4 or 1-8 depending on bars per line) with subdivision ticks
 - **Grid**: Scrolling bars with rhyme words, playhead overlay
+- **Loop selector** (above play bar): Loop buttons for multi-loop tracks (hidden for single-loop tracks)
 - **Play button** (bottom center): Play/pause and stop controls
 - **Sidebar** (left slide-over): All settings dropdowns, volume sliders. Scrollable on small screens. Respects safe area insets.
 
@@ -61,5 +63,6 @@ Minimalist dark theme.
 - `drums-loop-{bpm}bpm.wav` — drum loops at 60, 80, 100, 120 BPM (1 bar each)
 - `metronome-loop-{bpm}bpm.wav` — metronome clicks at matching BPMs
 - `scene-to-rap-loop-100bpm.m4a` — 8-bar musical loop at 100 BPM
+- `basic-drums-80bpm/verse-4bars.wav`, `chorus-4bars.wav` — multi-loop drum track (Verse + Chorus)
 
-Track files in `website/public/loops/` are served directly. New tracks should be added there and registered in `website/src/lib/constants.ts` (`AVAILABLE_TRACKS` array). Metronome files are matched by BPM via the `METRONOME_FILES` map.
+Track files in `website/public/loops/` are served directly. Multi-loop tracks use subdirectories. New tracks should be added there and registered in `website/src/lib/constants.ts` (`AVAILABLE_TRACKS` array). Metronome files are matched by BPM via the `METRONOME_FILES` map.

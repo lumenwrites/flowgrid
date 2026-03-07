@@ -16,7 +16,7 @@ website/src/
 │
 ├── components/
 │   ├── FlowGrid/
-│   │   ├── Grid.tsx                    — Scrolling grid, renders bars, playhead overlay, auto-scroll
+│   │   ├── Grid.tsx                    — Scrolling grid, bars, section headers, loop dividers, playhead, auto-scroll
 │   │   ├── Bar.tsx                     — Single bar row (4 beat cells), rhyme on last beat
 │   │   ├── BeatCell.tsx                — One beat cell, highlights when active
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
@@ -33,7 +33,7 @@ website/src/
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Track/Loop definitions, metronome files, color palette, all config types
+│   ├── constants.ts                    — Track/Loop/SectionStart/LoopInfo types, metronome files, color palette, all config
 │   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
 │   └── utils.ts                        — cn() utility
 │
@@ -70,14 +70,14 @@ website/src/
   - With 2 bars per line, only the last bar in each row shows the rhyme word
   - `rhymeHidden` flag set per bar based on fill mode and line position in pair
   - Uses seeded PRNG (mulberry32) — `seed + startIndex` ensures extension chunks are deterministic but different
-- Bar count: fixed (8–64) generates exactly that many; `0` = infinite mode (generates chunks of 24, extends during playback)
+- Grid is always infinite — generates initial 48 bars, then extends in chunks of 24 as playback progresses
 - 8 rotating colors with 4 shades each: dim bg/border (default), active bg/border (playhead on it, with vivid ~500 borders)
 - Fill modes: all, setup-punchline, off-the-cliff, all-blanks — hidden cells still show color
 
 ## Settings (`useSettings`)
 
 - Single `flowgrid-settings` key in localStorage
-- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, barCount, fillMode, introBars, metronomeBpm, seed
+- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, fillMode, introBars, metronomeBpm, seed, trackVolume, metronomeVolume, audioOffset
 - Loads on mount with defaults fallback, saves on every change
 - `loaded` flag prevents rendering before hydration (avoids flash)
 
@@ -96,6 +96,8 @@ website/src/
 │ [    ] [    ] [    ] [honey]        │
 │           ...                       │
 ├─────────────────────────────────────┤
+│  [Verse] [Chorus]                   │  ← LoopSelector (multi-loop tracks only)
+├─────────────────────────────────────┤
 │           [▶ / ⏸] [⏹]              │  ← PlaybackToolbar
 └─────────────────────────────────────┘
 
@@ -107,7 +109,6 @@ Sidebar (slides from left):
 │ BPM       [▼] │  ← only when track=None
 │ Words     [▼] │
 │ Bars/line [▼] │
-│ Bars      [▼] │
 │ Intro     [▼] │
 │ Rhyme     [▼] │
 │ Fill mode [▼] │
