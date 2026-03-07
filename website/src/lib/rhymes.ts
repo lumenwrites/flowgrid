@@ -1,4 +1,4 @@
-import { RHYME_COLORS, type RhymePattern, type BarsPerLine, type FillMode } from './constants'
+import { RHYME_COLORS, type RhymePattern, type BarsPerLine, type FillMode, type LoopInfo, getLoopForBar } from './constants'
 
 export type Word = {
   word: string
@@ -30,6 +30,7 @@ export type BarData = {
   rhymeColor: RhymeColor
   familyId: number
   rhymeHidden: boolean
+  instrumental?: boolean
 }
 
 // Mulberry32 — fast seeded 32-bit PRNG returning [0, 1)
@@ -251,6 +252,47 @@ export function generateBarsFromPreset(
   }
 
   return bars
+}
+
+const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
+
+// Remaps a flat rhyme pool into display bars that account for instrumental sections.
+//
+// Problem: generateBars() produces a flat sequence where every line gets a rhyme.
+// If an instrumental section (e.g. a 2-bar Break) falls between two Verses, it
+// "consumes" a rhyme slot, shifting the AABB/ABAB pairing for all subsequent lines.
+//
+// Solution: this function walks absolute bar positions (0, 1, 2, ...) and for each:
+//   - Instrumental section → inserts a blank bar (no rhyme, no color)
+//   - Non-instrumental → pulls the next entry from rhymePool
+// The rhyme cursor only advances for non-instrumental bars, so pairs stay intact.
+//
+// Example with barsPerLine=2, Verse(8) → Break(2) → Verse(8):
+//   Positions 0-7 (Verse):  consume pool[0]..pool[7]
+//   Positions 8-9 (Break):  blank bars inserted, pool not consumed
+//   Positions 10-17 (Verse): consume pool[8]..pool[15]  ← pairing preserved
+export function buildDisplayBars(rhymePool: BarData[], loopInfo: LoopInfo | null): BarData[] {
+  if (!loopInfo) return rhymePool
+  const hasInstrumental = loopInfo.loops.some(l => l.instrumental)
+  if (!hasInstrumental) return rhymePool
+  if (rhymePool.length === 0) return rhymePool
+
+  const display: BarData[] = []
+  let rhymeIdx = 0
+  // Guard: if the tail section is instrumental (e.g. user switched to a Break
+  // loop), barPos advances without consuming pool entries. Cap at 3x pool size
+  // to prevent infinite iteration; extension will replenish the pool as needed.
+  const maxBarPos = rhymePool.length * 3
+  for (let barPos = 0; rhymeIdx < rhymePool.length && barPos < maxBarPos; barPos++) {
+    const loop = getLoopForBar(barPos, loopInfo)
+    if (loop?.instrumental) {
+      display.push({ id: uid(), index: barPos, rhymeWord: '', rhymeColor: BLANK_COLOR, familyId: -1, rhymeHidden: false, instrumental: true })
+    } else {
+      display.push({ ...rhymePool[rhymeIdx], index: barPos })
+      rhymeIdx++
+    }
+  }
+  return display
 }
 
 import wordListsData from '@/data/word-lists.json'

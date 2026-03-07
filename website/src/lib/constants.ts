@@ -16,11 +16,15 @@ export type Loop = {
   name: string
   file: string
   bars: number
+  // When true, bars in this loop show no rhyme words and don't consume from the
+  // rhyme pool — so rhyme pairing (AABB/ABAB) stays intact across the gap.
+  instrumental?: boolean
 }
 
 export type MixSection = {
   name: string
   bars: number
+  instrumental?: boolean
 }
 
 export type Mix = {
@@ -78,15 +82,15 @@ export const AVAILABLE_TRACKS: Track[] = [
   {
     label: 'Hoedown 120bpm', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
     loops: [
-      { name: 'Intro', file: '01-intro-4bars-120bpm.wav', bars: 4 },
+      { name: 'Intro', file: '01-intro-4bars-120bpm.wav', bars: 4, instrumental: true },
       { name: 'Verse', file: '02-verse-8bars-120bpm.wav', bars: 8 },
-      { name: 'Break', file: '03-break-2bars-120bpm.wav', bars: 2 },
+      { name: 'Break', file: '03-break-2bars-120bpm.wav', bars: 2, instrumental: true },
     ],
     mixes: [
       { name: 'Instrumental', file: 'instrumental.wav', sections: [
-        { name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 },
-        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 },
-        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2 }, { name: 'Outro', bars: 3 },
+        { name: 'Intro', bars: 4, instrumental: true }, { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true },
+        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true },
+        { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true }, { name: 'Verse', bars: 8 }, { name: 'Outro', bars: 3, instrumental: true },
       ]},
     ],
   },
@@ -147,6 +151,18 @@ export type SectionStart = { bar: number; loopIndex: number }
 export type LoopInfo = {
   sectionStarts: SectionStart[]
   loops: Loop[]
+}
+
+// Finds which loop a given absolute bar position belongs to, by walking
+// sectionStarts to find the last section that starts at or before barIdx.
+export function getLoopForBar(barIdx: number, loopInfo: LoopInfo): Loop | null {
+  const { sectionStarts, loops } = loopInfo
+  let loopIndex = sectionStarts[0]?.loopIndex ?? 0
+  for (const s of sectionStarts) {
+    if (s.bar <= barIdx) loopIndex = s.loopIndex
+    else break
+  }
+  return loops[loopIndex] ?? null
 }
 
 export type BarsPerLine = 1 | 2

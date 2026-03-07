@@ -13,7 +13,7 @@ import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, mixUrl } from '@/lib/constants'
-import { type Preset, generateBarsFromPreset } from '@/lib/rhymes'
+import { type Preset, generateBarsFromPreset, buildDisplayBars } from '@/lib/rhymes'
 import { usePresetAudio } from '@/hooks/usePresetAudio'
 
 function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
@@ -89,6 +89,26 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const activeMix = activeMixIndex !== null ? currentTrack?.mixes?.[activeMixIndex] ?? null : null
   const mixTotalBars = activeMix ? activeMix.sections.reduce((sum, s) => sum + s.bars, 0) : 0
 
+  const mixLoopInfo: LoopInfo | null = useMemo(() => {
+    if (!activeMix) return null
+    const starts: SectionStart[] = []
+    const fakeLoops: Loop[] = []
+    let bar = 0
+    for (const section of activeMix.sections) {
+      starts.push({ bar, loopIndex: fakeLoops.length })
+      fakeLoops.push({ name: section.name, file: '', bars: section.bars, instrumental: section.instrumental })
+      bar += section.bars
+    }
+    return { sectionStarts: starts, loops: fakeLoops }
+  }, [activeMix])
+
+  // For mixes, the rhyme pool should only cover non-instrumental bars.
+  // buildDisplayBars will then expand this back to the full bar count by
+  // inserting blank bars at instrumental positions.
+  const mixNonInstrumentalBars = activeMix
+    ? activeMix.sections.filter(s => !s.instrumental).reduce((sum, s) => sum + s.bars, 0)
+    : 0
+
   const mixBars = useMemo(() => {
     if (!activeMix) return null
     if (activeMix.rhymes) {
@@ -97,21 +117,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         settings.barsPerLine, settings.fillMode, 0,
       )
     }
-    return bars.slice(0, mixTotalBars)
-  }, [activeMix, mixTotalBars, bars, settings.rhymePattern, settings.barsPerLine, settings.fillMode])
-
-  const mixLoopInfo: LoopInfo | null = useMemo(() => {
-    if (!activeMix) return null
-    const starts: SectionStart[] = []
-    const fakeLoops: Loop[] = []
-    let bar = 0
-    for (const section of activeMix.sections) {
-      starts.push({ bar, loopIndex: fakeLoops.length })
-      fakeLoops.push({ name: section.name, file: '', bars: section.bars })
-      bar += section.bars
-    }
-    return { sectionStarts: starts, loops: fakeLoops }
-  }, [activeMix])
+    return bars.slice(0, mixNonInstrumentalBars)
+  }, [activeMix, mixNonInstrumentalBars, bars, settings.rhymePattern, settings.barsPerLine, settings.fillMode])
 
   const resetLoopState = useCallback((loopIndex: number) => {
     setSectionStarts([{ bar: 0, loopIndex }])
@@ -257,6 +264,17 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     return { sectionStarts, loops: currentTrack.loops }
   }, [currentTrack, sectionStarts])
 
+  const activeLoopInfo = mixLoopInfo ?? loopInfo
+
+  // Remap the flat rhyme pool so instrumental sections get blank bars and
+  // non-instrumental sections pull rhymes sequentially (preserving pair alignment).
+  // bars/mixBars = rhyme pool; loopInfo/mixLoopInfo = section structure.
+  const displayBars = useMemo(() => {
+    if (mixBars) return buildDisplayBars(mixBars, mixLoopInfo)
+    if (presetBars) return presetBars
+    return buildDisplayBars(bars, loopInfo)
+  }, [mixBars, mixLoopInfo, presetBars, bars, loopInfo])
+
   return (
     <>
       <Toolbar
@@ -269,14 +287,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       />
       <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
       <Grid
-        bars={mixBars ?? presetBars ?? bars}
+        bars={displayBars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
         barsPerLine={settings.barsPerLine}
         introBars={activeMix ? 0 : settings.introBars}
         scrollToBar={scrollToBar}
-        loopInfo={mixLoopInfo ?? loopInfo}
+        loopInfo={activeLoopInfo}
       />
       {currentTrack && (multiLoop || hasMixes) && (
         <LoopSelector

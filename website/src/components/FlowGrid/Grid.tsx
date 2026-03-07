@@ -125,7 +125,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
     const isLastBeat = position.beat === BEATS_PER_BAR - 1
     const currentBar = bars.find((b) => b.index === position.bar)
-    const isOnRhyme = isLastBarInRow && isLastBeat && currentBar && currentBar.index >= introBars
+    const isOnRhyme = isLastBarInRow && isLastBeat && currentBar && currentBar.index >= introBars && !currentBar.instrumental
     if (isOnRhyme) {
       const c = currentBar.rhymeColor.activeBorder
       line.style.backgroundColor = c

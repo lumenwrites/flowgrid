@@ -33,8 +33,8 @@ website/src/
 │   └── useSettings.ts                  — localStorage persistence for all user settings
 │
 ├── lib/
-│   ├── constants.ts                    — Track/Loop/Mix/SectionStart/LoopInfo types, path helpers, metronome files, color palette, all config
-│   ├── rhymes.ts                       — Word list types, generateBars() with pattern + barsPerLine support
+│   ├── constants.ts                    — Track/Loop/Mix/SectionStart/LoopInfo types, path helpers, getLoopForBar(), metronome files, color palette, all config
+│   ├── rhymes.ts                       — Word list types, generateBars() (rhyme pool), buildDisplayBars() (instrumental remapping)
 │   └── utils.ts                        — cn() utility
 │
 └── styles/
@@ -69,8 +69,13 @@ website/src/
 
 ## Rhyme Generation (`useRhymes` + `lib/rhymes.ts`)
 
+Two-layer architecture: **rhyme pool** (flat sequence) → **display bars** (section-aware).
+
+### Layer 1: Rhyme pool (`generateBars`)
+
 - Loads word lists from `/data/word-lists.json` (9 curated lists with words grouped by `familyId`)
-- `generateBars()` operates at the **line** level (not individual bars):
+- `generateBars()` is a pure function that produces a flat sequence of `BarData` — it has no knowledge of sections/loops
+- Operates at the **line** level (not individual bars):
   - Builds `lineRhymes` array based on pattern (AABB or ABAB)
   - Expands each line into `barsPerLine` bars sharing the same rhyme word/color/family
   - With 2 bars per line, only the last bar in each row shows the rhyme word
@@ -79,6 +84,18 @@ website/src/
 - Grid is always infinite — generates initial 48 bars, then extends in chunks of 24 as playback progresses
 - 8 rotating colors with 4 shades each: dim bg/border (default), active bg/border (playhead on it, with vivid ~500 borders)
 - Fill modes: all, setup-punchline, off-the-cliff, all-blanks — hidden cells still show color
+
+### Layer 2: Display bars (`buildDisplayBars`)
+
+- Remaps the flat rhyme pool into absolute bar positions, accounting for instrumental sections
+- Walks absolute positions 0, 1, 2, ... and for each position:
+  - If the position falls in an instrumental section → inserts a blank `BarData` (`instrumental: true`)
+  - Otherwise → takes the next entry from the rhyme pool
+- The rhyme cursor only advances for non-instrumental bars, so AABB/ABAB pairing stays intact across instrumental gaps (e.g. a Break between two Verses)
+- Applied in `page.tsx` via `useMemo` for both loop mode and mix mode
+- `getLoopForBar()` helper resolves which loop a given bar position belongs to using `LoopInfo.sectionStarts`
+- For mixes: the pool is sized to `mixNonInstrumentalBars` (excluding instrumental sections); `buildDisplayBars` expands it back to `mixTotalBars`
+- For loops: the pool comes from `useRhymes` (infinite, auto-extending); `buildDisplayBars` produces a longer display array since instrumental positions are added. Has a `maxBarPos` guard (3x pool size) to prevent infinite iteration when the tail section is instrumental
 
 ## Settings (`useSettings`)
 
@@ -153,6 +170,12 @@ Sidebar (slides from left):
        { name: 'Lyrics', file: 'lyrics.wav',
          sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
      ] }
+   // Instrumental sections — mark loops/sections where no rapping/singing happens
+   { label: 'My Song 120bpm', dir: '/tracks/my-song-120bpm', bpm: 120,
+     loops: [
+       { name: 'Verse', file: '01-verse-8bars-120bpm.wav', bars: 8 },
+       { name: 'Break', file: '02-break-2bars-120bpm.wav', bars: 2, instrumental: true },
+     ] }
    ```
 5. If a metronome at that BPM exists, add to `METRONOME_FILES`:
    ```ts
@@ -168,3 +191,4 @@ Sidebar (slides from left):
 - **localStorage for persistence** — simplest cross-platform solution, works in PWA contexts on all platforms
 - **Custom BPM with dual strategy** — variant tracks (pre-rendered at multiple BPMs) use a dropdown and swap audio files; non-variant tracks use GrainPlayer with a slider (40-200, step 10) for live pitch-preserving tempo changes
 - **Seeded PRNG** — mulberry32 for deterministic rhyme generation; seed persisted so reloads produce the same sequence
+- **Two-layer instrumental handling** — `generateBars()` stays pure/section-unaware (flat rhyme pool), while `buildDisplayBars()` handles section logic at the page level where `LoopInfo` already exists. This avoids coupling rhyme generation to track structure
