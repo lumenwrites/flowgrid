@@ -67,7 +67,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Basic Drums 80bpm', dir: '/tracks/basic-drums-80bpm', bpm: 80,
+    label: 'Basic Drums 80bpm', dir: '/tracks/basic-drums-80bpm', bpm: 80, 
     loops: [
       { name: 'Verse', file: 'verse.wav', bars: 4 },
       { name: 'Chorus', file: 'chorus.wav', bars: 4 },
@@ -100,6 +100,8 @@ export function mixUrl(track: Track, mix: Mix): string {
 export const NONE_TRACK_INDEX = -1
 export const DEFAULT_TRACK_INDEX = 0 // Villain Song 80bpm (multi-loop + examples)
 export const DEFAULT_BPM = 80 // Used when no track is selected
+export const BPM_MIN = 40
+export const BPM_MAX = 200
 
 export const INTRO_BAR_OPTIONS = [0, 1, 2, 4, 6, 8]
 export const METRONOME_BPM_OPTIONS = [60, 80, 100, 120]

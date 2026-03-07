@@ -1,6 +1,6 @@
 'use client'
 
-import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
+import { NONE_TRACK_INDEX, RHYME_PATTERNS, BARS_PER_LINE_OPTIONS, FILL_MODES, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, BPM_MIN, BPM_MAX, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 import { randomSeed } from '@/lib/utils'
 import type { WordList } from '@/lib/rhymes'
 
@@ -21,6 +21,9 @@ type SidebarProps = {
   onFillModeChange: (mode: FillMode) => void
   introBars: number
   onIntroBarsChange: (count: number) => void
+  trackBpm: number
+  nativeBpm: number
+  onTrackBpmChange: (bpm: number) => void
   metronomeBpm: number
   onMetronomeBpmChange: (bpm: number) => void
   seed: number
@@ -48,6 +51,9 @@ export default function Sidebar({
   onFillModeChange,
   introBars,
   onIntroBarsChange,
+  trackBpm,
+  nativeBpm,
+  onTrackBpmChange,
   metronomeBpm,
   onMetronomeBpmChange,
   seed,
@@ -115,6 +121,32 @@ export default function Sidebar({
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+
+          {/* BPM — only when a track is selected */}
+          {selectedTrackIndex !== NONE_TRACK_INDEX && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-foreground">BPM — {trackBpm}</label>
+                {trackBpm !== nativeBpm && (
+                  <button
+                    onClick={() => onTrackBpmChange(nativeBpm)}
+                    className="text-xs text-foreground-muted hover:text-foreground transition-colors"
+                  >
+                    Reset ({nativeBpm})
+                  </button>
+                )}
+              </div>
+              <input
+                type="range"
+                min={BPM_MIN}
+                max={BPM_MAX}
+                step={10}
+                value={trackBpm}
+                onChange={(e) => onTrackBpmChange(Number(e.target.value))}
+                className="w-full accent-accent"
+              />
             </div>
           )}
 

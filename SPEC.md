@@ -35,6 +35,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
   - *All Blanks* — every line shows `????` (full freestyle)
   - Hidden cells still show their rhyme color so you can see the pattern.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
+- **Custom BPM** — When a track is selected, a BPM slider (40-200) appears in the sidebar, defaulting to the track's native BPM. Adjusting it changes tempo in real time with pitch preservation via Tone.js GrainPlayer (granular synthesis). A "Reset" button appears when BPM differs from native. BPM resets to the track's native value when switching tracks. Persisted in settings.
 - **Metronome BPM** — When track is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
 - **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: track, volumes, metronome BPM, words, bars per line, intro bars, rhyme pattern, fill mode, seed, audio offset.
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.

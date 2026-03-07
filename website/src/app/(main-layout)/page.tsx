@@ -60,7 +60,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     cancelTransition,
     setLoopIndex,
     loadMix,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm)
 
   const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
 
@@ -217,14 +217,16 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
   const handleTrackChange = (index: number) => {
+    const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
+    const newBpm = track ? track.bpm : settings.metronomeBpm
     setActiveMixIndex(null)
     stop()
-    changeTrack(index)
+    changeTrack(index, newBpm)
     update('selectedTrackIndex', index)
+    update('trackBpm', newBpm)
     resetPosition()
     regenerate()
     resetLoopState(0)
-    const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
     if (track?.barsPerLine) update('barsPerLine', track.barsPerLine)
   }
 
@@ -301,6 +303,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onFillModeChange={(v) => update('fillMode', v)}
         introBars={settings.introBars}
         onIntroBarsChange={(v) => update('introBars', v)}
+        trackBpm={settings.trackBpm}
+        nativeBpm={currentTrack?.bpm ?? settings.metronomeBpm}
+        onTrackBpmChange={(v) => update('trackBpm', v)}
         metronomeBpm={settings.metronomeBpm}
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
         seed={settings.seed}
