@@ -4,15 +4,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import * as Tone from 'tone'
 import { BEATS_PER_BAR } from '@/lib/constants'
 
-function parseTransportPosition(transport: ReturnType<typeof Tone.getTransport>) {
-  const parts = transport.position.toString().split(':')
-  return {
-    bar: parseInt(parts[0], 10),
-    beat: parseInt(parts[1], 10),
-    sixteenths: parseFloat(parts[2]),
-  }
-}
-
 export type PlayheadPosition = {
   bar: number
   beat: number
@@ -48,33 +39,9 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
     }
   }, [])
 
-  // Beat-level position updates via Tone.Loop
-  // Offset is applied here so bar/beat tracking matches the delayed visuals
-  useEffect(() => {
-    const loop = new Tone.Loop((time) => {
-      const transport = Tone.getTransport()
-      const offsetSec = audioOffsetRef.current / 1000
-      // Delay the scheduled draw callback by the offset amount
-      const drawTime = time + offsetSec
-
-      const { bar, beat } = parseTransportPosition(transport)
-      const globalBeat = bar * BEATS_PER_BAR + beat
-
-      Tone.getDraw().schedule(() => {
-        setPosition({ bar, beat, globalBeat })
-      }, drawTime)
-    }, '4n')
-
-    loop.start(0)
-
-    return () => {
-      loop.stop()
-      loop.dispose()
-    }
-  }, [])
-
-  // Smooth playhead line via RAF — directly mutates DOM for performance
-  // Offset delays the visual position to match late-arriving Bluetooth audio
+  // Unified RAF loop: drives both the smooth playhead line AND beat-level position.
+  // Both are derived from the same transport.seconds read on the same frame,
+  // so beat cell highlights are perfectly in sync with the playhead.
   useEffect(() => {
     if (!isPlaying) {
       if (rafRef.current) {
@@ -84,10 +51,11 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
       return
     }
 
+    let lastGlobalBeat = -1
+
     const update = () => {
       const transport = Tone.getTransport()
       if (transport.state === 'started') {
-        // Subtract offset from transport seconds to get the delayed visual position
         const offsetSec = audioOffsetRef.current / 1000
         const bpm = transport.bpm.value
         const beatsPerSec = bpm / 60
@@ -96,6 +64,15 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
         const currentBar = Math.floor(totalBeatsElapsed / BEATS_PER_BAR)
         const beatInBar = totalBeatsElapsed - currentBar * BEATS_PER_BAR
 
+        // Beat cell highlight — only triggers React render when beat changes
+        const currentBeat = Math.floor(beatInBar)
+        const globalBeat = currentBar * BEATS_PER_BAR + currentBeat
+        if (globalBeat !== lastGlobalBeat) {
+          lastGlobalBeat = globalBeat
+          setPosition({ bar: currentBar, beat: currentBeat, globalBeat })
+        }
+
+        // Smooth playhead line — direct DOM mutation for performance
         const barInRow = currentBar % barsPerLine
         const totalBeats = barsPerLine * BEATS_PER_BAR
         const p = (barInRow * BEATS_PER_BAR + beatInBar) / totalBeats

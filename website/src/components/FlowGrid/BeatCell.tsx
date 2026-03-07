@@ -21,7 +21,7 @@ export default function BeatCell({
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-md border transition-colors duration-75',
+        'flex items-center justify-center rounded-md border',
         'h-12 sm:h-14',
         hasRhyme
           ? ''
