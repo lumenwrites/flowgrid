@@ -21,7 +21,7 @@ export default function LoopSelector({ loops, currentLoopIndex, queuedLoopIndex,
 
   return (
     <div className="flex items-center gap-2 px-3 py-2 bg-surface border-t border-border overflow-x-auto">
-      {multiLoop && loops.map((loop, i) => {
+      {(multiLoop || hasMixes) && loops.map((loop, i) => {
         const isCurrent = i === currentLoopIndex && activeMixIndex == null
         const isQueued = i === queuedLoopIndex
         return (
@@ -44,7 +44,7 @@ export default function LoopSelector({ loops, currentLoopIndex, queuedLoopIndex,
 
       {hasMixes && (
         <>
-          {multiLoop && <div className="w-px h-6 bg-border mx-1" />}
+          <div className="w-px h-6 bg-border mx-1" />
           {mixes.map((mix, i) => (
             <button
               key={`mix-${i}`}

@@ -60,18 +60,6 @@ const VILLAIN_SONG_RHYMES = [
 
 export const AVAILABLE_TRACKS: Track[] = [
   {
-    label: 'Villain Song 80bpm', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
-    loops: [
-      { name: 'Verse', file: '01-verse-8bars-80bpm.wav', bars: 8 },
-      { name: 'Chorus', file: '02-chorus-8bars-80bpm.wav', bars: 8 },
-    ],
-    mixes: [
-      { name: 'Instrumental', file: 'instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
-      { name: 'Lyrics', file: 'lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
-      { name: 'Scat', file: 'scat.wav', sections: VILLAIN_SONG_SECTIONS },
-    ],
-  },
-  {
     label: 'Basic Drums 60/80/100/120bpm', dir: '/tracks/basic-drums', bpm: 80,  barsPerLine: 1,
     bpmVariants: [60, 80, 100, 120],
     loops: [
@@ -79,6 +67,50 @@ export const AVAILABLE_TRACKS: Track[] = [
       { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
     ],
   },
+  {
+    label: 'Whose Line Rap 80/100bpm', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1,
+    bpmVariants: [80, 100],
+    loops: [
+      { name: 'Loop', file: '01-loop-8bars.wav', bars: 8 },
+    ],
+    mixes: [
+      { name: 'Nerd Rap', file: 'nerd-rap-100bpm.wav', sections: [
+        { name: 'Verse', bars: 8 },
+      ], rhymes: [
+        'grapple', 'apple', 'fool', 'school',
+        'desk', 'pest', 'look', 'book',
+      ]},
+      { name: 'Camp Rap', file: 'camp-rap-100bpm.wav', sections: [
+        { name: 'Verse', bars: 8 }, { name: 'Verse', bars: 8 },
+        { name: 'Verse', bars: 4 }, { name: 'Verse', bars: 4 },
+        { name: 'Verse', bars: 2 },
+      ], rhymes: [
+        'do', 'canoe', 'away', 'spray',
+        'burn', 'learn', 'spf', 'jeff',
+        'man', 'glad', 'camp', 'ramp',
+        'see', 'me', 'minjana', 'pinjata',
+        'you', 'do', 'ask', 'mask',
+        'racing', 'jason', 'wife', 'knife',
+        'already', 'machete',
+      ]},
+    ],
+  },
+  {
+    label: 'Laura Rap 60/70/80bpm', dir: '/tracks/laura-rap', bpm: 80, barsPerLine: 1,
+    bpmVariants: [60, 70, 80],
+    loops: [
+      { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
+      { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
+    ],
+    mixes: [
+      { name: 'Instrumental', file: 'instrumental-80bpm.wav', sections: [
+        { name: 'Verse 1', bars: 16 }, { name: 'Chorus', bars: 8 },
+        { name: 'Verse 2', bars: 16 }, { name: 'Chorus', bars: 8 },
+        { name: 'Verse 3', bars: 16 },
+      ]},
+    ],
+  },
+  { label: 'Yucca 80bpm',             dir: '/tracks/yucca-80bpm',             bpm: 80,  barsPerLine: 1,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
   {
     label: 'Hoedown 120bpm', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
     loops: [
@@ -94,8 +126,18 @@ export const AVAILABLE_TRACKS: Track[] = [
       ]},
     ],
   },
-  { label: 'Scene to Rap 100bpm',    dir: '/tracks/scene-to-rap-100bpm',    bpm: 100, barsPerLine: 1, loops: [{ name: 'Loop', file: '01-loop-8bars-100bpm.m4a', bars: 8 }] },
-  { label: 'YCCA 80bpm',             dir: '/tracks/ycca-80bpm',             bpm: 80,  barsPerLine: 1,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
+  {
+    label: 'Villain Song 80bpm', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
+    loops: [
+      { name: 'Verse', file: '01-verse-8bars-80bpm.wav', bars: 8 },
+      { name: 'Chorus', file: '02-chorus-8bars-80bpm.wav', bars: 8 },
+    ],
+    mixes: [
+      { name: 'Instrumental', file: 'instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
+      { name: 'Lyrics', file: 'lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
+      { name: 'Scat', file: 'scat.wav', sections: VILLAIN_SONG_SECTIONS },
+    ],
+  },
 ]
 
 export const METRONOME_FILES: Record<number, string> = {

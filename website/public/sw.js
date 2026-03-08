@@ -28,8 +28,8 @@ const PRECACHE_ASSETS = [
   '/tracks/hoedown/loops/03-break-2bars-120bpm.wav',
   '/tracks/hoedown/mixes/instrumental.wav',
   // Other tracks
-  '/tracks/scene-to-rap-100bpm/loops/01-loop-8bars-100bpm.m4a',
-  '/tracks/ycca-80bpm/loops/01-loop-8bars-80bpm.m4a',
+  '/tracks/whose-line-rap/loops/01-loop-8bars-100bpm.wav',
+  '/tracks/yucca-80bpm/loops/01-loop-8bars-80bpm.m4a',
   // App assets
   '/img/logo.png',
   '/img/background-tile.webp',
