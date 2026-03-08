@@ -347,15 +347,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         metronomeTicking={isPlaying && settings.metronomeEnabled}
         beat={position.beat}
         onMetronomeChange={(v) => update('metronomeEnabled', v)}
-      />
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        selectedTrackIndex={selectedTrackIndex}
-        barsPerLine={settings.barsPerLine}
-        onBarsPerLineChange={(v) => update('barsPerLine', v)}
-        introBars={settings.introBars}
-        onIntroBarsChange={(v) => update('introBars', v)}
         trackBpm={settings.trackBpm}
         nativeBpm={currentTrack?.bpm ?? settings.metronomeBpm}
         bpmVariants={currentTrack?.bpmVariants}
@@ -366,6 +357,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onTrackVolumeChange={(v) => update('trackVolume', v)}
         metronomeVolume={settings.metronomeVolume}
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
+      />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        barsPerLine={settings.barsPerLine}
+        onBarsPerLineChange={(v) => update('barsPerLine', v)}
+        introBars={settings.introBars}
+        onIntroBarsChange={(v) => update('introBars', v)}
         audioOffset={settings.audioOffset}
         onAudioOffsetChange={(v) => update('audioOffset', v)}
       />

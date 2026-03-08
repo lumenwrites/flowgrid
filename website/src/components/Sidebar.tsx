@@ -1,26 +1,15 @@
 'use client'
 
-import { NONE_TRACK_INDEX, BARS_PER_LINE_OPTIONS, INTRO_BAR_OPTIONS, METRONOME_BPM_OPTIONS, BPM_MIN, BPM_MAX, type BarsPerLine } from '@/lib/constants'
+import { BARS_PER_LINE_OPTIONS, INTRO_BAR_OPTIONS, type BarsPerLine } from '@/lib/constants'
 const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
 
 type SidebarProps = {
   open: boolean
   onClose: () => void
-  selectedTrackIndex: number
   barsPerLine: BarsPerLine
   onBarsPerLineChange: (value: BarsPerLine) => void
   introBars: number
   onIntroBarsChange: (count: number) => void
-  trackBpm: number
-  nativeBpm: number
-  bpmVariants?: number[]
-  onTrackBpmChange: (bpm: number) => void
-  metronomeBpm: number
-  onMetronomeBpmChange: (bpm: number) => void
-  trackVolume: number
-  onTrackVolumeChange: (volume: number) => void
-  metronomeVolume: number
-  onMetronomeVolumeChange: (volume: number) => void
   audioOffset: number
   onAudioOffsetChange: (offset: number) => void
 }
@@ -28,21 +17,10 @@ type SidebarProps = {
 export default function Sidebar({
   open,
   onClose,
-  selectedTrackIndex,
   barsPerLine,
   onBarsPerLineChange,
   introBars,
   onIntroBarsChange,
-  trackBpm,
-  nativeBpm,
-  bpmVariants,
-  onTrackBpmChange,
-  metronomeBpm,
-  onMetronomeBpmChange,
-  trackVolume,
-  onTrackVolumeChange,
-  metronomeVolume,
-  onMetronomeVolumeChange,
   audioOffset,
   onAudioOffsetChange,
 }: SidebarProps) {
@@ -87,90 +65,6 @@ export default function Sidebar({
         </div>
 
         <div className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
-          {/* Metronome BPM — only when no track selected */}
-          {selectedTrackIndex === NONE_TRACK_INDEX && (
-            <div className="space-y-1.5">
-              <label className="text-sm text-foreground">Metronome BPM</label>
-              <select
-                value={metronomeBpm}
-                onChange={(e) => onMetronomeBpmChange(Number(e.target.value))}
-                className={selectClass}
-              >
-                {METRONOME_BPM_OPTIONS.map((bpm) => (
-                  <option key={bpm} value={bpm}>
-                    {bpm} BPM
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* BPM — only when a track is selected */}
-          {selectedTrackIndex !== NONE_TRACK_INDEX && (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm text-foreground">BPM{!bpmVariants && ` — ${trackBpm}`}</label>
-                {!bpmVariants && trackBpm !== nativeBpm && (
-                  <button
-                    onClick={() => onTrackBpmChange(nativeBpm)}
-                    className="text-xs text-foreground-muted hover:text-foreground transition-colors"
-                  >
-                    Reset ({nativeBpm})
-                  </button>
-                )}
-              </div>
-              {bpmVariants ? (
-                <select
-                  value={trackBpm}
-                  onChange={(e) => onTrackBpmChange(Number(e.target.value))}
-                  className={selectClass}
-                >
-                  {bpmVariants.map((bpm) => (
-                    <option key={bpm} value={bpm}>{bpm} BPM</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="range"
-                  min={BPM_MIN}
-                  max={BPM_MAX}
-                  step={10}
-                  value={trackBpm}
-                  onChange={(e) => onTrackBpmChange(Number(e.target.value))}
-                  className="w-full accent-accent"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Track volume — only when a track is selected */}
-          {selectedTrackIndex !== NONE_TRACK_INDEX && (
-            <div className="space-y-1.5">
-              <label className="text-sm text-foreground">Track volume — {trackVolume}%</label>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={trackVolume}
-                onChange={(e) => onTrackVolumeChange(Number(e.target.value))}
-                className="w-full accent-accent"
-              />
-            </div>
-          )}
-
-          {/* Metronome volume */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Metronome volume — {metronomeVolume}%</label>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={metronomeVolume}
-              onChange={(e) => onMetronomeVolumeChange(Number(e.target.value))}
-              className="w-full accent-accent"
-            />
-          </div>
-
           {/* Bars per line */}
           <div className="space-y-1.5">
             <label className="text-sm text-foreground">Bars per line</label>

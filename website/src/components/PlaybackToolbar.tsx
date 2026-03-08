@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type Track, loopUrl, mixUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, type Track, loopUrl, mixUrl } from '@/lib/constants'
 
 function getPreviewUrl(track: Track): string | null {
   if (track.mixes) {
@@ -13,6 +13,8 @@ function getPreviewUrl(track: Track): string | null {
   }
   return track.loops[0] ? loopUrl(track, track.loops[0], track.bpmVariants ? track.bpm : undefined) : null
 }
+
+const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
 
 type PlaybackToolbarProps = {
   isPlaying: boolean
@@ -24,6 +26,16 @@ type PlaybackToolbarProps = {
   metronomeTicking: boolean
   beat: number
   onMetronomeChange: (enabled: boolean) => void
+  trackBpm: number
+  nativeBpm: number
+  bpmVariants?: number[]
+  onTrackBpmChange: (bpm: number) => void
+  metronomeBpm: number
+  onMetronomeBpmChange: (bpm: number) => void
+  trackVolume: number
+  onTrackVolumeChange: (volume: number) => void
+  metronomeVolume: number
+  onMetronomeVolumeChange: (volume: number) => void
 }
 
 export default function PlaybackToolbar({
@@ -36,8 +48,20 @@ export default function PlaybackToolbar({
   metronomeTicking,
   beat,
   onMetronomeChange,
+  trackBpm,
+  nativeBpm,
+  bpmVariants,
+  onTrackBpmChange,
+  metronomeBpm,
+  onMetronomeBpmChange,
+  trackVolume,
+  onTrackVolumeChange,
+  metronomeVolume,
+  onMetronomeVolumeChange,
 }: PlaybackToolbarProps) {
   const [trackModalOpen, setTrackModalOpen] = useState(false)
+  const [audioPopupOpen, setAudioPopupOpen] = useState(false)
+  const playGroupRef = useRef<HTMLDivElement>(null)
   const [previewIndex, setPreviewIndex] = useState<number | null>(null)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -77,6 +101,15 @@ export default function PlaybackToolbar({
     return () => window.removeEventListener('keydown', handleKey)
   }, [trackModalOpen])
 
+  useEffect(() => {
+    if (!audioPopupOpen) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setAudioPopupOpen(false)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [audioPopupOpen])
+
   const trackLabel = selectedTrackIndex === NONE_TRACK_INDEX
     ? 'No track'
     : AVAILABLE_TRACKS[selectedTrackIndex]?.label ?? 'No track'
@@ -89,7 +122,7 @@ export default function PlaybackToolbar({
   return (
     <>
       <div className="flex items-center justify-between px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-surface border-t border-border">
-        <div className="flex items-center gap-2">
+        <div ref={playGroupRef} className="relative flex items-center gap-2">
           <button
             onClick={onStop}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-light border border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted transition-colors"
@@ -104,6 +137,18 @@ export default function PlaybackToolbar({
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-lg" />
+          </button>
+
+          <button
+            onClick={() => setAudioPopupOpen((v) => !v)}
+            className={`w-10 h-10 flex items-center justify-center rounded-full border transition-colors ${
+              audioPopupOpen
+                ? 'bg-accent/20 border-accent text-accent'
+                : 'bg-surface-light border-border text-foreground-muted hover:text-foreground hover:border-foreground-muted'
+            }`}
+            aria-label="Audio settings"
+          >
+            <FontAwesomeIcon icon={faVolumeHigh} className="text-sm" />
           </button>
 
           <button
@@ -128,6 +173,94 @@ export default function PlaybackToolbar({
               }}
             />
           </button>
+
+          {/* Audio popup */}
+          {audioPopupOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setAudioPopupOpen(false)} aria-hidden="true" />
+              <div className="absolute bottom-full left-0 mb-2 z-50 w-64 p-3 bg-surface border border-border rounded-lg shadow-xl">
+                {selectedTrackIndex === NONE_TRACK_INDEX ? (
+                  <div>
+                    <label className="text-sm text-foreground">Metronome BPM</label>
+                    <select
+                      value={metronomeBpm}
+                      onChange={(e) => onMetronomeBpmChange(Number(e.target.value))}
+                      className={`${selectClass} mt-1.5`}
+                    >
+                      {METRONOME_BPM_OPTIONS.map((bpm) => (
+                        <option key={bpm} value={bpm}>{bpm} BPM</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm text-foreground">BPM{!bpmVariants && ` — ${trackBpm}`}</label>
+                        {!bpmVariants && trackBpm !== nativeBpm && (
+                          <button
+                            onClick={() => onTrackBpmChange(nativeBpm)}
+                            className="text-xs text-foreground-muted hover:text-foreground transition-colors"
+                          >
+                            Reset ({nativeBpm})
+                          </button>
+                        )}
+                      </div>
+                      {bpmVariants ? (
+                        <div className="flex gap-1.5 mt-1.5">
+                          {bpmVariants.map((bpm) => (
+                            <button
+                              key={bpm}
+                              onClick={() => onTrackBpmChange(bpm)}
+                              className={`flex-1 text-sm py-1 rounded border transition-colors ${
+                                trackBpm === bpm
+                                  ? 'bg-accent text-white border-accent'
+                                  : 'bg-surface-light text-foreground-muted border-border hover:text-foreground'
+                              }`}
+                            >
+                              {bpm}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <input
+                          type="range"
+                          min={BPM_MIN}
+                          max={BPM_MAX}
+                          step={10}
+                          value={trackBpm}
+                          onChange={(e) => onTrackBpmChange(Number(e.target.value))}
+                          className="w-full mt-1.5 accent-accent"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-4">
+                      <label className="text-sm text-foreground">Track volume — {trackVolume}%</label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={trackVolume}
+                        onChange={(e) => onTrackVolumeChange(Number(e.target.value))}
+                        className="w-full mt-1.5 accent-accent"
+                      />
+                    </div>
+                  </>
+                )}
+                <div className="mt-4">
+                  <label className="text-sm text-foreground">Metronome volume — {metronomeVolume}%</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={metronomeVolume}
+                    onChange={(e) => onMetronomeVolumeChange(Number(e.target.value))}
+                    className="w-full mt-1.5 accent-accent"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <button
