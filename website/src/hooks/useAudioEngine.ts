@@ -34,9 +34,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   const trackBpmRef = useRef(trackBpm)
   trackBpmRef.current = trackBpm
   const currentLoopIndexRef = useRef(0)
-  const mixActiveRef = useRef(false)
-  const mixFileBpmRef = useRef(0)
-  const mixIsVariantRef = useRef(false)
 
   useEffect(() => {
     if (metronomeRef.current) {
@@ -56,6 +53,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     }
   }, [metronomeVolume])
 
+  // Metronome-only BPM change (no track selected)
   useEffect(() => {
     if (!isLoadedRef.current) return
     if (selectedTrackIndexRef.current !== NONE_TRACK_INDEX) return
@@ -68,56 +66,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metronomeBpm])
-
-  // Live BPM adjustment
-  useEffect(() => {
-    if (!isLoadedRef.current) return
-    if (selectedTrackIndexRef.current === NONE_TRACK_INDEX) return
-
-    if (mixActiveRef.current) {
-      // Mix is active — variant mixes skip (they reload via handleSelectMix),
-      // non-variant mixes get live rate adjustment
-      if (mixIsVariantRef.current) return
-      const rate = trackBpm / mixFileBpmRef.current
-      Tone.getTransport().bpm.value = trackBpm
-      if (playerRef.current instanceof Tone.GrainPlayer) {
-        playerRef.current.playbackRate = rate
-      }
-      if (metronomeRef.current) {
-        metronomeRef.current.playbackRate = rate
-      }
-      return
-    }
-
-    const track = AVAILABLE_TRACKS[selectedTrackIndexRef.current]
-    if (!track) return
-
-    const hasVariants = track.loops[0]?.files.length > 1
-    if (hasVariants) {
-      // Variant track: reload with the new audio files
-      const wasPlaying = Tone.getTransport().state === 'started'
-      loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current, trackBpm).then(() => {
-        if (wasPlaying) {
-          Tone.getTransport().start()
-          setIsPlaying(true)
-        }
-      })
-    } else {
-      // Non-variant: live GrainPlayer rate adjustment
-      const rate = trackBpm / track.bpm
-      Tone.getTransport().bpm.value = trackBpm
-      if (playerRef.current instanceof Tone.GrainPlayer) {
-        playerRef.current.playbackRate = rate
-      }
-      if (metronomeRef.current) {
-        metronomeRef.current.playbackRate = rate
-      }
-      if (pendingRef.current?.player instanceof Tone.GrainPlayer) {
-        pendingRef.current.player.playbackRate = rate
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackBpm])
 
   function cancelPendingTransition() {
     const pending = pendingRef.current
@@ -217,7 +165,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
       Tone.getTransport().bpm.value = transportBpm
       isLoadedRef.current = true
-      mixActiveRef.current = false
       setSelectedTrackIndex(trackIndex)
       selectedTrackIndexRef.current = trackIndex
       setCurrentLoopIndex(loopIndex)
@@ -306,11 +253,9 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     [loadTrack]
   )
 
-  const loadMix = useCallback(async (audioUrl: string, fileBpm: number, isVariant: boolean) => {
-    mixActiveRef.current = true
-    mixFileBpmRef.current = fileBpm
-    mixIsVariantRef.current = isVariant
-
+  // Load a mix file. Always plays at rate 1 at the file's native BPM.
+  // Caller is responsible for picking the right file for the current BPM.
+  const loadMix = useCallback(async (audioUrl: string, fileBpm: number) => {
     const transport = Tone.getTransport()
     transport.stop()
     transport.position = 0
@@ -324,16 +269,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       playerRef.current = null
     }
 
-    // At load time, play at the file's native BPM (rate 1).
-    // The trackBpm effect handles live rate adjustment for non-variant mixes.
-    const rate = 1
-    const transportBpm = fileBpm
+    transport.bpm.value = fileBpm
 
-    transport.bpm.value = transportBpm
-
-    // Re-sync metronome after cancel cleared its transport events
     if (metronomeRef.current) {
-      metronomeRef.current.playbackRate = rate
+      metronomeRef.current.playbackRate = 1
       metronomeRef.current.unsync()
       metronomeRef.current.sync().start(0)
     }
@@ -363,32 +302,39 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         : null,
     ])
 
-    if (isVariant) {
-      const player = new Tone.Player(mixBuffer).toDestination()
-      player.loop = false
-      player.volume.value = volumeToDb(trackVolumeRef.current)
-      player.sync().start(0)
-      playerRef.current = player
-    } else {
-      const player = new Tone.GrainPlayer(mixBuffer).toDestination()
-      player.loop = false
-      player.grainSize = 0.1
-      player.overlap = 0.05
-      player.playbackRate = rate
-      player.volume.value = volumeToDb(trackVolumeRef.current)
-      player.sync().start(0)
-      playerRef.current = player
-    }
+    const player = new Tone.GrainPlayer(mixBuffer).toDestination()
+    player.loop = false
+    player.grainSize = 0.1
+    player.overlap = 0.05
+    player.playbackRate = 1
+    player.volume.value = volumeToDb(trackVolumeRef.current)
+    player.sync().start(0)
+    playerRef.current = player
     isLoadedRef.current = true
 
     if (metronome) {
-      if (!isVariant) metronome.playbackRate = rate
       metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
       metronome.sync().start(0)
       metronomeRef.current = metronome
     }
 
     setIsPlaying(false)
+  }, [])
+
+  // Live BPM adjustment for non-variant (GrainPlayer) playback.
+  // Called imperatively from page.tsx — no effect needed.
+  const adjustBpm = useCallback((newBpm: number, nativeBpm: number) => {
+    const rate = newBpm / nativeBpm
+    Tone.getTransport().bpm.value = newBpm
+    if (playerRef.current instanceof Tone.GrainPlayer) {
+      playerRef.current.playbackRate = rate
+    }
+    if (metronomeRef.current) {
+      metronomeRef.current.playbackRate = rate
+    }
+    if (pendingRef.current?.player instanceof Tone.GrainPlayer) {
+      pendingRef.current.player.playbackRate = rate
+    }
   }, [])
 
   const setLoopIndex = useCallback((loopIndex: number) => {
@@ -456,7 +402,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
 
-    // Re-sync player to bar 0 (it may have been synced to a later bar from a loop transition)
     if (playerRef.current) {
       playerRef.current.unsync()
       playerRef.current.sync().start(0)
@@ -494,5 +439,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelTransition,
     setLoopIndex,
     loadMix,
+    adjustBpm,
   }
 }

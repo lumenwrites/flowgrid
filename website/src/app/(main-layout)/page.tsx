@@ -63,6 +63,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     cancelTransition,
     setLoopIndex,
     loadMix,
+    adjustBpm,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm)
 
   const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
@@ -154,7 +155,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setActiveMixIndex(index)
     resetLoopState(0)
     resetPosition()
-    await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm, mix.files.length > 1)
+    await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm)
   }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix, settings.trackBpm, update])
 
   const handleSelectLoop = useCallback((index: number) => {
@@ -233,25 +234,36 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
-  // Variant BPM change reloads audio from bar 0 — reset grid to match
-  // For variant mixes, also reload the mix with the new BPM file
-  useEffect(() => {
+  const handleBpmChange = useCallback(async (newBpm: number) => {
+    update('trackBpm', newBpm)
     if (!currentTrack) return
-    if (activeMix && activeMix.files.length > 1) {
-      const audioFile = getFileForBpm(activeMix.files, settings.trackBpm)
-      resetLoopState(0)
-      resetPosition()
-      const wasPlaying = isPlaying
-      loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm, true).then(() => {
+
+    if (activeMix) {
+      // Variant mix: reload with new file
+      if (activeMix.files.length > 1) {
+        const audioFile = getFileForBpm(activeMix.files, newBpm)
+        resetLoopState(0)
+        resetPosition()
+        const wasPlaying = isPlaying
+        await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm)
         if (wasPlaying) togglePlay()
-      })
+      } else {
+        // Single-file mix: live rate adjustment
+        adjustBpm(newBpm, activeMix.files[0].bpm)
+      }
       return
     }
-    if ((currentTrack.loops[0]?.files.length ?? 0) <= 1) return
-    resetLoopState(currentLoopIndex)
-    resetPosition()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.trackBpm])
+
+    // Variant loops: reload track with new files
+    if ((currentTrack.loops[0]?.files.length ?? 0) > 1) {
+      resetLoopState(currentLoopIndex)
+      resetPosition()
+      await changeTrack(settings.selectedTrackIndex, newBpm)
+    } else {
+      // Single-file loops: live rate adjustment
+      adjustBpm(newBpm, currentTrack.bpm)
+    }
+  }, [currentTrack, activeMix, currentLoopIndex, isPlaying, settings.selectedTrackIndex, update, resetLoopState, resetPosition, loadMix, togglePlay, adjustBpm, changeTrack])
 
   const handleTrackChange = (index: number) => {
     const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
@@ -369,7 +381,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         trackBpm={settings.trackBpm}
         nativeBpm={currentTrack?.bpm ?? settings.metronomeBpm}
         bpmVariants={activeMix ? getBpmVariants(activeMix) : currentLoop ? getBpmVariants(currentLoop) : undefined}
-        onTrackBpmChange={(v) => update('trackBpm', v)}
+        onTrackBpmChange={handleBpmChange}
         metronomeBpm={settings.metronomeBpm}
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}
         trackVolume={settings.trackVolume}
