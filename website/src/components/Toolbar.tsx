@@ -19,7 +19,7 @@ export default function Toolbar({
     <div className="flex items-center gap-3 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] bg-surface border-b border-border">
       <HamburgerButton onClick={onOpenSettings} />
 
-      <span className="text-sm font-bold text-accent tracking-wider hidden sm:block">
+      <span className="text-sm font-bold text-accent tracking-wider">
         FLOWGRID
       </span>
 

@@ -2,18 +2,10 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react'
 import * as Tone from 'tone'
-import { AVAILABLE_TRACKS, METRONOME_FILES, DEFAULT_TRACK_INDEX, DEFAULT_BPM, NONE_TRACK_INDEX, loopUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, METRONOME_FILES, DEFAULT_TRACK_INDEX, DEFAULT_BPM, NONE_TRACK_INDEX, getFileForBpm, loopFileUrl } from '@/lib/constants'
 
 function volumeToDb(v: number): number {
   return v === 0 ? -Infinity : 20 * Math.log10(v / 100)
-}
-
-function closestVariant(bpm: number, variants: number[]): number {
-  let best = variants[0]
-  for (const v of variants) {
-    if (Math.abs(v - bpm) < Math.abs(best - bpm)) best = v
-  }
-  return best
 }
 
 type PendingTransition = {
@@ -42,6 +34,9 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   const trackBpmRef = useRef(trackBpm)
   trackBpmRef.current = trackBpm
   const currentLoopIndexRef = useRef(0)
+  const mixActiveRef = useRef(false)
+  const mixFileBpmRef = useRef(0)
+  const mixIsVariantRef = useRef(false)
 
   useEffect(() => {
     if (metronomeRef.current) {
@@ -78,10 +73,27 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   useEffect(() => {
     if (!isLoadedRef.current) return
     if (selectedTrackIndexRef.current === NONE_TRACK_INDEX) return
+
+    if (mixActiveRef.current) {
+      // Mix is active — variant mixes skip (they reload via handleSelectMix),
+      // non-variant mixes get live rate adjustment
+      if (mixIsVariantRef.current) return
+      const rate = trackBpm / mixFileBpmRef.current
+      Tone.getTransport().bpm.value = trackBpm
+      if (playerRef.current instanceof Tone.GrainPlayer) {
+        playerRef.current.playbackRate = rate
+      }
+      if (metronomeRef.current) {
+        metronomeRef.current.playbackRate = rate
+      }
+      return
+    }
+
     const track = AVAILABLE_TRACKS[selectedTrackIndexRef.current]
     if (!track) return
 
-    if (track.bpmVariants) {
+    const hasVariants = track.loops[0]?.files.length > 1
+    if (hasVariants) {
       // Variant track: reload with the new audio files
       const wasPlaying = Tone.getTransport().state === 'started'
       loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current, trackBpm).then(() => {
@@ -138,8 +150,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const track = trackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[trackIndex]
     const nativeBpm = track ? track.bpm : metronomeBpmRef.current
     const effectiveBpm = bpmOverride ?? (track ? trackBpmRef.current : metronomeBpmRef.current)
-    const hasVariants = !!track?.bpmVariants
-    const variantBpm = hasVariants ? closestVariant(effectiveBpm, track!.bpmVariants!) : undefined
+    const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
+    const variantBpm = hasVariants ? getFileForBpm(track!.loops[0].files, effectiveBpm).bpm : undefined
     const transportBpm = variantBpm ?? effectiveBpm
     const rate = hasVariants ? 1 : (track ? effectiveBpm / nativeBpm : 1)
 
@@ -162,7 +174,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
     try {
       const loopBufferPromises = track
-        ? track.loops.map(l => loadBuffer(loopUrl(track, l, variantBpm)))
+        ? track.loops.map(l => {
+            const audioFile = getFileForBpm(l.files, effectiveBpm)
+            return loadBuffer(loopFileUrl(track, audioFile))
+          })
         : []
       const metronomeFile = METRONOME_FILES[variantBpm ?? nativeBpm]
       const metronomePromise = metronomeFile ? createPlayer(metronomeFile, true) : null
@@ -202,6 +217,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
       Tone.getTransport().bpm.value = transportBpm
       isLoadedRef.current = true
+      mixActiveRef.current = false
       setSelectedTrackIndex(trackIndex)
       selectedTrackIndexRef.current = trackIndex
       setCurrentLoopIndex(loopIndex)
@@ -218,9 +234,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
 
     const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
+    const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
     let newPlayer: Tone.Player | Tone.GrainPlayer
 
-    if (track?.bpmVariants) {
+    if (hasVariants) {
       const p = new Tone.Player(buffers[loopIndex]).toDestination()
       p.loop = true
       newPlayer = p
@@ -289,7 +306,11 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     [loadTrack]
   )
 
-  const loadMix = useCallback(async (audioUrl: string) => {
+  const loadMix = useCallback(async (audioUrl: string, fileBpm: number, isVariant: boolean) => {
+    mixActiveRef.current = true
+    mixFileBpmRef.current = fileBpm
+    mixIsVariantRef.current = isVariant
+
     const transport = Tone.getTransport()
     transport.stop()
     transport.position = 0
@@ -303,10 +324,12 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       playerRef.current = null
     }
 
-    const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
-    const nativeBpm = track ? track.bpm : metronomeBpmRef.current
-    const effectiveBpm = track ? trackBpmRef.current : metronomeBpmRef.current
-    const rate = track ? effectiveBpm / nativeBpm : 1
+    // At load time, play at the file's native BPM (rate 1).
+    // The trackBpm effect handles live rate adjustment for non-variant mixes.
+    const rate = 1
+    const transportBpm = fileBpm
+
+    transport.bpm.value = transportBpm
 
     // Re-sync metronome after cancel cleared its transport events
     if (metronomeRef.current) {
@@ -314,8 +337,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       metronomeRef.current.unsync()
       metronomeRef.current.sync().start(0)
     }
-
-    transport.bpm.value = effectiveBpm
 
     function loadBuffer(url: string): Promise<Tone.ToneAudioBuffer> {
       return new Promise((resolve, reject) => {
@@ -334,7 +355,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       })
     }
 
-    const metronomeFile = METRONOME_FILES[nativeBpm]
+    const metronomeFile = METRONOME_FILES[fileBpm]
     const [mixBuffer, metronome] = await Promise.all([
       loadBuffer(audioUrl),
       !metronomeRef.current && metronomeFile
@@ -342,18 +363,26 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         : null,
     ])
 
-    const player = new Tone.GrainPlayer(mixBuffer).toDestination()
-    player.loop = false
-    player.grainSize = 0.1
-    player.overlap = 0.05
-    player.playbackRate = rate
-    player.volume.value = volumeToDb(trackVolumeRef.current)
-    player.sync().start(0)
-    playerRef.current = player
+    if (isVariant) {
+      const player = new Tone.Player(mixBuffer).toDestination()
+      player.loop = false
+      player.volume.value = volumeToDb(trackVolumeRef.current)
+      player.sync().start(0)
+      playerRef.current = player
+    } else {
+      const player = new Tone.GrainPlayer(mixBuffer).toDestination()
+      player.loop = false
+      player.grainSize = 0.1
+      player.overlap = 0.05
+      player.playbackRate = rate
+      player.volume.value = volumeToDb(trackVolumeRef.current)
+      player.sync().start(0)
+      playerRef.current = player
+    }
     isLoadedRef.current = true
 
     if (metronome) {
-      metronome.playbackRate = rate
+      if (!isVariant) metronome.playbackRate = rate
       metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
       metronome.sync().start(0)
       metronomeRef.current = metronome
@@ -384,9 +413,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         }
 
         const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
+        const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
         let newPlayer: Tone.Player | Tone.GrainPlayer
 
-        if (track?.bpmVariants) {
+        if (hasVariants) {
           const p = new Tone.Player(buffers[loopIndex]).toDestination()
           p.loop = true
           newPlayer = p

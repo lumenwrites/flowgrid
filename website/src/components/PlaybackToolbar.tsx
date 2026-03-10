@@ -3,15 +3,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, type Track, loopUrl, mixUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, type Track, getFileForBpm, loopFileUrl, mixFileUrl } from '@/lib/constants'
 
 function getPreviewUrl(track: Track): string | null {
   if (track.mixes) {
-    const lyrics = track.mixes.find(m => m.name === 'Lyrics')
-    if (lyrics) return mixUrl(track, lyrics)
-    return mixUrl(track, track.mixes[0])
+    const mix = track.mixes.find(m => m.name === 'Lyrics') ?? track.mixes[0]
+    const audioFile = getFileForBpm(mix.files, track.bpm)
+    return mixFileUrl(track, audioFile)
   }
-  return track.loops[0] ? loopUrl(track, track.loops[0], track.bpmVariants ? track.bpm : undefined) : null
+  if (!track.loops[0]) return null
+  const audioFile = getFileForBpm(track.loops[0].files, track.bpm)
+  return loopFileUrl(track, audioFile)
 }
 
 const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
@@ -121,7 +123,7 @@ export default function PlaybackToolbar({
 
   return (
     <>
-      <div className="flex items-center justify-between px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-surface border-t border-border">
+      <div className="flex items-center justify-between gap-3 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-surface border-t border-border">
         <div ref={playGroupRef} className="relative flex items-center gap-2">
           <button
             onClick={onStop}

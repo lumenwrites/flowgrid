@@ -13,7 +13,7 @@ import { usePlayhead } from '@/hooks/usePlayhead'
 import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, mixUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, getFileForBpm, mixFileUrl, getBpmVariants } from '@/lib/constants'
 import { type Preset, generateBarsFromPreset, buildDisplayBars } from '@/lib/rhymes'
 import { usePresetAudio } from '@/hooks/usePresetAudio'
 
@@ -99,7 +99,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     let bar = 0
     for (const section of activeMix.sections) {
       starts.push({ bar, loopIndex: fakeLoops.length })
-      fakeLoops.push({ name: section.name, file: '', bars: section.bars, instrumental: section.instrumental })
+      fakeLoops.push({ name: section.name, files: [], bars: section.bars, instrumental: section.instrumental })
       bar += section.bars
     }
     return { sectionStarts: starts, loops: fakeLoops }
@@ -136,19 +136,26 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     resetPosition()
     regenerate()
     resetLoopState(0)
+    const loop = currentTrack?.loops[0]
+    if (loop) {
+      const audioFile = getFileForBpm(loop.files, settings.trackBpm)
+      if (audioFile.bpm !== settings.trackBpm) update('trackBpm', audioFile.bpm)
+    }
     await changeTrack(settings.selectedTrackIndex)
-  }, [stop, resetPosition, regenerate, resetLoopState, changeTrack, settings.selectedTrackIndex])
+  }, [stop, resetPosition, regenerate, resetLoopState, changeTrack, settings.selectedTrackIndex, currentTrack, settings.trackBpm, update])
 
   const handleSelectMix = useCallback(async (index: number) => {
     if (!currentTrack?.mixes) return
     if (index === activeMixIndex) return
     const mix = currentTrack.mixes[index]
     if (!mix) return
+    const audioFile = getFileForBpm(mix.files, settings.trackBpm)
+    if (audioFile.bpm !== settings.trackBpm) update('trackBpm', audioFile.bpm)
     setActiveMixIndex(index)
     resetLoopState(0)
     resetPosition()
-    await loadMix(mixUrl(currentTrack, mix))
-  }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix])
+    await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm, mix.files.length > 1)
+  }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix, settings.trackBpm, update])
 
   const handleSelectLoop = useCallback((index: number) => {
     if (!currentTrack) return
@@ -227,8 +234,20 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
   // Variant BPM change reloads audio from bar 0 — reset grid to match
+  // For variant mixes, also reload the mix with the new BPM file
   useEffect(() => {
-    if (!currentTrack?.bpmVariants) return
+    if (!currentTrack) return
+    if (activeMix && activeMix.files.length > 1) {
+      const audioFile = getFileForBpm(activeMix.files, settings.trackBpm)
+      resetLoopState(0)
+      resetPosition()
+      const wasPlaying = isPlaying
+      loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm, true).then(() => {
+        if (wasPlaying) togglePlay()
+      })
+      return
+    }
+    if ((currentTrack.loops[0]?.files.length ?? 0) <= 1) return
     resetLoopState(currentLoopIndex)
     resetPosition()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -349,7 +368,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onMetronomeChange={(v) => update('metronomeEnabled', v)}
         trackBpm={settings.trackBpm}
         nativeBpm={currentTrack?.bpm ?? settings.metronomeBpm}
-        bpmVariants={currentTrack?.bpmVariants}
+        bpmVariants={activeMix ? getBpmVariants(activeMix) : currentLoop ? getBpmVariants(currentLoop) : undefined}
         onTrackBpmChange={(v) => update('trackBpm', v)}
         metronomeBpm={settings.metronomeBpm}
         onMetronomeBpmChange={(v) => update('metronomeBpm', v)}

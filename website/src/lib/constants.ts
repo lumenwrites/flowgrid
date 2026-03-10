@@ -12,9 +12,11 @@ export const RHYME_COLORS = [
   { bg: '#4c1d95', border: '#5b21b6', activeBg: '#5b21b6', activeBorder: '#8b5cf6' }, // violet
 ]
 
+export type AudioFile = { file: string; bpm: number }
+
 export type Loop = {
   name: string
-  file: string
+  files: AudioFile[]
   bars: number
   // When true, bars in this loop show no rhyme words and don't consume from the
   // rhyme pool — so rhyme pairing (AABB/ABAB) stays intact across the gap.
@@ -29,7 +31,7 @@ export type MixSection = {
 
 export type Mix = {
   name: string
-  file: string
+  files: AudioFile[]
   sections: MixSection[]
   rhymes?: string[]
 }
@@ -41,7 +43,6 @@ export type Track = {
   loops: Loop[]
   mixes?: Mix[]
   barsPerLine?: BarsPerLine
-  bpmVariants?: number[]
 }
 
 const VILLAIN_SONG_SECTIONS: MixSection[] = [
@@ -60,30 +61,46 @@ const VILLAIN_SONG_RHYMES = [
 
 export const AVAILABLE_TRACKS: Track[] = [
   {
-    label: 'Basic Drums 60/80/100/120bpm', dir: '/tracks/basic-drums', bpm: 80,  barsPerLine: 1,
-    bpmVariants: [60, 80, 100, 120],
+    label: 'Basic Drums', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 1,
     loops: [
-      { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
-      { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
+      { name: 'Verse', bars: 4, files: [
+        { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
+        { file: '01-verse-4bars-80bpm.wav', bpm: 80 },
+        { file: '01-verse-4bars-100bpm.wav', bpm: 100 },
+        { file: '01-verse-4bars-120bpm.wav', bpm: 120 },
+      ]},
+      { name: 'Chorus', bars: 4, files: [
+        { file: '02-chorus-4bars-60bpm.wav', bpm: 60 },
+        { file: '02-chorus-4bars-80bpm.wav', bpm: 80 },
+        { file: '02-chorus-4bars-100bpm.wav', bpm: 100 },
+        { file: '02-chorus-4bars-120bpm.wav', bpm: 120 },
+      ]},
     ],
   },
   {
-    label: 'Whose Line Rap 80/100bpm', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1,
-    bpmVariants: [80, 100],
+    label: 'Whose Line Rap', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1,
     loops: [
-      { name: 'Loop', file: '01-loop-8bars.wav', bars: 8 },
+      { name: 'Loop', bars: 8, files: [
+        { file: '01-loop-8bars-80bpm.wav', bpm: 80 },
+        { file: '01-loop-8bars-100bpm.wav', bpm: 100 },
+      ]},
     ],
     mixes: [
-      { name: 'Nerd Rap', file: 'nerd-rap-100bpm.wav', sections: [
+      { name: 'Nerd Rap', sections: [
         { name: 'Verse', bars: 8 },
+      ], files: [
+        { file: 'nerd-rap-80bpm.wav', bpm: 80 },
+        { file: 'nerd-rap-100bpm.wav', bpm: 100 },
       ], rhymes: [
         'grapple', 'apple', 'fool', 'school',
         'desk', 'pest', 'look', 'book',
       ]},
-      { name: 'Camp Rap', file: 'camp-rap-100bpm.wav', sections: [
+      { name: 'Camp Rap', sections: [
         { name: 'Verse', bars: 8 }, { name: 'Verse', bars: 8 },
         { name: 'Verse', bars: 4 }, { name: 'Verse', bars: 4 },
         { name: 'Verse', bars: 2 },
+      ], files: [
+        { file: 'camp-rap-100bpm.wav', bpm: 100 },
       ], rhymes: [
         'do', 'canoe', 'away', 'spray',
         'burn', 'learn', 'spf', 'jeff',
@@ -96,46 +113,60 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Laura Rap 60/70/80bpm', dir: '/tracks/laura-rap', bpm: 80, barsPerLine: 1,
-    bpmVariants: [60, 70, 80],
+    label: 'Laura Rap', dir: '/tracks/laura-rap', bpm: 80, barsPerLine: 1,
     loops: [
-      { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
-      { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
+      { name: 'Verse', bars: 4, files: [
+        { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
+        { file: '01-verse-4bars-70bpm.wav', bpm: 70 },
+        { file: '01-verse-4bars-80bpm.wav', bpm: 80 },
+      ]},
+      { name: 'Chorus', bars: 4, files: [
+        { file: '02-chorus-4bars-60bpm.wav', bpm: 60 },
+        { file: '02-chorus-4bars-70bpm.wav', bpm: 70 },
+        { file: '02-chorus-4bars-80bpm.wav', bpm: 80 },
+      ]},
     ],
     mixes: [
-      { name: 'Instrumental', file: 'instrumental-80bpm.wav', sections: [
+      { name: 'Instrumental', sections: [
         { name: 'Verse 1', bars: 16 }, { name: 'Chorus', bars: 8 },
         { name: 'Verse 2', bars: 16 }, { name: 'Chorus', bars: 8 },
         { name: 'Verse 3', bars: 16 },
+      ], files: [
+        { file: 'instrumental-60bpm.wav', bpm: 60 },
+        { file: 'instrumental-70bpm.wav', bpm: 70 },
+        { file: 'instrumental-80bpm.wav', bpm: 80 },
       ]},
     ],
   },
-  { label: 'Yucca 80bpm',             dir: '/tracks/yucca-80bpm',             bpm: 80,  barsPerLine: 1,  loops: [{ name: 'Loop', file: '01-loop-8bars-80bpm.m4a', bars: 8 }] },
   {
-    label: 'Hoedown 120bpm', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
+    label: 'Yucca', dir: '/tracks/yucca-80bpm', bpm: 80, barsPerLine: 1,
+    loops: [{ name: 'Loop', bars: 8, files: [{ file: '01-loop-8bars-80bpm.m4a', bpm: 80 }] }],
+  },
+  {
+    label: 'Hoedown', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
     loops: [
-      { name: 'Intro', file: '01-intro-4bars-120bpm.wav', bars: 4, instrumental: true },
-      { name: 'Verse', file: '02-verse-8bars-120bpm.wav', bars: 8 },
-      { name: 'Break', file: '03-break-2bars-120bpm.wav', bars: 2, instrumental: true },
+      { name: 'Intro', bars: 4, instrumental: true, files: [{ file: '01-intro-4bars-120bpm.wav', bpm: 120 }] },
+      { name: 'Verse', bars: 8, files: [{ file: '02-verse-8bars-120bpm.wav', bpm: 120 }] },
+      { name: 'Break', bars: 2, instrumental: true, files: [{ file: '03-break-2bars-120bpm.wav', bpm: 120 }] },
     ],
     mixes: [
-      { name: 'Instrumental', file: 'instrumental.wav', sections: [
+      { name: 'Instrumental', sections: [
         { name: 'Intro', bars: 4, instrumental: true }, { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true },
         { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true },
         { name: 'Verse', bars: 8 }, { name: 'Break', bars: 2, instrumental: true }, { name: 'Verse', bars: 8 }, { name: 'Outro', bars: 3, instrumental: true },
-      ]},
+      ], files: [{ file: 'instrumental.wav', bpm: 120 }] },
     ],
   },
   {
-    label: 'Villain Song 80bpm', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
+    label: 'Villain Song', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
     loops: [
-      { name: 'Verse', file: '01-verse-8bars-80bpm.wav', bars: 8 },
-      { name: 'Chorus', file: '02-chorus-8bars-80bpm.wav', bars: 8 },
+      { name: 'Verse', bars: 8, files: [{ file: '01-verse-8bars-80bpm.wav', bpm: 80 }] },
+      { name: 'Chorus', bars: 8, files: [{ file: '02-chorus-8bars-80bpm.wav', bpm: 80 }] },
     ],
     mixes: [
-      { name: 'Instrumental', file: 'instrumental.wav', sections: VILLAIN_SONG_SECTIONS },
-      { name: 'Lyrics', file: 'lyrics.wav', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES },
-      { name: 'Scat', file: 'scat.wav', sections: VILLAIN_SONG_SECTIONS },
+      { name: 'Instrumental', sections: VILLAIN_SONG_SECTIONS, files: [{ file: 'instrumental.wav', bpm: 80 }] },
+      { name: 'Lyrics', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES, files: [{ file: 'lyrics.wav', bpm: 80 }] },
+      { name: 'Scat', sections: VILLAIN_SONG_SECTIONS, files: [{ file: 'scat.wav', bpm: 80 }] },
     ],
   },
 ]
@@ -147,20 +178,31 @@ export const METRONOME_FILES: Record<number, string> = {
   120: '/tracks/metronome/120bpm.wav',
 }
 
-export function loopUrl(track: Track, loop: Loop, variantBpm?: number): string {
-  if (variantBpm !== undefined) {
-    const dot = loop.file.lastIndexOf('.')
-    return `${track.dir}/loops/${loop.file.substring(0, dot)}-${variantBpm}bpm${loop.file.substring(dot)}`
-  }
-  return `${track.dir}/loops/${loop.file}`
+// Get the list of available BPMs from a loop or mix's files
+export function getBpmVariants(item: Loop | Mix): number[] | undefined {
+  if (item.files.length <= 1) return undefined
+  return item.files.map(f => f.bpm)
 }
 
-export function mixUrl(track: Track, mix: Mix): string {
-  return `${track.dir}/mixes/${mix.file}`
+// Find the closest matching file for a given BPM
+export function getFileForBpm(files: AudioFile[], bpm: number): AudioFile {
+  let best = files[0]
+  for (const f of files) {
+    if (Math.abs(f.bpm - bpm) < Math.abs(best.bpm - bpm)) best = f
+  }
+  return best
+}
+
+export function loopFileUrl(track: Track, audioFile: AudioFile): string {
+  return `${track.dir}/loops/${audioFile.file}`
+}
+
+export function mixFileUrl(track: Track, audioFile: AudioFile): string {
+  return `${track.dir}/mixes/${audioFile.file}`
 }
 
 export const NONE_TRACK_INDEX = -1
-export const DEFAULT_TRACK_INDEX = 0 // Villain Song 80bpm (multi-loop + examples)
+export const DEFAULT_TRACK_INDEX = 0
 export const DEFAULT_BPM = 80 // Used when no track is selected
 export const BPM_MIN = 40
 export const BPM_MAX = 200
