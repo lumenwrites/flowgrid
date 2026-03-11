@@ -223,6 +223,15 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
   }, [])
 
+  const play = useCallback(async () => {
+    await Tone.start()
+    if (!isLoadedRef.current) {
+      await loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current)
+    }
+    Tone.getTransport().start()
+    setIsPlaying(true)
+  }, [loadTrack])
+
   const togglePlay = useCallback(async () => {
     await Tone.start()
 
@@ -431,6 +440,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     isPlaying,
     selectedTrackIndex,
     currentLoopIndex,
+    play,
     togglePlay,
     changeTrack,
     stop,

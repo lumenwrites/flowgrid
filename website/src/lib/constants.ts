@@ -43,6 +43,7 @@ export type Track = {
   loops: Loop[]
   mixes?: Mix[]
   barsPerLine?: BarsPerLine
+  public?: boolean
 }
 
 const VILLAIN_SONG_SECTIONS: MixSection[] = [
@@ -139,6 +140,52 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
+    label: 'Tutorial', dir: '/tracks/tutorial', bpm: 80, barsPerLine: 1, public: false,
+    loops: [
+      { name: 'Loop', bars: 4, files: [{ file: '/tracks/basic-drums/loops/01-verse-4bars-80bpm.wav', bpm: 80 }] },
+    ],
+    mixes: [
+      { name: 'Tutorial', sections: [
+        { name: 'Verse', bars: 64 },
+      ], files: [
+        { file: 'tutorial.wav', bpm: 80 },
+      ], rhymes: [
+        // Bars 1-4
+        'cat', 'hat', 'sun', 'fun',
+        // Bars 5-8
+        'sky', 'fly', 'tree', 'free',
+        // Bars 9-12
+        'go', 'flow', 'along', 'wrong',
+        // Bars 13-16
+        'light', 'night', 'dream', 'stream',
+        // Bars 17-20
+        'rain', 'train', 'road', 'code',
+        // Bars 21-24
+        'star', 'far', 'moon', 'tune',
+        // Bars 25-28
+        'fire', 'higher', 'ground', 'sound',
+        // Bars 29-32
+        'wave', 'brave', 'time', 'rhyme',
+        // Bars 33-36
+        'soul', 'roll', 'beat', 'street',
+        // Bars 37-40
+        'cool', 'school', 'stage', 'page',
+        // Bars 41-44
+        'bright', 'sight', 'tall', 'call',
+        // Bars 45-48
+        'king', 'ring', 'gold', 'bold',
+        // Bars 49-52
+        'real', 'deal', 'game', 'fame',
+        // Bars 53-56
+        'ride', 'side', 'high', 'sky',
+        // Bars 57-60
+        'rock', 'clock', 'shine', 'mine',
+        // Bars 61-64
+        'best', 'test', 'end', 'friend',
+      ]},
+    ],
+  },
+  {
     label: 'Yucca', dir: '/tracks/yucca-80bpm', bpm: 80, barsPerLine: 1,
     loops: [{ name: 'Loop', bars: 8, files: [{ file: '01-loop-8bars-80bpm.m4a', bpm: 80 }] }],
   },
@@ -194,10 +241,12 @@ export function getFileForBpm(files: AudioFile[], bpm: number): AudioFile {
 }
 
 export function loopFileUrl(track: Track, audioFile: AudioFile): string {
+  if (audioFile.file.startsWith('/')) return audioFile.file
   return `${track.dir}/loops/${audioFile.file}`
 }
 
 export function mixFileUrl(track: Track, audioFile: AudioFile): string {
+  if (audioFile.file.startsWith('/')) return audioFile.file
   return `${track.dir}/mixes/${audioFile.file}`
 }
 

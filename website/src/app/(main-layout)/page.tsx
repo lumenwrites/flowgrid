@@ -34,9 +34,12 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [dictionaryModalOpen, setDictionaryModalOpen] = useState(false)
   const [preset, setPreset] = useState<Preset | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const name = new URLSearchParams(window.location.search).get('preset')
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('admin') === 'true') setIsAdmin(true)
+    const name = params.get('preset')
     if (!name) return
     fetch(`/presets/${name}.json`)
       .then(r => r.json())
@@ -55,6 +58,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     isPlaying,
     selectedTrackIndex,
     currentLoopIndex,
+    play,
     togglePlay,
     changeTrack,
     stop,
@@ -242,11 +246,11 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       // Variant mix: reload with new file
       if (activeMix.files.length > 1) {
         const audioFile = getFileForBpm(activeMix.files, newBpm)
+        const wasPlaying = isPlaying
         resetLoopState(0)
         resetPosition()
-        const wasPlaying = isPlaying
         await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm)
-        if (wasPlaying) togglePlay()
+        if (wasPlaying) await play()
       } else {
         // Single-file mix: live rate adjustment
         adjustBpm(newBpm, activeMix.files[0].bpm)
@@ -263,7 +267,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       // Single-file loops: live rate adjustment
       adjustBpm(newBpm, currentTrack.bpm)
     }
-  }, [currentTrack, activeMix, currentLoopIndex, isPlaying, settings.selectedTrackIndex, update, resetLoopState, resetPosition, loadMix, togglePlay, adjustBpm, changeTrack])
+  }, [currentTrack, activeMix, currentLoopIndex, isPlaying, settings.selectedTrackIndex, update, resetLoopState, resetPosition, loadMix, play, adjustBpm, changeTrack])
 
   const handleTrackChange = (index: number) => {
     const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
@@ -374,6 +378,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onStop={handleStop}
         selectedTrackIndex={selectedTrackIndex}
         onTrackChange={handleTrackChange}
+        isAdmin={isAdmin}
         metronomeEnabled={settings.metronomeEnabled}
         metronomeTicking={isPlaying && settings.metronomeEnabled}
         beat={position.beat}

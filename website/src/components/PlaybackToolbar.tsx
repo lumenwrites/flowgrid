@@ -24,6 +24,7 @@ type PlaybackToolbarProps = {
   onStop: () => void
   selectedTrackIndex: number
   onTrackChange: (index: number) => void
+  isAdmin?: boolean
   metronomeEnabled: boolean
   metronomeTicking: boolean
   beat: number
@@ -46,6 +47,7 @@ export default function PlaybackToolbar({
   onStop,
   selectedTrackIndex,
   onTrackChange,
+  isAdmin,
   metronomeEnabled,
   metronomeTicking,
   beat,
@@ -300,36 +302,39 @@ export default function PlaybackToolbar({
               >
                 No track
               </button>
-              {AVAILABLE_TRACKS.map((track, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center transition-colors ${
-                    selectedTrackIndex === i
-                      ? 'bg-accent/15'
-                      : 'hover:bg-surface-light'
-                  }`}
-                >
-                  <button
-                    onClick={() => handleSelectTrack(i)}
-                    className={`flex-1 text-left px-4 py-2.5 text-sm transition-colors ${
-                      selectedTrackIndex === i ? 'text-accent' : 'text-foreground'
+              {AVAILABLE_TRACKS.map((track, i) => {
+                if (track.public === false && !isAdmin) return null
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center transition-colors ${
+                      selectedTrackIndex === i
+                        ? 'bg-accent/15'
+                        : 'hover:bg-surface-light'
                     }`}
                   >
-                    {track.label}
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handlePreview(i) }}
-                    className={`shrink-0 w-8 h-8 mr-2 flex items-center justify-center rounded-full transition-colors ${
-                      previewIndex === i
-                        ? 'text-accent'
-                        : 'text-foreground-muted hover:text-foreground'
-                    }`}
-                    aria-label={`Preview ${track.label}`}
-                  >
-                    <FontAwesomeIcon icon={previewIndex === i ? faVolumeHigh : faPlay} className="text-xs" />
-                  </button>
-                </div>
-              ))}
+                    <button
+                      onClick={() => handleSelectTrack(i)}
+                      className={`flex-1 text-left px-4 py-2.5 text-sm transition-colors ${
+                        selectedTrackIndex === i ? 'text-accent' : 'text-foreground'
+                      }`}
+                    >
+                      {track.label}
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handlePreview(i) }}
+                      className={`shrink-0 w-8 h-8 mr-2 flex items-center justify-center rounded-full transition-colors ${
+                        previewIndex === i
+                          ? 'text-accent'
+                          : 'text-foreground-muted hover:text-foreground'
+                      }`}
+                      aria-label={`Preview ${track.label}`}
+                    >
+                      <FontAwesomeIcon icon={previewIndex === i ? faVolumeHigh : faPlay} className="text-xs" />
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
