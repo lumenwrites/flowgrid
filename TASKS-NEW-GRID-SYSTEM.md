@@ -1,6 +1,6 @@
 # Grid Text Format
 
-A human-readable text format for representing FlowGrid grids — the words/rhymes placed on beats. This replaces both the `Preset` system (flat `words[]` + `pattern`) and the mix `rhymes[]` arrays with something more expressive: words can go on any beat, rhyme groups are explicit (not inferred from position), and the whole thing is easy to read and edit as plain text.
+A human-readable text format for representing FlowGrid grids — the words/rhymes placed on beats. This replaced the mix `rhymes[]` arrays with something more expressive: words can go on any beat, rhyme groups are explicit (not inferred from position), and the whole thing is easy to read and edit as plain text.
 
 ## Two modes, side by side
 
@@ -8,27 +8,16 @@ The app has two fundamentally different ways bars get their content:
 
 1. **Auto-generated (loop mode)** — `useRhymes` + `generateBars()` produces an infinite stream of `BarData[]` from word lists with seeded PRNG. Bars auto-extend as playback progresses. `buildDisplayBars()` remaps around instrumental sections. This stays exactly as-is — no changes needed.
 
-2. **Grid (scripted content)** — A hand-authored grid of words placed on specific beats. Used by **mixes with custom words** and **presets**. The grid text is parsed into `BarData[]` (the same type auto-generation produces), so everything downstream (Grid.tsx, Bar.tsx, BeatCell.tsx, playhead, etc.) works identically for both modes.
+2. **Grid (scripted content)** — A hand-authored grid of words placed on specific beats. Used by **mixes with custom words**. The grid text is parsed into `BarData[]` (the same type auto-generation produces), so everything downstream (Grid.tsx, Bar.tsx, BeatCell.tsx, playhead, etc.) works identically for both modes.
 
-The key design constraint: both modes produce `BarData[]`. The grid system adds an optional `beatWords` field to `BarData` for per-beat word placement, but everything else flows through the same pipeline. In `page.tsx`, the `displayBars` memo already picks between `mixBars`, `presetBars`, and auto-generated `bars` — grid just changes how `mixBars`/`presetBars` are produced.
+The key design constraint: both modes produce `BarData[]`. The grid system adds an optional `beatWords` field to `BarData` for per-beat word placement, but everything else flows through the same pipeline.
 
-**Current flow in page.tsx:**
+**Flow in page.tsx:**
 ```
-displayBars = mixBars ?? presetBars ?? buildDisplayBars(bars, loopInfo)
-```
-- `mixBars`: if mix has `rhymes` → `generateBarsFromPreset()`; else → slice from auto `bars`
-- `presetBars`: `generateBarsFromPreset()` from preset JSON
-- `bars`: auto-generated infinite stream from `useRhymes`
-
-**New flow (same shape, different producers):**
-```
-displayBars = mixBars ?? presetBars ?? buildDisplayBars(bars, loopInfo)
+displayBars = mixBars ?? buildDisplayBars(bars, loopInfo)
 ```
 - `mixBars`: if mix has `grid` → `generateBarsFromGrid(parseGrid(grid))`; else → slice from auto `bars`
-- `presetBars`: `generateBarsFromGrid(parseGrid(grid))` from preset JSON
 - `bars`: auto-generated infinite stream from `useRhymes` (unchanged)
-
-The only difference is `generateBarsFromPreset` → `generateBarsFromGrid(parseGrid(...))`. Same output type. Everything downstream is untouched.
 
 ## barsPerLine is now track-intrinsic (already done)
 
@@ -232,50 +221,7 @@ if (activeMix.grid) {
 
 Mixes without `grid` still fall back to slicing from the auto-generated `bars` pool (unchanged).
 
-### 6. Replace `Preset` type with grid format
-
-Change `Preset` type in `rhymes.ts`:
-```ts
-type Preset = {
-  grid: string | string[]  // grid format text
-  audio?: string
-}
-```
-
-Remove `generateBarsFromPreset()` entirely (replaced by `generateBarsFromGrid`).
-
-Update preset JSON files and `page.tsx` preset loading.
-
-Convert `website/public/presets/example.json` from:
-```json
-{ "words": ["boat", "coat", ...], "pattern": "AABB", "audio": "..." }
-```
-to:
-```json
-{
-  "grid": [
-    "_ _ _ [:1 boat]",
-    "_ _ _ [:1 coat]",
-    "_ _ _ [:2 now]",
-    "_ _ _ [:2 how]",
-    "_ _ _ [:3 gold]",
-    "_ _ _ [:3 old]",
-    "_ _ _ [:4 eat]",
-    "_ _ _ [:4 asleep]",
-    "_ _ _ [:5 island]",
-    "_ _ _ [:5 smiling]",
-    "_ _ _ [:6 hook]",
-    "_ _ _ [:6 book]",
-    "_ _ _ [:7 cry]",
-    "_ _ _ [:7 by]",
-    "_ _ _ [:8 book]",
-    "_ _ _ [:8 look]"
-  ],
-  "audio": "/examples/vocals-test.mp3"
-}
-```
-
-### 7. Write tests
+### 6. Write tests
 
 Add `website/src/lib/__tests__/grid-format.test.ts`:
 - Parse basic 4-beat grid
@@ -289,7 +235,7 @@ Add `website/src/lib/__tests__/grid-format.test.ts`:
 
 ## TODO
 
-- [ ] Update SPEC.md and PLAN.md to document the grid format
+(nothing remaining)
 
 ## DONE
 
@@ -300,11 +246,10 @@ Add `website/src/lib/__tests__/grid-format.test.ts`:
 - Replace `rhymes?: string[]` with `grid?: string | string[]` on `Mix` type in `constants.ts`
 - Convert all existing mix `rhymes` arrays to grid format (Nerd Rap, Camp Rap, Tutorial, Villain Song Lyrics)
 - Update `mixBars` memo in `page.tsx` to use `parseGrid` + `generateBarsFromGrid`
-- Replace `Preset` type with grid-based version, remove `generateBarsFromPreset()`
-- Update preset loading in `page.tsx` to use new format
-- Convert `website/public/presets/example.json` to grid format
 - Write tests in `website/src/lib/__tests__/grid-format.test.ts` (18 tests, all passing)
 - Remove `barsPerLine` from user settings — now derived from track's `barsPerLine` property
 - Remove "Bars per line" dropdown from Sidebar
 - Add "Basic Drums (Musical)" duplicate track entry with barsPerLine=2
 - Remove unused `BARS_PER_LINE_OPTIONS` constant
+- Remove Preset system entirely (type, usePresetAudio hook, preset JSON files, URL param loading)
+- Update SPEC.md, PLAN.md, CLAUDE.md to document grid format, remove preset references, update UI descriptions
