@@ -69,7 +69,6 @@ export function generateBars(
   barsPerLine: BarsPerLine = 1,
   fillMode: FillMode = 'all',
   seed: number = 42,
-  introBars: number = 0
 ): BarData[] {
   // Use seed + startIndex so extension chunks produce different sequences
   const random = mulberry32(seed + startIndex)
@@ -101,19 +100,10 @@ export function generateBars(
 
   // Build a sequence of line rhymes based on the pattern
   // Each "line" is barsPerLine bars; rhyme word shows on the last bar of each line
-  // Intro lines get placeholder rhymes; the real pattern starts at the first visible line
   const lineCount = Math.ceil(count / barsPerLine)
-  const introLines = startIndex === 0 ? Math.ceil(introBars / barsPerLine) : 0
   const lineRhymes: { word: string; color: typeof RHYME_COLORS[0]; familyId: number }[] = []
 
-  // Fill intro lines with a neutral placeholder (hidden anyway)
-  const placeholderColor = RHYME_COLORS[0]
-  for (let i = 0; i < introLines && i < lineCount; i++) {
-    lineRhymes.push({ word: '', color: placeholderColor, familyId: -1 })
-  }
-
-  // Generate the real rhyme pattern starting after intro lines
-  const visibleLines = lineCount - introLines
+  const visibleLines = lineCount
 
   if (rhymePattern === 'AABB') {
     // Lines rhyme in consecutive pairs: AA BB CC ...
@@ -156,9 +146,7 @@ export function generateBars(
   for (let lineIdx = 0; lineIdx < lineRhymes.length; lineIdx++) {
     const rhyme = lineRhymes[lineIdx]
     // Determine if rhyme is hidden based on fill mode and position in pair
-    // Offset by introLines so the fill pattern starts fresh at the first visible line
-    const visibleLineIdx = lineIdx - introLines
-    const posInPair = visibleLineIdx < 0 ? 0 : visibleLineIdx % 2 // 0 = first line (setup), 1 = second line (punchline)
+    const posInPair = lineIdx % 2 // 0 = first line (setup), 1 = second line (punchline)
     const rhymeHidden =
       fillMode === 'all-blanks' ? true :
       fillMode === 'setup-punchline' ? posInPair === 0 :
@@ -179,13 +167,6 @@ export function generateBars(
   }
 
   return bars
-}
-
-// Preset: a grid of words placed on specific beats.
-// Load via ?preset=name URL param → fetches /presets/name.json
-export type Preset = {
-  grid: string | string[]
-  audio?: string
 }
 
 export function generateBarsFromGrid(

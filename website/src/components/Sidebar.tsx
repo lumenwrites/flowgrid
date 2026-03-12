@@ -1,13 +1,8 @@
 'use client'
 
-import { INTRO_BAR_OPTIONS } from '@/lib/constants'
-const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
-
 type SidebarProps = {
   open: boolean
   onClose: () => void
-  introBars: number
-  onIntroBarsChange: (count: number) => void
   audioOffset: number
   onAudioOffsetChange: (offset: number) => void
 }
@@ -15,8 +10,6 @@ type SidebarProps = {
 export default function Sidebar({
   open,
   onClose,
-  introBars,
-  onIntroBarsChange,
   audioOffset,
   onAudioOffsetChange,
 }: SidebarProps) {
@@ -77,22 +70,6 @@ export default function Sidebar({
               ))}
             </select>
           </div> */}
-
-          {/* Intro bars */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Intro bars</label>
-            <select
-              value={introBars}
-              onChange={(e) => onIntroBarsChange(Number(e.target.value))}
-              className={selectClass}
-            >
-              {INTRO_BAR_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n === 0 ? 'None' : n === 1 ? '1 bar' : `${n} bars`}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {/* Audio offset */}
           <div className="space-y-1.5">

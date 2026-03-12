@@ -13,7 +13,7 @@ type PendingTransition = {
   player: Tone.Player | Tone.GrainPlayer
 }
 
-export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIndex: number = DEFAULT_TRACK_INDEX, metronomeBpm: number = DEFAULT_BPM, trackVolume: number = 100, metronomeVolume: number = 100, trackBpm: number = DEFAULT_BPM) {
+export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIndex: number = DEFAULT_TRACK_INDEX, metronomeBpm: number = DEFAULT_BPM, trackVolume: number = 100, metronomeVolume: number = 100, trackBpm: number = DEFAULT_BPM, countdownBars: number = 0) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [selectedTrackIndex, setSelectedTrackIndex] = useState(initialTrackIndex)
   const [currentLoopIndex, setCurrentLoopIndex] = useState(0)
@@ -33,6 +33,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   metronomeVolumeRef.current = metronomeVolume
   const trackBpmRef = useRef(trackBpm)
   trackBpmRef.current = trackBpm
+  const countdownBarsRef = useRef(countdownBars)
+  countdownBarsRef.current = countdownBars
   const currentLoopIndexRef = useRef(0)
 
   useEffect(() => {
@@ -66,6 +68,19 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metronomeBpm])
+
+  // If countdown > 0 and metronome is off, unmute it and schedule re-mute at countdown end.
+  // Safe to call multiple times — Transport.cancel() in loadTrack/loadMix clears prior schedules.
+  function forceMetronomeDuringCountdown(metronome: Tone.Player, countdown: number) {
+    if (countdown > 0 && !metronomeEnabledRef.current) {
+      metronome.volume.value = volumeToDb(metronomeVolumeRef.current)
+      Tone.getTransport().schedule(() => {
+        if (metronomeRef.current && !metronomeEnabledRef.current) {
+          metronomeRef.current.volume.value = -Infinity
+        }
+      }, `${countdown}:0:0`)
+    }
+  }
 
   function cancelPendingTransition() {
     const pending = pendingRef.current
@@ -137,12 +152,13 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
       buffersRef.current = loopBuffers
 
+      const countdown = countdownBarsRef.current
       if (track && loopBuffers.length > 0) {
         if (hasVariants) {
           const player = new Tone.Player(loopBuffers[loopIndex]).toDestination()
           player.loop = true
           player.volume.value = volumeToDb(trackVolumeRef.current)
-          player.sync().start(0)
+          player.sync().start(`${countdown}:0:0`)
           playerRef.current = player
         } else {
           const player = new Tone.GrainPlayer(loopBuffers[loopIndex]).toDestination()
@@ -151,7 +167,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
           player.overlap = 0.05
           player.playbackRate = rate
           player.volume.value = volumeToDb(trackVolumeRef.current)
-          player.sync().start(0)
+          player.sync().start(`${countdown}:0:0`)
           playerRef.current = player
         }
       }
@@ -161,6 +177,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
         metronome.sync().start(0)
         metronomeRef.current = metronome
+        forceMetronomeDuringCountdown(metronome, countdown)
       }
 
       Tone.getTransport().bpm.value = transportBpm
@@ -311,13 +328,14 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         : null,
     ])
 
+    const countdown = countdownBarsRef.current
     const player = new Tone.GrainPlayer(mixBuffer).toDestination()
     player.loop = false
     player.grainSize = 0.1
     player.overlap = 0.05
     player.playbackRate = 1
     player.volume.value = volumeToDb(trackVolumeRef.current)
-    player.sync().start(0)
+    player.sync().start(`${countdown}:0:0`)
     playerRef.current = player
     isLoadedRef.current = true
 
@@ -325,6 +343,9 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       metronome.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
       metronome.sync().start(0)
       metronomeRef.current = metronome
+      forceMetronomeDuringCountdown(metronome, countdown)
+    } else if (metronomeRef.current) {
+      forceMetronomeDuringCountdown(metronomeRef.current, countdown)
     }
 
     setIsPlaying(false)
@@ -392,10 +413,13 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       }
     }
 
+    const countdown = countdownBarsRef.current
     const startBar = syncStartBar ?? 0
+    // Only sync player to start if we're past countdown
     if (playerRef.current) {
       playerRef.current.unsync()
-      playerRef.current.sync().start(`${startBar}:0:0`)
+      const playerStartBar = Math.max(startBar, countdown)
+      playerRef.current.sync().start(`${playerStartBar}:0:0`)
     }
     if (metronomeRef.current) {
       metronomeRef.current.unsync()
@@ -410,14 +434,19 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
+    Tone.getTransport().cancel()
 
+    const countdown = countdownBarsRef.current
     if (playerRef.current) {
       playerRef.current.unsync()
-      playerRef.current.sync().start(0)
+      playerRef.current.sync().start(`${countdown}:0:0`)
     }
     if (metronomeRef.current) {
       metronomeRef.current.unsync()
       metronomeRef.current.sync().start(0)
+      // Restore user's metronome setting (cancel() cleared any prior countdown schedule)
+      metronomeRef.current.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
+      forceMetronomeDuringCountdown(metronomeRef.current, countdown)
     }
 
     setIsPlaying(false)

@@ -342,7 +342,7 @@ export const DEFAULT_BPM = 80 // Used when no track is selected
 export const BPM_MIN = 40
 export const BPM_MAX = 200
 
-export const INTRO_BAR_OPTIONS = [0, 1, 2, 4, 6, 8]
+export const COUNTDOWN_LINE_OPTIONS = [0, 1, 2]
 export const METRONOME_BPM_OPTIONS = [60, 80, 100, 120]
 
 export const DEFAULT_SEED = 42

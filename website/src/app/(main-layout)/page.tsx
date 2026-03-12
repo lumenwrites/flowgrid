@@ -14,9 +14,8 @@ import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, getFileForBpm, mixFileUrl, getBpmVariants } from '@/lib/constants'
-import { type Preset, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
+import { type BarData, type RhymeColor, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
 import { parseGrid } from '@/lib/grid-format'
-import { usePresetAudio } from '@/hooks/usePresetAudio'
 
 function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
   if (loopBars <= 0) return currentBar
@@ -35,29 +34,15 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const barsPerLine = settings.selectedTrackIndex !== NONE_TRACK_INDEX
     ? (AVAILABLE_TRACKS[settings.selectedTrackIndex]?.barsPerLine ?? 1)
     : 1
+  const countdownBars = settings.countdownLines * barsPerLine
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [dictionaryModalOpen, setDictionaryModalOpen] = useState(false)
-  const [preset, setPreset] = useState<Preset | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('admin') === 'true') setIsAdmin(true)
-    const name = params.get('preset')
-    if (!name) return
-    fetch(`/presets/${name}.json`)
-      .then(r => r.json())
-      .then((data: Preset) => setPreset(data))
-      .catch(console.error)
   }, [])
-
-  const presetBars = useMemo(() => {
-    if (!preset) return null
-    const gridText = Array.isArray(preset.grid) ? preset.grid.join('\n') : preset.grid
-    return generateBarsFromGrid(parseGrid(gridText), settings.fillMode)
-  }, [preset, settings.fillMode])
-
-  usePresetAudio(preset?.audio ?? null)
 
   const {
     isPlaying,
@@ -73,9 +58,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setLoopIndex,
     loadMix,
     adjustBpm,
-  } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm)
+  } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm, countdownBars)
 
-  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, barsPerLine, settings.audioOffset)
+  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, barsPerLine, settings.audioOffset, countdownBars)
 
   const {
     wordLists,
@@ -84,10 +69,11 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(settings.rhymePattern, barsPerLine, settings.selectedListId, settings.fillMode, settings.seed, settings.introBars)
+  } = useRhymes(settings.rhymePattern, barsPerLine, settings.selectedListId, settings.fillMode, settings.seed)
 
   // Loop state — sectionStarts grows as transitions complete, so past headers stay in DOM
-  const [sectionStarts, setSectionStarts] = useState<SectionStart[]>([{ bar: 0, loopIndex: 0 }])
+  const [sectionStarts, setSectionStarts] = useState<SectionStart[]>([{ bar: countdownBars, loopIndex: 0 }])
+  const prevCountdownBarsRef = useRef(countdownBars)
   const [queuedLoopIndex, setQueuedLoopIndex] = useState<number | null>(null)
   const [transitionBar, setTransitionBar] = useState<number | null>(null)
   const transitionBarRef = useRef<number | null>(null)
@@ -106,14 +92,14 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     if (!activeMix) return null
     const starts: SectionStart[] = []
     const fakeLoops: Loop[] = []
-    let bar = 0
+    let bar = countdownBars
     for (const section of activeMix.sections) {
       starts.push({ bar, loopIndex: fakeLoops.length })
       fakeLoops.push({ name: section.name, files: [], bars: section.bars, instrumental: section.instrumental })
       bar += section.bars
     }
     return { sectionStarts: starts, loops: fakeLoops }
-  }, [activeMix])
+  }, [activeMix, countdownBars])
 
   // For mixes, the rhyme pool should only cover non-instrumental bars.
   // buildDisplayBars will then expand this back to the full bar count by
@@ -131,12 +117,25 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     return bars.slice(0, mixNonInstrumentalBars)
   }, [activeMix, mixNonInstrumentalBars, bars, settings.fillMode])
 
-  const resetLoopState = useCallback((loopIndex: number) => {
-    setSectionStarts([{ bar: 0, loopIndex }])
+  // Stop and reset when countdown setting changes
+  useEffect(() => {
+    if (prevCountdownBarsRef.current === countdownBars) return
+    prevCountdownBarsRef.current = countdownBars
+    stop()
+    resetPosition()
+    regenerate()
+    setSectionStarts([{ bar: countdownBars, loopIndex: 0 }])
     setQueuedLoopIndex(null)
     setTransitionBar(null)
     transitionBarRef.current = null
-  }, [])
+  }, [countdownBars, stop, resetPosition, regenerate])
+
+  const resetLoopState = useCallback((loopIndex: number) => {
+    setSectionStarts([{ bar: countdownBars, loopIndex }])
+    setQueuedLoopIndex(null)
+    setTransitionBar(null)
+    transitionBarRef.current = null
+  }, [countdownBars])
 
   const handleExitMix = useCallback(async () => {
     setActiveMixIndex(null)
@@ -195,6 +194,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     if (!nextLoop || !currentLoop) return
 
     // Use the committed (currently playing) section as epoch, not the pending one
+    // All bar references are in transport coordinates
     const committedSection = queuedLoopIndex !== null
       ? sectionStarts[sectionStarts.length - 2]
       : sectionStarts[sectionStarts.length - 1]
@@ -219,23 +219,13 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   // Extend bars as playhead progresses
   useEffect(() => {
-    extendBars(position.bar)
-  }, [position.bar, extendBars])
-
-  // Stop playback when we run out of preset bars
-  useEffect(() => {
-    if (!isPlaying) return
-    if (presetBars && position.bar >= presetBars.length) {
-      stop()
-      resetPosition()
-      regenerate()
-    }
-  }, [position.bar, presetBars, isPlaying, stop, resetPosition, regenerate])
+    if (position.contentBar >= 0) extendBars(position.contentBar)
+  }, [position.contentBar, extendBars])
 
   // Auto-stop when mix finishes (keep mix active so user can replay)
   useEffect(() => {
     if (!isPlaying || !activeMix) return
-    if (position.bar >= mixTotalBars) {
+    if (position.contentBar >= mixTotalBars) {
       stop()
       resetPosition()
     }
@@ -337,12 +327,22 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   // Remap the flat rhyme pool so instrumental sections get blank bars and
   // non-instrumental sections pull rhymes sequentially (preserving pair alignment).
-  // bars/mixBars = rhyme pool; loopInfo/mixLoopInfo = section structure.
+  // Then prepend countdown bars so Grid renders everything in transport coordinates.
+  const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
   const displayBars = useMemo(() => {
-    if (mixBars) return buildDisplayBars(mixBars, mixLoopInfo)
-    if (presetBars) return presetBars
-    return buildDisplayBars(bars, loopInfo)
-  }, [mixBars, mixLoopInfo, presetBars, bars, loopInfo])
+    let contentBars: BarData[]
+    if (mixBars) contentBars = buildDisplayBars(mixBars, mixLoopInfo)
+    else contentBars = buildDisplayBars(bars, loopInfo)
+
+    const countdown = countdownBars
+    if (countdown === 0) return contentBars
+
+    const countdownEntries: BarData[] = Array.from({ length: countdown }, (_, i) => ({
+      id: `countdown-${i}`, index: i, rhymeWord: '', rhymeColor: BLANK_COLOR, familyId: -1, rhymeHidden: false,
+    }))
+    const reindexed = contentBars.map(bar => ({ ...bar, index: bar.index + countdown }))
+    return [...countdownEntries, ...reindexed]
+  }, [mixBars, mixLoopInfo, bars, loopInfo, countdownBars])
 
   return (
     <>
@@ -358,7 +358,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
         barsPerLine={barsPerLine}
-        introBars={activeMix ? 0 : settings.introBars}
         scrollToBar={scrollToBar}
         loopInfo={activeLoopInfo}
         onBeatClick={handleBeatClick}
@@ -382,7 +381,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onTrackChange={handleTrackChange}
         isAdmin={isAdmin}
         metronomeEnabled={settings.metronomeEnabled}
-        metronomeTicking={isPlaying && settings.metronomeEnabled}
+        metronomeTicking={isPlaying && (settings.metronomeEnabled || position.contentBar < 0)}
         beat={position.beat}
         onMetronomeChange={(v) => update('metronomeEnabled', v)}
         trackBpm={settings.trackBpm}
@@ -395,12 +394,12 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onTrackVolumeChange={(v) => update('trackVolume', v)}
         metronomeVolume={settings.metronomeVolume}
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
+        countdownLines={settings.countdownLines}
+        onCountdownLinesChange={(v) => update('countdownLines', v)}
       />
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        introBars={settings.introBars}
-        onIntroBarsChange={(v) => update('introBars', v)}
         audioOffset={settings.audioOffset}
         onAudioOffsetChange={(v) => update('audioOffset', v)}
       />

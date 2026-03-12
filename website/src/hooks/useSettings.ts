@@ -11,7 +11,7 @@ export type Settings = {
   selectedListId: string
   rhymePattern: RhymePattern
   fillMode: FillMode
-  introBars: number
+  countdownLines: number
   metronomeBpm: number
   seed: number
   trackVolume: number
@@ -26,7 +26,7 @@ const DEFAULTS: Settings = {
   selectedListId: 'elementary',
   rhymePattern: 'AABB',
   fillMode: 'all',
-  introBars: 0,
+  countdownLines: 0,
   metronomeBpm: DEFAULT_BPM,
   seed: DEFAULT_SEED,
   trackVolume: 100,

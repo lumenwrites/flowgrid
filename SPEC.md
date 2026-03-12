@@ -28,7 +28,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 - **Bars per line** — 1 bar per line (4 beats, suited for rap) or 2 bars per line (8 beats, suited for improv musicals). Timeline, playhead, and rhyme placement all adapt.
 - **Rhyme patterns** — AABB (couplets: consecutive lines rhyme) or ABAB (alternating: lines 1&3 rhyme, 2&4 rhyme). Patterns work correctly with both 1 and 2 bars per line.
 - **Infinite grid** — The grid always appears infinite, generating bars ahead as playback progresses. Bars extend automatically in chunks.
-- **Intro bars** — Optional 1/2/4/6/8 intro bars where the track plays but rhyme words are hidden, giving time to get into the groove. Rhyme patterns start fresh after intro bars so the first visible line always begins a complete pair.
+- **Count-in** — Optional 0/1/2 countdown lines before content starts. The track audio is delayed and the grid shows blank cells. One "line" equals `barsPerLine` bars (1 bar for rap tracks, 2 for musicals), so the count-in always matches the visual row structure. Countdown is a transport-level delay completely decoupled from content — rhyme generation knows nothing about it. Works identically for loops, mixes, and presets. Setting lives in the audio popup (volume/BPM panel).
 - **Fill modes** — Controls which rhyme words are revealed:
   - *All Rhymes* — every line shows its word (default)
   - *Setup Punchline* — first line shows `????`, second reveals the word
@@ -38,7 +38,7 @@ Needs to be responsive and work equally well on desktop, tablet, phone.
 - **Seeded randomization** — Rhyme generation uses a deterministic seed (mulberry32 PRNG). Same seed = same rhymes every time. Seed shown in sidebar with a Shuffle button; dice icon in toolbar for quick re-roll.
 - **Custom BPM** — When a track is selected, a BPM control appears in the sidebar, defaulting to the track's native BPM. Tracks with `bpmVariants` (e.g. Basic Drums at 60/80/100/120) show a dropdown and switch between pre-rendered audio files for artifact-free playback. Other tracks show a slider (40-200, 10-step) that adjusts tempo in real time with pitch preservation via Tone.js GrainPlayer (granular synthesis). BPM resets to the track's native value when switching tracks. Persisted in settings.
 - **Metronome BPM** — When track is "None", a BPM dropdown (60/80/100/120) appears in the sidebar to control metronome speed.
-- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with all settings: track, volumes, metronome BPM, words, bars per line, intro bars, rhyme pattern, fill mode, seed, audio offset.
+- **Settings sidebar** — Hamburger menu (left) opens a slide-over panel with settings: audio offset (latency compensation).
 - **Settings persistence** — All settings saved to localStorage and restored on reload. Works in PWA contexts.
 - **Playhead sync** — Smooth playhead line tracks position via RAF, with beat-level highlighting via Tone.Loop + Draw.schedule. Playhead stays visible when paused. Turns the rhyme's color when over the rhyme cell.
 - **Manual scroll + click-to-seek** — The grid is freely scrollable. Tapping/clicking any beat cell seeks playback to that exact beat, including across section boundaries (the correct loop audio is loaded automatically). During playback, manual scrolling temporarily pauses auto-scroll (re-engages after 5s or on next beat click). Works while playing or paused.

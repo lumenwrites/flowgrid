@@ -42,7 +42,6 @@ type GridProps = {
   isPlaying: boolean
   playheadLineRef: RefObject<HTMLDivElement | null>
   barsPerLine: BarsPerLine
-  introBars: number
   scrollToBar: number
   loopInfo: LoopInfo | null
   onBeatClick?: (barIndex: number, beat: number) => void
@@ -96,11 +95,10 @@ function getBarContent(wrapper: HTMLElement): HTMLElement {
   return (wrapper.lastElementChild as HTMLElement) ?? wrapper
 }
 
-export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, introBars, scrollToBar, loopInfo, onBeatClick }: GridProps) {
+export default function Grid({ bars, position, isPlaying, playheadLineRef, barsPerLine, scrollToBar, loopInfo, onBeatClick }: GridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   // Single ref map: bar index → outer wrapper element (contains separator + bar content)
   const wrapperRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
-  // const autoScrollPausedRef = useRef(false)
 
   // Pre-compute separators for visible bars
   const separatorMap = useMemo(() => {
@@ -127,7 +125,7 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
     const isLastBarInRow = position.bar % barsPerLine === barsPerLine - 1
     const isLastBeat = position.beat === BEATS_PER_BAR - 1
     const currentBar = bars.find((b) => b.index === position.bar)
-    const isOnRhyme = isLastBarInRow && isLastBeat && currentBar && currentBar.index >= introBars && !currentBar.instrumental
+    const isOnRhyme = isLastBarInRow && isLastBeat && currentBar && currentBar.rhymeWord && !currentBar.instrumental
     if (isOnRhyme) {
       const c = currentBar.rhymeColor.activeBorder
       line.style.backgroundColor = c
@@ -136,23 +134,9 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
       line.style.backgroundColor = ''
       line.style.boxShadow = '0 0 8px var(--color-accent)'
     }
-  }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, introBars, barsPerLine, separatorMap])
-
-  // // Pause auto-scroll when user scrolls manually; re-engages on beat click
-  // useEffect(() => {
-  //   const container = containerRef.current
-  //   if (!container) return
-  //   function handleUserScroll() { autoScrollPausedRef.current = true }
-  //   container.addEventListener('wheel', handleUserScroll, { passive: true })
-  //   container.addEventListener('touchmove', handleUserScroll, { passive: true })
-  //   return () => {
-  //     container.removeEventListener('wheel', handleUserScroll)
-  //     container.removeEventListener('touchmove', handleUserScroll)
-  //   }
-  // }, [])
+  }, [position.bar, position.beat, isPlaying, playheadLineRef, bars, barsPerLine, separatorMap])
 
   const handleBeatClick = useCallback((barIndex: number, beat: number) => {
-    // autoScrollPausedRef.current = false
     onBeatClick?.(barIndex, beat)
   }, [onBeatClick])
 
@@ -220,7 +204,6 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
                       bar={bar}
                       currentBeat={position.bar === bar.index ? position.beat : null}
                       isLastInLine={i === pair.length - 1}
-                      isIntro={bar.index < introBars}
                       onBeatClick={(beat) => handleBeatClick(bar.index, beat)}
                     />
                   ))}
@@ -241,7 +224,6 @@ export default function Grid({ bars, position, isPlaying, playheadLineRef, barsP
                   <Bar
                     bar={bar}
                     currentBeat={position.bar === bar.index ? position.beat : null}
-                    isIntro={bar.index < introBars}
                     onBeatClick={(beat) => handleBeatClick(bar.index, beat)}
                   />
                 </div>

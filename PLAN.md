@@ -22,7 +22,7 @@ website/src/
 │   │   └── Timeline.tsx                — Beat numbers + subdivision ticks above grid
 │   ├── Toolbar.tsx                     — Top bar: logo, metronome toggle, hamburger
 │   ├── HamburgerButton.tsx             — SVG hamburger icon button
-│   ├── Sidebar.tsx                     — Slide-over settings panel (words, bars/line, intro bars, rhyme pattern, fill mode, seed, volumes, BPM)
+│   ├── Sidebar.tsx                     — Slide-over settings panel (audio offset / latency compensation)
 │   ├── LoopSelector.tsx                — Loop buttons + mix buttons row above play button
 │   └── PlaybackToolbar.tsx             — Play/pause + stop at bottom center, track picker modal with preview
 │
@@ -122,7 +122,7 @@ Two modes: **random rhymes** (infinite pool from word lists) and **grid-based** 
 ## Settings (`useSettings`)
 
 - Single `flowgrid-settings` key in localStorage
-- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, fillMode, introBars, metronomeBpm, trackBpm, seed, trackVolume, metronomeVolume, audioOffset
+- Persisted: metronomeEnabled, selectedTrackIndex, selectedListId, barsPerLine, rhymePattern, fillMode, countdownLines, metronomeBpm, trackBpm, seed, trackVolume, metronomeVolume, audioOffset
 - Loads on mount with defaults fallback, saves on every change
 - `loaded` flag prevents rendering before hydration (avoids flash)
 

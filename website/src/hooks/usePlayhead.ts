@@ -8,13 +8,17 @@ export type PlayheadPosition = {
   bar: number
   beat: number
   globalBeat: number
+  contentBar: number
 }
 
-export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOffsetMs: number = 0) {
+export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOffsetMs: number = 0, countdownBars: number = 0) {
+  const countdownBarsRef = useRef(countdownBars)
+  countdownBarsRef.current = countdownBars
   const [position, setPosition] = useState<PlayheadPosition>({
     bar: 0,
     beat: 0,
     globalBeat: 0,
+    contentBar: -countdownBars,
   })
   const progressRef = useRef(0)
   const playheadLineRef = useRef<HTMLDivElement | null>(null)
@@ -29,7 +33,7 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
   const seekGuardUntilRef = useRef(0)
 
   const resetPosition = useCallback(() => {
-    setPosition({ bar: 0, beat: 0, globalBeat: 0 })
+    setPosition({ bar: 0, beat: 0, globalBeat: 0, contentBar: -countdownBarsRef.current })
     progressRef.current = 0
     lastScrollRowRef.current = -1
     setScrollToBar(-1)
@@ -43,7 +47,7 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
 
   const seekTo = useCallback((bar: number, beat: number = 0) => {
     seekGuardUntilRef.current = performance.now() + 80
-    setPosition({ bar, beat, globalBeat: bar * BEATS_PER_BAR + beat })
+    setPosition({ bar, beat, globalBeat: bar * BEATS_PER_BAR + beat, contentBar: bar - countdownBarsRef.current })
     const barInRow = bar % barsPerLine
     const totalBeats = barsPerLine * BEATS_PER_BAR
     const p = (barInRow * BEATS_PER_BAR + beat) / totalBeats
@@ -86,7 +90,7 @@ export function usePlayhead(isPlaying: boolean, barsPerLine: number = 1, audioOf
         if (globalBeat !== lastGlobalBeat) {
           lastGlobalBeat = globalBeat
           if (performance.now() >= seekGuardUntilRef.current) {
-            setPosition({ bar: currentBar, beat: currentBeat, globalBeat })
+            setPosition({ bar: currentBar, beat: currentBeat, globalBeat, contentBar: currentBar - countdownBarsRef.current })
           }
         }
 
