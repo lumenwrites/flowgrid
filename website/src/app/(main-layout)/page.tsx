@@ -44,21 +44,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     if (params.get('admin') === 'true') setIsAdmin(true)
   }, [])
 
-  // Global spacebar → toggle play/pause
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !e.repeat) {
-        // Don't hijack typing in inputs/textareas
-        const tag = (e.target as HTMLElement)?.tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-        e.preventDefault()
-        togglePlay()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [togglePlay])
-
   const {
     isPlaying,
     selectedTrackIndex,
@@ -74,6 +59,20 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     loadMix,
     adjustBpm,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm, countdownBars)
+
+  // Global spacebar → toggle play/pause
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && !e.repeat) {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        e.preventDefault()
+        togglePlay()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [togglePlay])
 
   const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, barsPerLine, settings.audioOffset, countdownBars)
 
