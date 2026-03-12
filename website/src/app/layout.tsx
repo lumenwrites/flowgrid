@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import { cn } from '@/lib/utils'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en" className={cn(inter.variable, 'font-sans')}>
       <body className="flex h-screen flex-col overflow-hidden">
         {children}
+        <Analytics />
         <ServiceWorkerRegistrar />
       </body>
     </html>
