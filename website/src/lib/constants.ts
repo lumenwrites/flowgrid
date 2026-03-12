@@ -318,7 +318,10 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Mouse Flow', dir: '/tracks/tutorial-02-mouse-flow', bpm: 80, barsPerLine: 1, public: false, category: 'rap',
+    label: 'Mouse Flow', dir: '/tracks/tutorial-02-mouse-flow', bpm: 80, barsPerLine: 1, public: true, category: 'rap',
+    loops: [
+      { name: 'Loop', bars: 4, files: [{ file: '01-verse-4bars-80bpm.wav', bpm: 80 }] },
+    ],
     mixes: [
       { name: 'Mouse Flow', files: [
         { file: 'lyrics-clean-80bpm.wav', bpm: 80 },
