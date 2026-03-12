@@ -11,7 +11,7 @@ function getPreviewUrl(track: Track): string | null {
     const audioFile = getFileForBpm(mix.files, track.bpm)
     return mixFileUrl(track, audioFile)
   }
-  if (!track.loops[0]) return null
+  if (!track.loops?.[0]) return null
   const audioFile = getFileForBpm(track.loops[0].files, track.bpm)
   return loopFileUrl(track, audioFile)
 }
@@ -404,7 +404,7 @@ export default function PlaybackToolbar({
                     >
                       <span>{track.label}</span>
                       <div className="flex flex-wrap gap-1 mt-1 whitespace-nowrap">
-                        {(getBpmVariants(track.loops[0]) ?? [track.bpm]).map((bpm) => (
+                        {(track.loops?.[0] ? getBpmVariants(track.loops[0]) ?? [track.bpm] : [track.bpm]).map((bpm) => (
                           <span key={bpm} className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-surface-light border border-border text-foreground-muted">
                             {bpm} BPM
                           </span>

@@ -113,8 +113,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const track = trackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[trackIndex]
     const nativeBpm = track ? track.bpm : metronomeBpmRef.current
     const effectiveBpm = bpmOverride ?? (track ? trackBpmRef.current : metronomeBpmRef.current)
-    const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
-    const variantBpm = hasVariants ? getFileForBpm(track!.loops[0].files, effectiveBpm).bpm : undefined
+    const hasVariants = (track?.loops?.[0]?.files.length ?? 0) > 1
+    const variantBpm = hasVariants ? getFileForBpm(track!.loops![0].files, effectiveBpm).bpm : undefined
     const transportBpm = variantBpm ?? effectiveBpm
     const rate = hasVariants ? 1 : (track ? effectiveBpm / nativeBpm : 1)
 
@@ -136,7 +136,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     }
 
     try {
-      const loopBufferPromises = track
+      const loopBufferPromises = track?.loops
         ? track.loops.map(l => {
             const audioFile = getFileForBpm(l.files, effectiveBpm)
             return loadBuffer(loopFileUrl(track, audioFile))
@@ -198,7 +198,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
 
     const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
-    const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
+    const hasVariants = (track?.loops?.[0]?.files.length ?? 0) > 1
     let newPlayer: Tone.Player | Tone.GrainPlayer
 
     if (hasVariants) {
@@ -389,7 +389,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         }
 
         const track = selectedTrackIndexRef.current === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndexRef.current]
-        const hasVariants = (track?.loops[0]?.files.length ?? 0) > 1
+        const hasVariants = (track?.loops?.[0]?.files.length ?? 0) > 1
         let newPlayer: Tone.Player | Tone.GrainPlayer
 
         if (hasVariants) {

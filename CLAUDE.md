@@ -13,7 +13,7 @@ All app source is in `website/src/`. The app is Next.js 16 + Tone.js + Tailwind.
 - `website/src/hooks/usePlayhead.ts` — Beat tracking and smooth playhead position
 - `website/src/hooks/useRhymes.ts` — Word list loading, bar generation, infinite extending (seed-aware)
 - `website/src/hooks/useSettings.ts` — localStorage persistence (all settings including seed, fill mode, countdown lines, metronome BPM, track BPM, track/metronome volume)
-- `website/src/lib/grid-format.ts` — Grid text format parser/serializer (`parseGrid`, `serializeGrid`); types: `BeatData`, `GridLine`, `GridData`
+- `website/src/lib/grid-format.ts` — Grid text format parser/serializer (`parseGrid`, `serializeGrid`, `deriveSectionsFromGrid`); types: `BeatData`, `GridLine`, `GridData`
 - `website/src/lib/rhymes.ts` — `generateBars()` with seeded PRNG (mulberry32), `generateBarsFromGrid()` for grid-based mixes, `buildDisplayBars()` remaps rhyme pool around instrumental sections
 - `website/public/sw.js` — Service worker with precaching for offline PWA support
 - `website/public/manifest.webmanifest` — PWA web manifest

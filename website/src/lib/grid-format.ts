@@ -12,7 +12,9 @@ export type GridData = {
   lines: GridLine[]
 }
 
-const SECTION_RE = /^\[([^\]:]+)\]$/
+// Matches a full-line section header like [Verse] or [Step 1: Listen].
+// Must NOT match rhyme tokens like [:1 word] — those start with `:digit`.
+const SECTION_RE = /^\[(?!:\d)([^\]]+)\]$/
 
 function tokenize(line: string): string[] {
   const tokens: string[] = []
@@ -106,4 +108,39 @@ export function serializeGrid(grid: GridData): string {
   }
 
   return output.join('\n')
+}
+
+export type DerivedSection = {
+  name: string
+  bars: number
+  instrumental?: boolean
+}
+
+// Derive MixSection[] from grid section headers, so `sections` can be omitted
+// on mixes that define everything in the grid.
+export function deriveSectionsFromGrid(grid: GridData, beatsPerBar: number = 4): DerivedSection[] {
+  const sections: DerivedSection[] = []
+  let current: { name: string; lines: GridLine[] } | null = null
+
+  function flush() {
+    if (!current) return
+    const bars = current.lines.reduce((sum, line) =>
+      sum + Math.max(1, Math.floor(line.beats.length / beatsPerBar)), 0)
+    const instrumental = (current.name === 'Break' || current.name === 'Intro' || current.name === 'Outro')
+      && current.lines.every(l => l.beats.every(b => b.word === null))
+    sections.push({ name: current.name, bars, ...(instrumental ? { instrumental: true } : {}) })
+  }
+
+  for (const line of grid.lines) {
+    if (line.section !== undefined) {
+      flush()
+      current = { name: line.section, lines: [line] }
+    } else if (current) {
+      current.lines.push(line)
+    } else {
+      current = { name: 'Verse', lines: [line] }
+    }
+  }
+  flush()
+  return sections
 }

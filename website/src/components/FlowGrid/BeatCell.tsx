@@ -19,6 +19,7 @@ export default function BeatCell({
   onClick,
 }: BeatCellProps) {
   const hasRhyme = rhymeWord && rhymeColor
+  const hasWord = !!rhymeWord
 
   return (
     <div
@@ -46,11 +47,15 @@ export default function BeatCell({
           : undefined
       }
     >
-      {hasRhyme && (
+      {hasRhyme ? (
         <span className="text-sm sm:text-base font-semibold text-white">
           {rhymeHidden ? '????' : rhymeWord}
         </span>
-      )}
+      ) : hasWord ? (
+        <span className="text-xs sm:text-sm text-white/70">
+          {rhymeHidden ? '????' : rhymeWord}
+        </span>
+      ) : null}
     </div>
   )
 }

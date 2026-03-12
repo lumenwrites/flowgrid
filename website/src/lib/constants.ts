@@ -32,7 +32,7 @@ export type MixSection = {
 export type Mix = {
   name: string
   files: AudioFile[]
-  sections: MixSection[]
+  sections?: MixSection[]
   grid?: string | string[]
 }
 
@@ -46,12 +46,51 @@ export type Track = {
   label: string
   dir: string
   bpm: number
-  loops: Loop[]
+  loops?: Loop[]
   mixes?: Mix[]
   barsPerLine?: BarsPerLine
   public?: boolean
   category: TrackCategory
 }
+
+const MOUSE_FLOW_GRID = [
+  '[Learn a new rap flow in 4 easy steps]',
+  '_ _ _ _',
+  '_ _ _ _',
+  '[Step 1: Listen to this example]',
+  "[There's a mouse] [in my house] [and he's] [:1 fat]",
+  '[He ate all] [my cheese] [and my] [:1 hat]',
+  '[He sits on] [the couch] [all] [:2 day]',
+  "[And he won't] [ever go] _ [:2 away]",
+  '[Step 2: Hum along with the rhythm]',
+  '_ _ _ _',
+  '[Ledda] [bah-dee bah] [POW sedda] [:1 FAT]',
+  '[Dee-gah] [bah-dee] [PEE sedda] [:1 VAT]',
+  '[Dee] [tah-gada] [COW bah-] [:2 DAY]',
+  '[Tedda] [loh-gah] [boh-dah] [:2 WAY]',
+  '[Step 3: Repeat the rhythm on your own]',
+  '_ _ _ _',
+  '[Ledda] [bah-dee bah] [POW sedda] [:1 FAT]',
+  '[Dee-gah] [bah-dee] [PEE sedda] [:1 VAT]',
+  '[Dee] [tah-gada] [COW bah-] [:2 DAY]',
+  '[Tedda] [loh-gah] [boh-dah] [:2 WAY]',
+  '[Step 4: Freestyle]',
+  '_ _ _ _',
+  '_ _ _ [:3 cat]',
+  '_ _ _ [:3 bat]',
+  '_ _ _ [:4 play]',
+  '_ _ _ [:4 stay]',
+  '_ _ _ [:5 sun]',
+  '_ _ _ [:5 fun]',
+  '_ _ _ [:6 big]',
+  '_ _ _ [:6 pig]',
+  '[Outro]',
+  '_ _ _ _',
+  '_ _ _ _',
+  '_ _ _ _',
+  '_ _ _ _',
+  '_ _ _ _',
+]
 
 const VILLAIN_SONG_SECTIONS: MixSection[] = [
   { name: 'Verse 1', bars: 8 },
@@ -276,6 +315,14 @@ export const AVAILABLE_TRACKS: Track[] = [
         '_ _ _ [:32 end]',
         '_ _ _ [:32 friend]',
       ]},
+    ],
+  },
+  {
+    label: 'Mouse Flow', dir: '/tracks/tutorial-02-mouse-flow', bpm: 80, barsPerLine: 1, public: false, category: 'rap',
+    mixes: [
+      { name: 'Mouse Flow', files: [
+        { file: 'lyrics-clean-80bpm.wav', bpm: 80 },
+      ], grid: MOUSE_FLOW_GRID },
     ],
   },
   {

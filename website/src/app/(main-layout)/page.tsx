@@ -15,7 +15,7 @@ import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, getFileForBpm, mixFileUrl, getBpmVariants } from '@/lib/constants'
 import { type BarData, type RhymeColor, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
-import { parseGrid } from '@/lib/grid-format'
+import { parseGrid, deriveSectionsFromGrid } from '@/lib/grid-format'
 
 function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
   if (loopBars <= 0) return currentBar
@@ -81,31 +81,45 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const [activeMixIndex, setActiveMixIndex] = useState<number | null>(null)
 
   const currentTrack = selectedTrackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndex]
-  const currentLoop = currentTrack?.loops[currentLoopIndex] ?? null
-  const multiLoop = (currentTrack?.loops.length ?? 0) > 1
+  const currentLoop = currentTrack?.loops?.[currentLoopIndex] ?? null
+  const multiLoop = (currentTrack?.loops?.length ?? 0) > 1
   const hasMixes = (currentTrack?.mixes?.length ?? 0) > 0
 
   const activeMix = activeMixIndex !== null ? currentTrack?.mixes?.[activeMixIndex] ?? null : null
-  const mixTotalBars = activeMix ? activeMix.sections.reduce((sum, s) => sum + s.bars, 0) : 0
+
+  // Resolve sections: use explicit sections if provided, otherwise derive from grid headers
+  const resolvedMixSections = useMemo(() => {
+    if (!activeMix) return null
+    if (activeMix.sections) return { sections: activeMix.sections, fromGrid: false }
+    if (activeMix.grid) {
+      const gridText = Array.isArray(activeMix.grid) ? activeMix.grid.join('\n') : activeMix.grid
+      return { sections: deriveSectionsFromGrid(parseGrid(gridText)), fromGrid: true }
+    }
+    return null
+  }, [activeMix])
+
+  const mixTotalBars = resolvedMixSections
+    ? resolvedMixSections.sections.reduce((sum, s) => sum + s.bars, 0) : 0
 
   const mixLoopInfo: LoopInfo | null = useMemo(() => {
-    if (!activeMix) return null
+    if (!resolvedMixSections) return null
     const starts: SectionStart[] = []
     const fakeLoops: Loop[] = []
     let bar = countdownBars
-    for (const section of activeMix.sections) {
+    for (const section of resolvedMixSections.sections) {
       starts.push({ bar, loopIndex: fakeLoops.length })
       fakeLoops.push({ name: section.name, files: [], bars: section.bars, instrumental: section.instrumental })
       bar += section.bars
     }
     return { sectionStarts: starts, loops: fakeLoops }
-  }, [activeMix, countdownBars])
+  }, [resolvedMixSections, countdownBars])
 
-  // For mixes, the rhyme pool should only cover non-instrumental bars.
+  // For mixes with explicit sections, the rhyme pool only covers non-instrumental bars.
   // buildDisplayBars will then expand this back to the full bar count by
   // inserting blank bars at instrumental positions.
-  const mixNonInstrumentalBars = activeMix
-    ? activeMix.sections.filter(s => !s.instrumental).reduce((sum, s) => sum + s.bars, 0)
+  // For grid-derived sections, the grid already includes all bars (instrumental + content).
+  const mixNonInstrumentalBars = resolvedMixSections
+    ? resolvedMixSections.sections.filter(s => !s.instrumental).reduce((sum, s) => sum + s.bars, 0)
     : 0
 
   const mixBars = useMemo(() => {
@@ -143,7 +157,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     resetPosition()
     regenerate()
     resetLoopState(0)
-    const loop = currentTrack?.loops[0]
+    const loop = currentTrack?.loops?.[0]
     if (loop) {
       const audioFile = getFileForBpm(loop.files, settings.trackBpm)
       if (audioFile.bpm !== settings.trackBpm) update('trackBpm', audioFile.bpm)
@@ -190,7 +204,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
     if (index === currentLoopIndex) return
 
-    const nextLoop = currentTrack.loops[index]
+    const nextLoop = currentTrack.loops?.[index]
     if (!nextLoop || !currentLoop) return
 
     // Use the committed (currently playing) section as epoch, not the pending one
@@ -252,7 +266,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
 
     // Variant loops: reload track with new files
-    if ((currentTrack.loops[0]?.files.length ?? 0) > 1) {
+    if ((currentTrack.loops?.[0]?.files.length ?? 0) > 1) {
       resetLoopState(currentLoopIndex)
       resetPosition()
       await changeTrack(settings.selectedTrackIndex, newBpm)
@@ -290,7 +304,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   }
 
   const loopInfo: LoopInfo | null = useMemo(() => {
-    if (!currentTrack) return null
+    if (!currentTrack?.loops) return null
     return { sectionStarts, loops: currentTrack.loops }
   }, [currentTrack, sectionStarts])
 
@@ -331,7 +345,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
   const displayBars = useMemo(() => {
     let contentBars: BarData[]
-    if (mixBars) contentBars = buildDisplayBars(mixBars, mixLoopInfo)
+    // When sections are derived from the grid, bars already include instrumental
+    // bars, so skip buildDisplayBars (pass null loopInfo for passthrough).
+    if (mixBars) contentBars = buildDisplayBars(mixBars, resolvedMixSections?.fromGrid ? null : mixLoopInfo)
     else contentBars = buildDisplayBars(bars, loopInfo)
 
     const countdown = countdownBars
@@ -342,7 +358,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }))
     const reindexed = contentBars.map(bar => ({ ...bar, index: bar.index + countdown }))
     return [...countdownEntries, ...reindexed]
-  }, [mixBars, mixLoopInfo, bars, loopInfo, countdownBars])
+  }, [mixBars, mixLoopInfo, bars, loopInfo, countdownBars, resolvedMixSections])
 
   return (
     <>
@@ -364,7 +380,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       />
       {currentTrack && (multiLoop || hasMixes) && (
         <LoopSelector
-          loops={currentTrack.loops}
+          loops={currentTrack.loops ?? []}
           currentLoopIndex={currentLoopIndex}
           queuedLoopIndex={queuedLoopIndex}
           onSelectLoop={handleSelectLoop}

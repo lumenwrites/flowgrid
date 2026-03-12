@@ -157,54 +157,183 @@ Sidebar (slides from left):          Audio popup (bottom sheet):
 
 ## Adding New Tracks
 
-1. Create directory `website/public/tracks/{slug}/loops/` and place loop audio files there
-2. Name loop files: `{NN}-{name}-{bars}bars-{bpm}bpm.{ext}` (e.g. `01-verse-8bars-120bpm.wav`)
-3. For tracks with mixes, also create `website/public/tracks/{slug}/mixes/`
-4. Add entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`:
-   ```ts
-   // Single-loop rap track
-   { label: 'My Track 90bpm', dir: '/tracks/my-track-90bpm', bpm: 90, barsPerLine: 1, category: 'rap',
-     loops: [{ name: 'Loop', bars: 4, files: [{ file: '01-loop-4bars-90bpm.wav', bpm: 90 }] }] }
-   // Multi-loop track
-   { label: 'My Song 120bpm', dir: '/tracks/my-song-120bpm', bpm: 120, barsPerLine: 1, category: 'rap',
-     loops: [
-       { name: 'Verse', bars: 8, files: [{ file: '01-verse-8bars-120bpm.wav', bpm: 120 }] },
-       { name: 'Chorus', bars: 4, files: [{ file: '02-chorus-4bars-120bpm.wav', bpm: 120 }] },
-     ] }
-   // Variant track (multiple BPM files per loop)
-   { label: 'Drums', dir: '/tracks/drums', bpm: 80, barsPerLine: 1, category: 'rap',
-     loops: [
-       { name: 'Verse', bars: 4, files: [
-         { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
-         { file: '01-verse-4bars-80bpm.wav', bpm: 80 },
-         { file: '01-verse-4bars-100bpm.wav', bpm: 100 },
-       ]},
-     ] }
-   // Musical track with mixes (optional grid for custom word placement)
-   { label: 'Song 80bpm', dir: '/tracks/song-80bpm', bpm: 80, barsPerLine: 2, category: 'musicals',
-     loops: [...],
-     mixes: [
-       { name: 'Instrumental', files: [{ file: 'instrumental.wav', bpm: 80 }],
-         sections: [{ name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }] },
-       { name: 'Lyrics', files: [{ file: 'lyrics.wav', bpm: 80 }],
-         sections: [...], grid: [
-           '[Verse]',
-           '_ _ _ _ _ _ _ [:1 time]',
-           '_ _ _ _ _ _ _ [:1 lime]',
-         ] },
-     ] }
-   // Instrumental sections — mark loops/sections where no rapping/singing happens
-   { label: 'My Song 120bpm', dir: '/tracks/my-song-120bpm', bpm: 120, barsPerLine: 1, category: 'rap',
-     loops: [
-       { name: 'Verse', bars: 8, files: [{ file: '01-verse-8bars-120bpm.wav', bpm: 120 }] },
-       { name: 'Break', bars: 2, instrumental: true, files: [{ file: '02-break-2bars-120bpm.wav', bpm: 120 }] },
-     ] }
-   ```
-5. If a metronome at that BPM exists, add to `METRONOME_FILES`:
-   ```ts
-   90: '/tracks/metronome/90bpm.wav',
-   ```
-6. Add new audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
+### Quick reference
+
+All you need to do is:
+1. Put audio files in `website/public/tracks/{slug}/`
+2. Add an entry to `AVAILABLE_TRACKS` in `website/src/lib/constants.ts`
+3. Add audio files to `website/public/sw.js` PRECACHE_ASSETS for offline support
+
+### Audio file setup
+
+```
+website/public/tracks/{slug}/
+├── loops/                                    — repeating loop files
+│   └── {NN}-{name}-{bars}bars-{bpm}bpm.wav   — e.g. 01-verse-4bars-80bpm.wav
+└── mixes/                                    — full-length audio (optional)
+    └── {name}-{bpm}bpm.wav                    — e.g. lyrics-clean-80bpm.wav
+```
+
+Loop file naming: `{NN}-{name}-{bars}bars-{bpm}bpm.{ext}` — NN is a two-digit sort prefix.
+
+### Track entry in constants.ts
+
+Add to the `AVAILABLE_TRACKS` array. The `Track` type:
+```ts
+{
+  label: string          // Display name
+  dir: string            // Path to track directory, e.g. '/tracks/my-track'
+  bpm: number            // Native BPM
+  barsPerLine?: 1 | 2    // 1 = rap (default), 2 = musicals
+  category: 'rap' | 'musicals'
+  public?: boolean       // Set to false to hide from track picker (tutorials)
+  loops: Loop[]          // At least one loop required
+  mixes?: Mix[]          // Optional full-length versions
+}
+```
+
+### Examples by track type
+
+**Simple single-loop track:**
+```ts
+{
+  label: 'My Beat', dir: '/tracks/my-beat', bpm: 90, category: 'rap',
+  loops: [
+    { name: 'Loop', bars: 4, files: [{ file: '01-loop-4bars-90bpm.wav', bpm: 90 }] },
+  ],
+}
+```
+
+**Multi-loop track (Verse/Chorus buttons appear):**
+```ts
+{
+  label: 'My Song', dir: '/tracks/my-song', bpm: 120, category: 'rap',
+  loops: [
+    { name: 'Verse', bars: 8, files: [{ file: '01-verse-8bars-120bpm.wav', bpm: 120 }] },
+    { name: 'Chorus', bars: 4, files: [{ file: '02-chorus-4bars-120bpm.wav', bpm: 120 }] },
+  ],
+}
+```
+
+**Variant track (BPM dropdown, switches between pre-rendered files):**
+```ts
+{
+  label: 'Drums', dir: '/tracks/drums', bpm: 80, category: 'rap',
+  loops: [
+    { name: 'Verse', bars: 4, files: [
+      { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
+      { file: '01-verse-4bars-80bpm.wav', bpm: 80 },
+      { file: '01-verse-4bars-100bpm.wav', bpm: 100 },
+    ]},
+  ],
+}
+```
+
+**Track with instrumental loops (no rhyme words during breaks):**
+```ts
+{
+  label: 'Hoedown', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2, category: 'musicals',
+  loops: [
+    { name: 'Intro', bars: 4, instrumental: true, files: [{ file: '01-intro-4bars-120bpm.wav', bpm: 120 }] },
+    { name: 'Verse', bars: 8, files: [{ file: '02-verse-8bars-120bpm.wav', bpm: 120 }] },
+    { name: 'Break', bars: 2, instrumental: true, files: [{ file: '03-break-2bars-120bpm.wav', bpm: 120 }] },
+  ],
+}
+```
+
+### Mixes
+
+Mixes are full-length audio files with a defined structure. Mix buttons appear next to loop buttons. The `Mix` type:
+```ts
+{
+  name: string                    // Button label
+  files: AudioFile[]              // Audio file(s) — multiple for BPM variants
+  sections?: MixSection[]         // Optional when grid has section headers
+  grid?: string | string[]        // Grid text format for custom word placement
+}
+```
+
+**Two ways to define sections:**
+
+1. **Grid-derived sections (preferred for scripted content)** — Put `[Section Name]` headers in the grid. Sections are derived automatically. The grid includes ALL bars (including blank/instrumental ones). No `sections` array needed.
+
+2. **Explicit sections** — Use the `sections` array on the Mix. The grid (if present) should only contain non-instrumental bars; `buildDisplayBars` will insert instrumental blank bars at the right positions.
+
+Use grid-derived sections when the mix has scripted lyrics/words. Use explicit sections for instrumental-only mixes (no grid) or when you need the grid to only contain vocal content.
+
+### Grid text format
+
+The grid defines what words appear on which beats. Each line = 1 bar (4 beats for barsPerLine=1) or 1 row (8 beats for barsPerLine=2).
+
+**Token types:**
+- `_` — empty beat
+- `[word or phrase]` — plain text (no rhyme color), displayed dimmer
+- `[:N word]` — rhymed word in group N (colored, groups with same N share color)
+- `[Section Name]` on its own line — section header (shown in UI, NOT a beat)
+
+**Section headers and instrumental detection:**
+- Sections named `Intro`, `Break`, or `Outro` where ALL beats are `_` are automatically marked instrumental (blank bars, no rhyme content)
+- Any other section name (e.g. `Verse`, `Chorus`, `Lyrics`, `Step 1: Listen`) is non-instrumental
+- Section headers can contain colons (e.g. `[Step 1: Listen to this example]`)
+
+**Rhyme groups:** Words with the same `:N` number share a color. Use pairs for rhyming: `[:1 cat]` / `[:1 hat]`, `[:2 day]` / `[:2 away]`. Colors cycle through 8 options based on `(N-1) % 8`.
+
+**Example — tutorial with lyrics, scat, and freestyle:**
+```ts
+const MY_GRID = [
+  '[Intro]',
+  '_ _ _ _',
+  '_ _ _ _',
+  '[Listen to the example]',
+  "[There's a mouse] [in my house] [and he's] [:1 fat]",
+  '[He ate all] [my cheese] [and my] [:1 hat]',
+  '[He sits on] [the couch] [all] [:2 day]',
+  "[And he won't] [ever go] _ [:2 away]",
+  '[Break]',
+  '_ _ _ _',
+  '[Now you try]',
+  '_ _ _ [:3 cat]',
+  '_ _ _ [:3 bat]',
+  '_ _ _ [:4 play]',
+  '_ _ _ [:4 stay]',
+  '[Outro]',
+  '_ _ _ _',
+  '_ _ _ _',
+]
+```
+
+**Example — mix with grid-derived sections (no `sections` array needed):**
+```ts
+mixes: [
+  { name: 'Tutorial', files: [{ file: 'tutorial-80bpm.wav', bpm: 80 }], grid: MY_GRID },
+]
+```
+
+**Example — mix with explicit sections (grid only has vocal bars):**
+```ts
+mixes: [
+  { name: 'Instrumental', sections: [
+    { name: 'Intro', bars: 4, instrumental: true },
+    { name: 'Verse', bars: 8 },
+    { name: 'Chorus', bars: 8 },
+  ], files: [{ file: 'instrumental.wav', bpm: 80 }] },
+]
+```
+
+### Metronome
+
+If a metronome click at the track's BPM exists, add it to `METRONOME_FILES` in constants.ts:
+```ts
+90: '/tracks/metronome/90bpm.wav',
+```
+
+### Checklist
+
+- [ ] Audio files in `website/public/tracks/{slug}/loops/` and/or `mixes/`
+- [ ] Track entry in `AVAILABLE_TRACKS` array in `constants.ts`
+- [ ] Audio files added to `PRECACHE_ASSETS` in `website/public/sw.js`
+- [ ] If hidden from picker: `public: false`
+- [ ] If metronome at that BPM exists: add to `METRONOME_FILES`
 
 ## Key Design Decisions
 
