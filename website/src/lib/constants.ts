@@ -33,7 +33,7 @@ export type Mix = {
   name: string
   files: AudioFile[]
   sections: MixSection[]
-  rhymes?: string[]
+  grid?: string | string[]
 }
 
 export type Track = {
@@ -53,11 +53,23 @@ const VILLAIN_SONG_SECTIONS: MixSection[] = [
   { name: 'Chorus', bars: 8 },
 ]
 
-const VILLAIN_SONG_RHYMES = [
-  'dawn', 'gone', 'made', 'laid',
-  'see', 'me', 'door', 'poor',
-  'squid', 'did', 'okay', 'Ray',
-  'see', 'me', 'door', 'poor',
+const VILLAIN_SONG_GRID = [
+  '_ _ _ _ _ _ _ [:1 dawn]',
+  '_ _ _ _ _ _ _ [:1 gone]',
+  '_ _ _ _ _ _ _ [:2 made]',
+  '_ _ _ _ _ _ _ [:2 laid]',
+  '_ _ _ _ _ _ _ [:3 see]',
+  '_ _ _ _ _ _ _ [:3 me]',
+  '_ _ _ _ _ _ _ [:4 door]',
+  '_ _ _ _ _ _ _ [:4 poor]',
+  '_ _ _ _ _ _ _ [:5 squid]',
+  '_ _ _ _ _ _ _ [:5 did]',
+  '_ _ _ _ _ _ _ [:6 okay]',
+  '_ _ _ _ _ _ _ [:6 Ray]',
+  '_ _ _ _ _ _ _ [:7 see]',
+  '_ _ _ _ _ _ _ [:7 me]',
+  '_ _ _ _ _ _ _ [:8 door]',
+  '_ _ _ _ _ _ _ [:8 poor]',
 ]
 
 export const AVAILABLE_TRACKS: Track[] = [
@@ -109,9 +121,15 @@ export const AVAILABLE_TRACKS: Track[] = [
       ], files: [
         { file: 'nerd-rap-80bpm.wav', bpm: 80 },
         { file: 'nerd-rap-100bpm.wav', bpm: 100 },
-      ], rhymes: [
-        'grapple', 'apple', 'fool', 'school',
-        'desk', 'pest', 'look', 'book',
+      ], grid: [
+        '_ _ _ [:1 grapple]',
+        '_ _ _ [:1 apple]',
+        '_ _ _ [:2 fool]',
+        '_ _ _ [:2 school]',
+        '_ _ _ [:3 desk]',
+        '_ _ _ [:3 pest]',
+        '_ _ _ [:4 look]',
+        '_ _ _ [:4 book]',
       ]},
       { name: 'Camp Rap', sections: [
         { name: 'Verse', bars: 8 }, { name: 'Verse', bars: 8 },
@@ -119,14 +137,33 @@ export const AVAILABLE_TRACKS: Track[] = [
         { name: 'Verse', bars: 2 },
       ], files: [
         { file: 'camp-rap-100bpm.wav', bpm: 100 },
-      ], rhymes: [
-        'do', 'canoe', 'away', 'spray',
-        'burn', 'learn', 'spf', 'jeff',
-        'man', 'glad', 'camp', 'ramp',
-        'see', 'me', 'minjana', 'pinjata',
-        'you', 'do', 'ask', 'mask',
-        'racing', 'jason', 'wife', 'knife',
-        'already', 'machete',
+      ], grid: [
+        '_ _ _ [:1 do]',
+        '_ _ _ [:1 canoe]',
+        '_ _ _ [:2 away]',
+        '_ _ _ [:2 spray]',
+        '_ _ _ [:3 burn]',
+        '_ _ _ [:3 learn]',
+        '_ _ _ [:4 spf]',
+        '_ _ _ [:4 jeff]',
+        '_ _ _ [:5 man]',
+        '_ _ _ [:5 glad]',
+        '_ _ _ [:6 camp]',
+        '_ _ _ [:6 ramp]',
+        '_ _ _ [:7 see]',
+        '_ _ _ [:7 me]',
+        '_ _ _ [:8 minjana]',
+        '_ _ _ [:8 pinjata]',
+        '_ _ _ [:9 you]',
+        '_ _ _ [:9 do]',
+        '_ _ _ [:10 ask]',
+        '_ _ _ [:10 mask]',
+        '_ _ _ [:11 racing]',
+        '_ _ _ [:11 jason]',
+        '_ _ _ [:12 wife]',
+        '_ _ _ [:12 knife]',
+        '_ _ _ [:13 already]',
+        '_ _ _ [:13 machete]',
       ]},
     ],
   },
@@ -166,39 +203,71 @@ export const AVAILABLE_TRACKS: Track[] = [
         { name: 'Verse', bars: 64 },
       ], files: [
         { file: 'tutorial.wav', bpm: 80 },
-      ], rhymes: [
-        // Bars 1-4
-        'cat', 'hat', 'sun', 'fun',
-        // Bars 5-8
-        'sky', 'fly', 'tree', 'free',
-        // Bars 9-12
-        'go', 'flow', 'along', 'wrong',
-        // Bars 13-16
-        'light', 'night', 'dream', 'stream',
-        // Bars 17-20
-        'rain', 'train', 'road', 'code',
-        // Bars 21-24
-        'star', 'far', 'moon', 'tune',
-        // Bars 25-28
-        'fire', 'higher', 'ground', 'sound',
-        // Bars 29-32
-        'wave', 'brave', 'time', 'rhyme',
-        // Bars 33-36
-        'soul', 'roll', 'beat', 'street',
-        // Bars 37-40
-        'cool', 'school', 'stage', 'page',
-        // Bars 41-44
-        'bright', 'sight', 'tall', 'call',
-        // Bars 45-48
-        'king', 'ring', 'gold', 'bold',
-        // Bars 49-52
-        'real', 'deal', 'game', 'fame',
-        // Bars 53-56
-        'ride', 'side', 'high', 'sky',
-        // Bars 57-60
-        'rock', 'clock', 'shine', 'mine',
-        // Bars 61-64
-        'best', 'test', 'end', 'friend',
+      ], grid: [
+        '_ _ _ [:1 cat]',
+        '_ _ _ [:1 hat]',
+        '_ _ _ [:2 sun]',
+        '_ _ _ [:2 fun]',
+        '_ _ _ [:3 sky]',
+        '_ _ _ [:3 fly]',
+        '_ _ _ [:4 tree]',
+        '_ _ _ [:4 free]',
+        '_ _ _ [:5 go]',
+        '_ _ _ [:5 flow]',
+        '_ _ _ [:6 along]',
+        '_ _ _ [:6 wrong]',
+        '_ _ _ [:7 light]',
+        '_ _ _ [:7 night]',
+        '_ _ _ [:8 dream]',
+        '_ _ _ [:8 stream]',
+        '_ _ _ [:9 rain]',
+        '_ _ _ [:9 train]',
+        '_ _ _ [:10 road]',
+        '_ _ _ [:10 code]',
+        '_ _ _ [:11 star]',
+        '_ _ _ [:11 far]',
+        '_ _ _ [:12 moon]',
+        '_ _ _ [:12 tune]',
+        '_ _ _ [:13 fire]',
+        '_ _ _ [:13 higher]',
+        '_ _ _ [:14 ground]',
+        '_ _ _ [:14 sound]',
+        '_ _ _ [:15 wave]',
+        '_ _ _ [:15 brave]',
+        '_ _ _ [:16 time]',
+        '_ _ _ [:16 rhyme]',
+        '_ _ _ [:17 soul]',
+        '_ _ _ [:17 roll]',
+        '_ _ _ [:18 beat]',
+        '_ _ _ [:18 street]',
+        '_ _ _ [:19 cool]',
+        '_ _ _ [:19 school]',
+        '_ _ _ [:20 stage]',
+        '_ _ _ [:20 page]',
+        '_ _ _ [:21 bright]',
+        '_ _ _ [:21 sight]',
+        '_ _ _ [:22 tall]',
+        '_ _ _ [:22 call]',
+        '_ _ _ [:23 king]',
+        '_ _ _ [:23 ring]',
+        '_ _ _ [:24 gold]',
+        '_ _ _ [:24 bold]',
+        '_ _ _ [:25 real]',
+        '_ _ _ [:25 deal]',
+        '_ _ _ [:26 game]',
+        '_ _ _ [:26 fame]',
+        '_ _ _ [:27 ride]',
+        '_ _ _ [:27 side]',
+        '_ _ _ [:28 high]',
+        '_ _ _ [:28 sky]',
+        '_ _ _ [:29 rock]',
+        '_ _ _ [:29 clock]',
+        '_ _ _ [:30 shine]',
+        '_ _ _ [:30 mine]',
+        '_ _ _ [:31 best]',
+        '_ _ _ [:31 test]',
+        '_ _ _ [:32 end]',
+        '_ _ _ [:32 friend]',
       ]},
     ],
   },
@@ -229,7 +298,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
     mixes: [
       { name: 'Instrumental', sections: VILLAIN_SONG_SECTIONS, files: [{ file: 'instrumental.wav', bpm: 80 }] },
-      { name: 'Lyrics', sections: VILLAIN_SONG_SECTIONS, rhymes: VILLAIN_SONG_RHYMES, files: [{ file: 'lyrics.wav', bpm: 80 }] },
+      { name: 'Lyrics', sections: VILLAIN_SONG_SECTIONS, grid: VILLAIN_SONG_GRID, files: [{ file: 'lyrics.wav', bpm: 80 }] },
       { name: 'Scat', sections: VILLAIN_SONG_SECTIONS, files: [{ file: 'scat.wav', bpm: 80 }] },
     ],
   },

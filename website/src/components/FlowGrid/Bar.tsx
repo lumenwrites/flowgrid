@@ -16,14 +16,18 @@ export default function Bar({ bar, currentBeat, isLastInLine = true, isIntro = f
   return (
     <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
       {Array.from({ length: BEATS_PER_BAR }).map((_, beatIdx) => {
+        const beatWord = bar.beatWords?.[beatIdx]
         const showRhyme = !isIntro && !bar.instrumental && isLastInLine && beatIdx === BEATS_PER_BAR - 1
+        const word = beatWord ? beatWord.word : showRhyme ? bar.rhymeWord : undefined
+        const color = beatWord ? (beatWord.rhymeColor ?? undefined) : showRhyme ? bar.rhymeColor : undefined
+        const hidden = beatWord ? bar.rhymeHidden : showRhyme ? bar.rhymeHidden : undefined
         return (
           <BeatCell
             key={beatIdx}
             isActive={currentBeat === beatIdx}
-            rhymeWord={showRhyme ? bar.rhymeWord : undefined}
-            rhymeColor={showRhyme ? bar.rhymeColor : undefined}
-            rhymeHidden={showRhyme ? bar.rhymeHidden : undefined}
+            rhymeWord={word}
+            rhymeColor={color}
+            rhymeHidden={hidden}
             onClick={onBeatClick ? () => onBeatClick(beatIdx) : undefined}
           />
         )

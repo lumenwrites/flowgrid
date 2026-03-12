@@ -1,4 +1,5 @@
-import { RHYME_COLORS, type RhymePattern, type BarsPerLine, type FillMode, type LoopInfo, getLoopForBar } from './constants'
+import { RHYME_COLORS, BEATS_PER_BAR, type RhymePattern, type BarsPerLine, type FillMode, type LoopInfo, getLoopForBar } from './constants'
+import { type GridData } from './grid-format'
 
 export type Word = {
   word: string
@@ -23,6 +24,12 @@ export type RhymeColor = {
   activeBorder: string
 }
 
+export type BeatWord = {
+  word: string
+  rhymeGroup: number | null
+  rhymeColor: RhymeColor | null
+}
+
 export type BarData = {
   id: string
   index: number
@@ -31,6 +38,7 @@ export type BarData = {
   familyId: number
   rhymeHidden: boolean
   instrumental?: boolean
+  beatWords?: (BeatWord | null)[]
 }
 
 // Mulberry32 — fast seeded 32-bit PRNG returning [0, 1)
@@ -173,82 +181,71 @@ export function generateBars(
   return bars
 }
 
-// Preset: a fixed sequence of words with a rhyme pattern for coloring.
+// Preset: a grid of words placed on specific beats.
 // Load via ?preset=name URL param → fetches /presets/name.json
 export type Preset = {
-  words: string[]
-  pattern: RhymePattern
+  grid: string | string[]
   audio?: string
 }
 
-export function generateBarsFromPreset(
-  preset: Preset,
-  barsPerLine: BarsPerLine = 1,
+export function generateBarsFromGrid(
+  grid: GridData,
   fillMode: FillMode = 'all',
-  introBars: number = 0,
 ): BarData[] {
-  const { words, pattern } = preset
-
-  const introLines = Math.ceil(introBars / barsPerLine)
-  const placeholderColor = RHYME_COLORS[0]
-  const lineRhymes: { word: string; color: typeof RHYME_COLORS[0]; familyId: number }[] = []
-
-  for (let i = 0; i < introLines; i++) {
-    lineRhymes.push({ word: '', color: placeholderColor, familyId: -1 })
-  }
-
-  let colorIndex = 0
-
-  if (pattern === 'AABB') {
-    for (let i = 0; i < words.length; i += 2) {
-      const color = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
-      const familyId = colorIndex
-      colorIndex++
-      lineRhymes.push({ word: words[i], color, familyId })
-      if (i + 1 < words.length) {
-        lineRhymes.push({ word: words[i + 1], color, familyId })
-      }
-    }
-  } else {
-    // ABAB: lines 0&2 share color A, lines 1&3 share color B
-    for (let i = 0; i < words.length; i += 4) {
-      const colorA = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
-      colorIndex++
-      const colorB = RHYME_COLORS[colorIndex % RHYME_COLORS.length]
-      colorIndex++
-      const group = [
-        { word: words[i], color: colorA, familyId: colorIndex - 1 },
-        { word: words[i + 1], color: colorB, familyId: colorIndex },
-        { word: words[i + 2], color: colorA, familyId: colorIndex - 1 },
-        { word: words[i + 3], color: colorB, familyId: colorIndex },
-      ]
-      for (let j = 0; j < 4 && i + j < words.length; j++) {
-        lineRhymes.push(group[j])
-      }
-    }
-  }
-
   const bars: BarData[] = []
-  for (let lineIdx = 0; lineIdx < lineRhymes.length; lineIdx++) {
-    const rhyme = lineRhymes[lineIdx]
-    const visibleLineIdx = lineIdx - introLines
-    const posInPair = visibleLineIdx < 0 ? 0 : visibleLineIdx % 2
+  let lineIdx = 0
+
+  for (const line of grid.lines) {
+    const beatsPerBar = BEATS_PER_BAR
+    const barsInLine = Math.max(1, Math.floor(line.beats.length / beatsPerBar))
+    const isInstrumental = (line.section === 'Break' || line.section === 'Intro' || line.section === 'Outro')
+      && line.beats.every(b => b.word === null)
+
+    // Fill mode: position in pair (AABB-style)
+    const posInPair = lineIdx % 2
     const rhymeHidden =
       fillMode === 'all-blanks' ? true :
       fillMode === 'setup-punchline' ? posInPair === 0 :
       fillMode === 'off-the-cliff' ? posInPair === 1 :
       false
-    for (let b = 0; b < barsPerLine; b++) {
-      const barIdx = lineIdx * barsPerLine + b
+
+    for (let b = 0; b < barsInLine; b++) {
+      const barBeats = line.beats.slice(b * beatsPerBar, (b + 1) * beatsPerBar)
+
+      // Find the last rhymed beat in this bar for rhymeWord/rhymeColor
+      let lastRhymedBeat: { word: string; rhymeGroup: number } | null = null
+      for (let i = barBeats.length - 1; i >= 0; i--) {
+        if (barBeats[i].word !== null && barBeats[i].rhymeGroup !== null) {
+          lastRhymedBeat = { word: barBeats[i].word!, rhymeGroup: barBeats[i].rhymeGroup! }
+          break
+        }
+      }
+
+      const rhymeColor = lastRhymedBeat
+        ? RHYME_COLORS[(lastRhymedBeat.rhymeGroup - 1) % RHYME_COLORS.length]
+        : { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
+
+      const beatWords: (BeatWord | null)[] = barBeats.map(beat => {
+        if (beat.word === null) return null
+        const color = beat.rhymeGroup !== null
+          ? RHYME_COLORS[(beat.rhymeGroup - 1) % RHYME_COLORS.length]
+          : null
+        return { word: beat.word, rhymeGroup: beat.rhymeGroup, rhymeColor: color }
+      })
+
       bars.push({
         id: uid(),
-        index: barIdx,
-        rhymeWord: rhyme.word,
-        rhymeColor: rhyme.color,
-        familyId: rhyme.familyId,
+        index: bars.length,
+        rhymeWord: lastRhymedBeat?.word ?? '',
+        rhymeColor,
+        familyId: lastRhymedBeat?.rhymeGroup ?? -1,
         rhymeHidden,
+        instrumental: isInstrumental || undefined,
+        beatWords,
       })
     }
+
+    lineIdx++
   }
 
   return bars

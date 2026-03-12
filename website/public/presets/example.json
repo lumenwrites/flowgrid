@@ -1,22 +1,21 @@
 {
-  "words": [
-    "boat",
-    "coat",
-    "now",
-    "how",
-    "gold",
-    "old",
-    "eat",
-    "asleep",
-    "island",
-    "smiling",
-    "hook",
-    "book",
-    "cry",
-    "by",
-    "book",
-    "look"
+  "grid": [
+    "_ _ _ [:1 boat]",
+    "_ _ _ [:1 coat]",
+    "_ _ _ [:2 now]",
+    "_ _ _ [:2 how]",
+    "_ _ _ [:3 gold]",
+    "_ _ _ [:3 old]",
+    "_ _ _ [:4 eat]",
+    "_ _ _ [:4 asleep]",
+    "_ _ _ [:5 island]",
+    "_ _ _ [:5 smiling]",
+    "_ _ _ [:6 hook]",
+    "_ _ _ [:6 book]",
+    "_ _ _ [:7 cry]",
+    "_ _ _ [:7 by]",
+    "_ _ _ [:8 book]",
+    "_ _ _ [:8 look]"
   ],
-  "pattern": "AABB",
   "audio": "/examples/vocals-test.mp3"
 }

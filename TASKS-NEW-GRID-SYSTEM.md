@@ -289,22 +289,22 @@ Add `website/src/lib/__tests__/grid-format.test.ts`:
 
 ## TODO
 
-- [ ] Create `website/src/lib/grid-format.ts` with `parseGrid()` and `serializeGrid()`
-- [ ] Add `BeatWord` type and `beatWords` optional field to `BarData` in `rhymes.ts`
-- [ ] Create `generateBarsFromGrid()` in `rhymes.ts` that converts `GridData` → `BarData[]`
-- [ ] Update `Bar.tsx` to render `beatWords` when present (words on any beat)
-- [ ] Replace `rhymes?: string[]` with `grid?: string | string[]` on `Mix` type in `constants.ts`
-- [ ] Convert all existing mix `rhymes` arrays to grid format (Nerd Rap, Camp Rap, Tutorial, Villain Song Lyrics)
-- [ ] Update `mixBars` memo in `page.tsx` to use `parseGrid` + `generateBarsFromGrid`
-- [ ] Replace `Preset` type with grid-based version, remove `generateBarsFromPreset()`
-- [ ] Update preset loading in `page.tsx` to use new format
-- [ ] Convert `website/public/presets/example.json` to grid format
-- [ ] Write tests in `website/src/lib/__tests__/grid-format.test.ts`
 - [ ] Update SPEC.md and PLAN.md to document the grid format
 
 ## DONE
 
-- [x] Remove `barsPerLine` from user settings — now derived from track's `barsPerLine` property
-- [x] Remove "Bars per line" dropdown from Sidebar
-- [x] Add "Basic Drums (Musical)" duplicate track entry with barsPerLine=2
-- [x] Remove unused `BARS_PER_LINE_OPTIONS` constant
+- Create `website/src/lib/grid-format.ts` with `parseGrid()` and `serializeGrid()`
+- Add `BeatWord` type and `beatWords` optional field to `BarData` in `rhymes.ts`
+- Create `generateBarsFromGrid()` in `rhymes.ts` that converts `GridData` → `BarData[]`
+- Update `Bar.tsx` to render `beatWords` when present (words on any beat)
+- Replace `rhymes?: string[]` with `grid?: string | string[]` on `Mix` type in `constants.ts`
+- Convert all existing mix `rhymes` arrays to grid format (Nerd Rap, Camp Rap, Tutorial, Villain Song Lyrics)
+- Update `mixBars` memo in `page.tsx` to use `parseGrid` + `generateBarsFromGrid`
+- Replace `Preset` type with grid-based version, remove `generateBarsFromPreset()`
+- Update preset loading in `page.tsx` to use new format
+- Convert `website/public/presets/example.json` to grid format
+- Write tests in `website/src/lib/__tests__/grid-format.test.ts` (18 tests, all passing)
+- Remove `barsPerLine` from user settings — now derived from track's `barsPerLine` property
+- Remove "Bars per line" dropdown from Sidebar
+- Add "Basic Drums (Musical)" duplicate track entry with barsPerLine=2
+- Remove unused `BARS_PER_LINE_OPTIONS` constant

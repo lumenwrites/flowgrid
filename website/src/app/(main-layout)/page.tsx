@@ -14,7 +14,8 @@ import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, getFileForBpm, mixFileUrl, getBpmVariants } from '@/lib/constants'
-import { type Preset, generateBarsFromPreset, buildDisplayBars } from '@/lib/rhymes'
+import { type Preset, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
+import { parseGrid } from '@/lib/grid-format'
 import { usePresetAudio } from '@/hooks/usePresetAudio'
 
 function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
@@ -52,8 +53,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const presetBars = useMemo(() => {
     if (!preset) return null
-    return generateBarsFromPreset(preset, barsPerLine, settings.fillMode, settings.introBars)
-  }, [preset, barsPerLine, settings.fillMode, settings.introBars])
+    const gridText = Array.isArray(preset.grid) ? preset.grid.join('\n') : preset.grid
+    return generateBarsFromGrid(parseGrid(gridText), settings.fillMode)
+  }, [preset, settings.fillMode])
 
   usePresetAudio(preset?.audio ?? null)
 
@@ -122,14 +124,12 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const mixBars = useMemo(() => {
     if (!activeMix) return null
-    if (activeMix.rhymes) {
-      return generateBarsFromPreset(
-        { words: activeMix.rhymes, pattern: settings.rhymePattern },
-        barsPerLine, settings.fillMode, 0,
-      )
+    if (activeMix.grid) {
+      const gridText = Array.isArray(activeMix.grid) ? activeMix.grid.join('\n') : activeMix.grid
+      return generateBarsFromGrid(parseGrid(gridText), settings.fillMode)
     }
     return bars.slice(0, mixNonInstrumentalBars)
-  }, [activeMix, mixNonInstrumentalBars, bars, settings.rhymePattern, barsPerLine, settings.fillMode])
+  }, [activeMix, mixNonInstrumentalBars, bars, settings.fillMode])
 
   const resetLoopState = useCallback((loopIndex: number) => {
     setSectionStarts([{ bar: 0, loopIndex }])

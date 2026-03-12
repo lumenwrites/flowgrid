@@ -34,7 +34,9 @@ website/src/
 │
 ├── lib/
 │   ├── constants.ts                    — Track/Loop/Mix/SectionStart/LoopInfo types, path helpers, getLoopForBar(), metronome files, color palette, all config
-│   ├── rhymes.ts                       — Word list types, generateBars() (rhyme pool), buildDisplayBars() (instrumental remapping)
+│   ├── grid-format.ts                  — Grid text format parser/serializer (parseGrid, serializeGrid, BeatData/GridLine/GridData types)
+│   ├── rhymes.ts                       — Word list types, generateBars() (rhyme pool), generateBarsFromGrid() (grid→bars), buildDisplayBars() (instrumental remapping)
+│   ├── __tests__/grid-format.test.ts   — Tests for grid format parsing and grid→bar conversion
 │   └── utils.ts                        — cn() utility
 │
 └── styles/
@@ -71,9 +73,9 @@ website/src/
 
 ## Rhyme Generation (`useRhymes` + `lib/rhymes.ts`)
 
-Two-layer architecture: **rhyme pool** (flat sequence) → **display bars** (section-aware).
+Two modes: **random rhymes** (infinite pool from word lists) and **grid-based** (fixed layout from grid text format). Both feed into the same display layer.
 
-### Layer 1: Rhyme pool (`generateBars`)
+### Random mode: Rhyme pool (`generateBars`)
 
 - Loads word lists from `/data/word-lists.json` (9 curated lists with words grouped by `familyId`)
 - `generateBars()` is a pure function that produces a flat sequence of `BarData` — it has no knowledge of sections/loops
@@ -86,6 +88,24 @@ Two-layer architecture: **rhyme pool** (flat sequence) → **display bars** (sec
 - Grid is always infinite — generates initial 48 bars, then extends in chunks of 24 as playback progresses
 - 8 rotating colors with 4 shades each: dim bg/border (default), active bg/border (playhead on it, with vivid ~500 borders)
 - Fill modes: all, setup-punchline, off-the-cliff, all-blanks — hidden cells still show color
+
+### Grid mode: `generateBarsFromGrid` + `lib/grid-format.ts`
+
+- Used by presets and mixes with a `grid` field — provides exact per-beat word placement instead of random rhymes
+- **Grid text format** — human-readable text where each line = one UI row:
+  - `_` = empty beat, `[word]` = plain word (no rhyme color), `[:N word]` = rhymed word in group N
+  - `[SectionName]` on its own line = section header
+  - Example: `_ _ _ [:1 time]` → 3 empty beats, then "time" in rhyme group 1
+- `parseGrid()` converts grid text (string or string[]) → `GridData` (array of `GridLine` with `BeatData[]`)
+- `serializeGrid()` converts `GridData` back to text
+- `generateBarsFromGrid(grid, fillMode)` converts `GridData` → `BarData[]`:
+  - Each line's beats are split into bars (4 beats per bar)
+  - Last rhymed beat in each bar determines `rhymeWord`/`rhymeColor`
+  - Per-beat words stored in `BarData.beatWords` as `(BeatWord | null)[]` for precise placement
+  - Fill modes apply the same way (AABB-style pair position)
+- `BarData` extended with optional `beatWords?: (BeatWord | null)[]` — `BeatWord` has `{ word, rhymeGroup, rhymeColor }`
+- `Preset` type: `{ grid: string | string[], audio?: string }` — loaded via `?preset=name` URL param
+- `Mix.grid` field: optional `string | string[]` — when present, used instead of random rhymes
 
 ### Layer 2: Display bars (`buildDisplayBars`)
 
@@ -163,14 +183,18 @@ Sidebar (slides from left):
        { name: 'Verse', file: '01-verse-4bars.wav', bars: 4 },
        { name: 'Chorus', file: '02-chorus-4bars.wav', bars: 4 },
      ] }
-   // Track with mixes (optional rhymes array per mix)
+   // Track with mixes (optional grid for custom word placement)
    { label: 'Song 80bpm', dir: '/tracks/song-80bpm', bpm: 80, barsPerLine: 2,
      loops: [...],
      mixes: [
        { name: 'Instrumental', file: 'instrumental.wav',
          sections: [{ name: 'Intro', bars: 4 }, { name: 'Verse', bars: 8 }] },
        { name: 'Lyrics', file: 'lyrics.wav',
-         sections: [...], rhymes: ['time', 'lime', 'money', 'honey', ...] },
+         sections: [...], grid: [
+           '[Verse]',
+           '_ _ _ [:1 time]',
+           '_ _ _ [:1 lime]',
+         ] },
      ] }
    // Instrumental sections — mark loops/sections where no rapping/singing happens
    { label: 'My Song 120bpm', dir: '/tracks/my-song-120bpm', bpm: 120,
