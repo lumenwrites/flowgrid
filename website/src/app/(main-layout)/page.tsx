@@ -31,6 +31,9 @@ export default function Home() {
 }
 
 function FlowGrid({ settings, update }: { settings: Settings; update: <K extends keyof Settings>(key: K, value: Settings[K]) => void }) {
+  const barsPerLine = settings.selectedTrackIndex !== NONE_TRACK_INDEX
+    ? (AVAILABLE_TRACKS[settings.selectedTrackIndex]?.barsPerLine ?? 1)
+    : 1
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [dictionaryModalOpen, setDictionaryModalOpen] = useState(false)
   const [preset, setPreset] = useState<Preset | null>(null)
@@ -49,8 +52,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const presetBars = useMemo(() => {
     if (!preset) return null
-    return generateBarsFromPreset(preset, settings.barsPerLine, settings.fillMode, settings.introBars)
-  }, [preset, settings.barsPerLine, settings.fillMode, settings.introBars])
+    return generateBarsFromPreset(preset, barsPerLine, settings.fillMode, settings.introBars)
+  }, [preset, barsPerLine, settings.fillMode, settings.introBars])
 
   usePresetAudio(preset?.audio ?? null)
 
@@ -70,7 +73,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     adjustBpm,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm)
 
-  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, settings.barsPerLine, settings.audioOffset)
+  const { position, progressRef, playheadLineRef, timelineLineRef, resetPosition, seekTo, scrollToBar } = usePlayhead(isPlaying, barsPerLine, settings.audioOffset)
 
   const {
     wordLists,
@@ -79,7 +82,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     changeWordList,
     extendBars,
     regenerate,
-  } = useRhymes(settings.rhymePattern, settings.barsPerLine, settings.selectedListId, settings.fillMode, settings.seed, settings.introBars)
+  } = useRhymes(settings.rhymePattern, barsPerLine, settings.selectedListId, settings.fillMode, settings.seed, settings.introBars)
 
   // Loop state — sectionStarts grows as transitions complete, so past headers stay in DOM
   const [sectionStarts, setSectionStarts] = useState<SectionStart[]>([{ bar: 0, loopIndex: 0 }])
@@ -122,11 +125,11 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     if (activeMix.rhymes) {
       return generateBarsFromPreset(
         { words: activeMix.rhymes, pattern: settings.rhymePattern },
-        settings.barsPerLine, settings.fillMode, 0,
+        barsPerLine, settings.fillMode, 0,
       )
     }
     return bars.slice(0, mixNonInstrumentalBars)
-  }, [activeMix, mixNonInstrumentalBars, bars, settings.rhymePattern, settings.barsPerLine, settings.fillMode])
+  }, [activeMix, mixNonInstrumentalBars, bars, settings.rhymePattern, barsPerLine, settings.fillMode])
 
   const resetLoopState = useCallback((loopIndex: number) => {
     setSectionStarts([{ bar: 0, loopIndex }])
@@ -280,7 +283,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     resetPosition()
     regenerate()
     resetLoopState(0)
-    if (track?.barsPerLine) update('barsPerLine', track.barsPerLine)
   }
 
   const handleWordListChange = (id: string) => {
@@ -349,13 +351,13 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onOpenDictionary={() => setDictionaryModalOpen(true)}
         onRandomizeSeed={() => update('seed', randomSeed())}
       />
-      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={settings.barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
+      <Timeline currentBeat={position.beat} currentBar={position.bar} barsPerLine={barsPerLine} lineRef={timelineLineRef} progressRef={progressRef} isPlaying={isPlaying} />
       <Grid
         bars={displayBars}
         position={position}
         isPlaying={isPlaying}
         playheadLineRef={playheadLineRef}
-        barsPerLine={settings.barsPerLine}
+        barsPerLine={barsPerLine}
         introBars={activeMix ? 0 : settings.introBars}
         scrollToBar={scrollToBar}
         loopInfo={activeLoopInfo}
@@ -397,8 +399,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        barsPerLine={settings.barsPerLine}
-        onBarsPerLineChange={(v) => update('barsPerLine', v)}
         introBars={settings.introBars}
         onIntroBarsChange={(v) => update('introBars', v)}
         audioOffset={settings.audioOffset}

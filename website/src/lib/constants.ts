@@ -79,6 +79,23 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
+    label: 'Basic Drums (Musical)', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 2,
+    loops: [
+      { name: 'Verse', bars: 4, files: [
+        { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
+        { file: '01-verse-4bars-80bpm.wav', bpm: 80 },
+        { file: '01-verse-4bars-100bpm.wav', bpm: 100 },
+        { file: '01-verse-4bars-120bpm.wav', bpm: 120 },
+      ]},
+      { name: 'Chorus', bars: 4, files: [
+        { file: '02-chorus-4bars-60bpm.wav', bpm: 60 },
+        { file: '02-chorus-4bars-80bpm.wav', bpm: 80 },
+        { file: '02-chorus-4bars-100bpm.wav', bpm: 100 },
+        { file: '02-chorus-4bars-120bpm.wav', bpm: 120 },
+      ]},
+    ],
+  },
+  {
     label: 'Whose Line Rap', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1,
     loops: [
       { name: 'Loop', bars: 8, files: [
@@ -299,7 +316,3 @@ export function getLoopForBar(barIdx: number, loopInfo: LoopInfo): Loop | null {
 }
 
 export type BarsPerLine = 1 | 2
-export const BARS_PER_LINE_OPTIONS: { value: BarsPerLine; label: string }[] = [
-  { value: 1, label: '1 bar — Rap' },
-  { value: 2, label: '2 bars — Musical' },
-]

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, type Track, getFileForBpm, loopFileUrl, mixFileUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, type Track, getFileForBpm, getBpmVariants, loopFileUrl, mixFileUrl } from '@/lib/constants'
 
 function getPreviewUrl(track: Track): string | null {
   if (track.mixes) {
@@ -319,7 +319,14 @@ export default function PlaybackToolbar({
                         selectedTrackIndex === i ? 'text-accent' : 'text-foreground'
                       }`}
                     >
-                      {track.label}
+                      <span>{track.label}</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(getBpmVariants(track.loops[0]) ?? [track.bpm]).map((bpm) => (
+                          <span key={bpm} className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-surface-light border border-border text-foreground-muted">
+                            {bpm} BPM
+                          </span>
+                        ))}
+                      </div>
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); handlePreview(i) }}

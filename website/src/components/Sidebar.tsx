@@ -1,13 +1,11 @@
 'use client'
 
-import { BARS_PER_LINE_OPTIONS, INTRO_BAR_OPTIONS, type BarsPerLine } from '@/lib/constants'
+import { INTRO_BAR_OPTIONS } from '@/lib/constants'
 const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
 
 type SidebarProps = {
   open: boolean
   onClose: () => void
-  barsPerLine: BarsPerLine
-  onBarsPerLineChange: (value: BarsPerLine) => void
   introBars: number
   onIntroBarsChange: (count: number) => void
   audioOffset: number
@@ -17,8 +15,6 @@ type SidebarProps = {
 export default function Sidebar({
   open,
   onClose,
-  barsPerLine,
-  onBarsPerLineChange,
   introBars,
   onIntroBarsChange,
   audioOffset,
@@ -65,22 +61,6 @@ export default function Sidebar({
         </div>
 
         <div className="p-4 space-y-5 overflow-y-auto flex-1 min-h-0">
-          {/* Bars per line */}
-          <div className="space-y-1.5">
-            <label className="text-sm text-foreground">Bars per line</label>
-            <select
-              value={barsPerLine}
-              onChange={(e) => onBarsPerLineChange(Number(e.target.value) as BarsPerLine)}
-              className={selectClass}
-            >
-              {BARS_PER_LINE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Bar count */}
           {/* Always keep it infinite? */}
           {/* <div className="space-y-1.5">
