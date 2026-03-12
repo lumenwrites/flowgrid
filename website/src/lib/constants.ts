@@ -36,6 +36,12 @@ export type Mix = {
   grid?: string | string[]
 }
 
+export type TrackCategory = 'rap' | 'musicals'
+export const TRACK_CATEGORIES: { id: TrackCategory; label: string }[] = [
+  { id: 'rap', label: 'Rap' },
+  { id: 'musicals', label: 'Musicals' },
+]
+
 export type Track = {
   label: string
   dir: string
@@ -44,6 +50,7 @@ export type Track = {
   mixes?: Mix[]
   barsPerLine?: BarsPerLine
   public?: boolean
+  category: TrackCategory
 }
 
 const VILLAIN_SONG_SECTIONS: MixSection[] = [
@@ -74,7 +81,7 @@ const VILLAIN_SONG_GRID = [
 
 export const AVAILABLE_TRACKS: Track[] = [
   {
-    label: 'Basic Drums', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 1,
+    label: 'Basic Drums', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 1, category: 'rap',
     loops: [
       { name: 'Verse', bars: 4, files: [
         { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
@@ -91,7 +98,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Basic Drums (Musical)', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 2,
+    label: 'Basic Drums', dir: '/tracks/basic-drums', bpm: 80, barsPerLine: 2, category: 'musicals',
     loops: [
       { name: 'Verse', bars: 4, files: [
         { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
@@ -108,7 +115,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Whose Line Rap', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1,
+    label: 'Whose Line Rap', dir: '/tracks/whose-line-rap', bpm: 100, barsPerLine: 1, category: 'rap',
     loops: [
       { name: 'Loop', bars: 8, files: [
         { file: '01-loop-8bars-80bpm.wav', bpm: 80 },
@@ -168,7 +175,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Laura Rap', dir: '/tracks/laura-rap', bpm: 80, barsPerLine: 1,
+    label: 'Laura Rap', dir: '/tracks/laura-rap', bpm: 80, barsPerLine: 1, category: 'rap',
     loops: [
       { name: 'Verse', bars: 4, files: [
         { file: '01-verse-4bars-60bpm.wav', bpm: 60 },
@@ -194,7 +201,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Tutorial', dir: '/tracks/tutorial', bpm: 80, barsPerLine: 1, public: false,
+    label: 'Tutorial', dir: '/tracks/tutorial', bpm: 80, barsPerLine: 1, public: false, category: 'rap',
     loops: [
       { name: 'Loop', bars: 4, files: [{ file: '/tracks/basic-drums/loops/01-verse-4bars-80bpm.wav', bpm: 80 }] },
     ],
@@ -272,11 +279,11 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Yucca', dir: '/tracks/yucca-80bpm', bpm: 80, barsPerLine: 1,
+    label: 'Yucca', dir: '/tracks/yucca-80bpm', bpm: 80, barsPerLine: 1, category: 'rap',
     loops: [{ name: 'Loop', bars: 8, files: [{ file: '01-loop-8bars-80bpm.m4a', bpm: 80 }] }],
   },
   {
-    label: 'Hoedown', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2,
+    label: 'Hoedown', dir: '/tracks/hoedown', bpm: 120, barsPerLine: 2, category: 'musicals',
     loops: [
       { name: 'Intro', bars: 4, instrumental: true, files: [{ file: '01-intro-4bars-120bpm.wav', bpm: 120 }] },
       { name: 'Verse', bars: 8, files: [{ file: '02-verse-8bars-120bpm.wav', bpm: 120 }] },
@@ -291,7 +298,7 @@ export const AVAILABLE_TRACKS: Track[] = [
     ],
   },
   {
-    label: 'Villain Song', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2,
+    label: 'Villain Song', dir: '/tracks/villain-song-80bpm', bpm: 80, barsPerLine: 2, category: 'musicals',
     loops: [
       { name: 'Verse', bars: 8, files: [{ file: '01-verse-8bars-80bpm.wav', bpm: 80 }] },
       { name: 'Chorus', bars: 8, files: [{ file: '02-chorus-8bars-80bpm.wav', bpm: 80 }] },

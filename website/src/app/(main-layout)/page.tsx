@@ -396,6 +396,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
         onMetronomeVolumeChange={(v) => update('metronomeVolume', v)}
         countdownLines={settings.countdownLines}
         onCountdownLinesChange={(v) => update('countdownLines', v)}
+        trackModalTab={settings.trackModalTab}
+        onTrackModalTabChange={(v) => update('trackModalTab', v)}
       />
       <Sidebar
         open={sidebarOpen}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { DEFAULT_TRACK_INDEX, DEFAULT_BPM, DEFAULT_SEED, AVAILABLE_TRACKS, NONE_TRACK_INDEX, type RhymePattern, type FillMode } from '@/lib/constants'
+import { DEFAULT_TRACK_INDEX, DEFAULT_BPM, DEFAULT_SEED, AVAILABLE_TRACKS, NONE_TRACK_INDEX, type RhymePattern, type FillMode, type TrackCategory } from '@/lib/constants'
 
 const STORAGE_KEY = 'flowgrid-settings'
 
@@ -18,6 +18,7 @@ export type Settings = {
   metronomeVolume: number
   audioOffset: number
   trackBpm: number
+  trackModalTab: TrackCategory
 }
 
 const DEFAULTS: Settings = {
@@ -33,6 +34,7 @@ const DEFAULTS: Settings = {
   metronomeVolume: 100,
   audioOffset: 0,
   trackBpm: DEFAULT_BPM,
+  trackModalTab: 'rap',
 }
 
 function loadSettings(): Settings {

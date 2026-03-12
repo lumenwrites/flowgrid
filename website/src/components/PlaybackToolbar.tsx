@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, COUNTDOWN_LINE_OPTIONS, type Track, getFileForBpm, getBpmVariants, loopFileUrl, mixFileUrl } from '@/lib/constants'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, COUNTDOWN_LINE_OPTIONS, TRACK_CATEGORIES, type Track, type TrackCategory, getFileForBpm, getBpmVariants, loopFileUrl, mixFileUrl } from '@/lib/constants'
 
 function getPreviewUrl(track: Track): string | null {
   if (track.mixes) {
@@ -41,6 +41,8 @@ type PlaybackToolbarProps = {
   onMetronomeVolumeChange: (volume: number) => void
   countdownLines: number
   onCountdownLinesChange: (lines: number) => void
+  trackModalTab: TrackCategory
+  onTrackModalTabChange: (tab: TrackCategory) => void
 }
 
 export default function PlaybackToolbar({
@@ -66,6 +68,8 @@ export default function PlaybackToolbar({
   onMetronomeVolumeChange,
   countdownLines,
   onCountdownLinesChange,
+  trackModalTab,
+  onTrackModalTabChange,
 }: PlaybackToolbarProps) {
   const [trackModalOpen, setTrackModalOpen] = useState(false)
   const [audioPopupOpen, setAudioPopupOpen] = useState(false)
@@ -342,11 +346,25 @@ export default function PlaybackToolbar({
 
       {/* Track picker modal */}
       {trackModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex justify-center pt-[50px]">
           <div className="absolute inset-0 bg-black/60" onClick={() => setTrackModalOpen(false)} />
-          <div className="relative bg-surface border border-border rounded-lg w-80 max-h-[70vh] flex flex-col shadow-xl">
+          <div className="relative bg-surface border border-border rounded-lg w-96 max-h-[70vh] flex flex-col shadow-xl">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h3 className="text-sm font-bold text-foreground tracking-wider">SELECT TRACK</h3>
+              <div className="flex gap-1">
+                {TRACK_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => onTrackModalTabChange(cat.id)}
+                    className={`text-sm font-bold tracking-wider px-3 py-1 rounded transition-colors ${
+                      trackModalTab === cat.id
+                        ? 'bg-accent/15 text-accent'
+                        : 'text-foreground-muted hover:text-foreground hover:bg-surface-light'
+                    }`}
+                  >
+                    {cat.label.toUpperCase()}
+                  </button>
+                ))}
+              </div>
               <button
                 onClick={() => setTrackModalOpen(false)}
                 className="p-1 rounded hover:bg-surface-light transition-colors"
@@ -367,6 +385,7 @@ export default function PlaybackToolbar({
                 No track
               </button>
               {AVAILABLE_TRACKS.map((track, i) => {
+                if (track.category !== trackModalTab) return null
                 if (track.public === false && !isAdmin) return null
                 return (
                   <div
@@ -384,7 +403,7 @@ export default function PlaybackToolbar({
                       }`}
                     >
                       <span>{track.label}</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <div className="flex flex-wrap gap-1 mt-1 whitespace-nowrap">
                         {(getBpmVariants(track.loops[0]) ?? [track.bpm]).map((bpm) => (
                           <span key={bpm} className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-surface-light border border-border text-foreground-muted">
                             {bpm} BPM
