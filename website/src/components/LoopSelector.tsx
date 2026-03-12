@@ -44,7 +44,7 @@ export default function LoopSelector({ loops, currentLoopIndex, queuedLoopIndex,
 
       {hasMixes && (
         <>
-          <div className="w-px h-6 bg-border mx-1" />
+          {multiLoop && <div className="w-px h-6 bg-border mx-1" />}
           {mixes.map((mix, i) => (
             <button
               key={`mix-${i}`}

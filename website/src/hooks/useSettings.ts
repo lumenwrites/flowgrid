@@ -5,6 +5,12 @@ import { DEFAULT_TRACK_INDEX, DEFAULT_BPM, DEFAULT_SEED, AVAILABLE_TRACKS, NONE_
 
 const STORAGE_KEY = 'flowgrid-settings'
 
+// Per-track remembered selection: which loop or mix was last active
+export type TrackSelection = {
+  loopIndex?: number
+  mixIndex?: number
+}
+
 export type Settings = {
   metronomeEnabled: boolean
   selectedTrackIndex: number
@@ -19,6 +25,7 @@ export type Settings = {
   audioOffset: number
   trackBpm: number
   trackModalTab: TrackCategory
+  trackSelections: Record<number, TrackSelection>
 }
 
 const DEFAULTS: Settings = {
@@ -35,6 +42,7 @@ const DEFAULTS: Settings = {
   audioOffset: 0,
   trackBpm: DEFAULT_BPM,
   trackModalTab: 'rap',
+  trackSelections: {},
 }
 
 function loadSettings(): Settings {

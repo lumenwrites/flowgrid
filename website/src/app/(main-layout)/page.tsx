@@ -78,12 +78,29 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const [transitionBar, setTransitionBar] = useState<number | null>(null)
   const transitionBarRef = useRef<number | null>(null)
 
-  const [activeMixIndex, setActiveMixIndex] = useState<number | null>(null)
+  // Resolve initial mix/loop selection from saved settings
+  const getDefaultMixIndex = useCallback((trackIdx: number): number | null => {
+    const saved = settings.trackSelections[trackIdx]
+    if (saved?.mixIndex != null) return saved.mixIndex
+    const track = trackIdx === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[trackIdx]
+    // Auto-activate first mix when track has no loops
+    if (track && !track.loops?.length && track.mixes?.length) return 0
+    return null
+  }, [settings.trackSelections])
+
+  const [activeMixIndex, setActiveMixIndex] = useState<number | null>(() =>
+    getDefaultMixIndex(settings.selectedTrackIndex)
+  )
 
   const currentTrack = selectedTrackIndex === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[selectedTrackIndex]
   const currentLoop = currentTrack?.loops?.[currentLoopIndex] ?? null
   const multiLoop = (currentTrack?.loops?.length ?? 0) > 1
   const hasMixes = (currentTrack?.mixes?.length ?? 0) > 0
+
+  // Save loop/mix selection per track
+  const saveTrackSelection = useCallback((trackIdx: number, selection: { loopIndex?: number; mixIndex?: number }) => {
+    update('trackSelections', { ...settings.trackSelections, [trackIdx]: selection })
+  }, [settings.trackSelections, update])
 
   const activeMix = activeMixIndex !== null ? currentTrack?.mixes?.[activeMixIndex] ?? null : null
 
@@ -131,6 +148,19 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     return bars.slice(0, mixNonInstrumentalBars)
   }, [activeMix, mixNonInstrumentalBars, bars, settings.fillMode])
 
+  // Load saved mix audio on initial mount
+  const initialMixLoadedRef = useRef(false)
+  useEffect(() => {
+    if (initialMixLoadedRef.current) return
+    initialMixLoadedRef.current = true
+    if (activeMixIndex !== null && currentTrack?.mixes?.[activeMixIndex]) {
+      const mix = currentTrack.mixes[activeMixIndex]
+      const audioFile = getFileForBpm(mix.files, settings.trackBpm)
+      loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Stop and reset when countdown setting changes
   useEffect(() => {
     if (prevCountdownBarsRef.current === countdownBars) return
@@ -153,6 +183,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const handleExitMix = useCallback(async () => {
     setActiveMixIndex(null)
+    saveTrackSelection(settings.selectedTrackIndex, { loopIndex: 0 })
     stop()
     resetPosition()
     regenerate()
@@ -163,7 +194,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       if (audioFile.bpm !== settings.trackBpm) update('trackBpm', audioFile.bpm)
     }
     await changeTrack(settings.selectedTrackIndex)
-  }, [stop, resetPosition, regenerate, resetLoopState, changeTrack, settings.selectedTrackIndex, currentTrack, settings.trackBpm, update])
+  }, [stop, resetPosition, regenerate, resetLoopState, changeTrack, settings.selectedTrackIndex, currentTrack, settings.trackBpm, update, saveTrackSelection])
 
   const handleSelectMix = useCallback(async (index: number) => {
     if (!currentTrack?.mixes) return
@@ -173,10 +204,11 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     const audioFile = getFileForBpm(mix.files, settings.trackBpm)
     if (audioFile.bpm !== settings.trackBpm) update('trackBpm', audioFile.bpm)
     setActiveMixIndex(index)
+    saveTrackSelection(settings.selectedTrackIndex, { mixIndex: index })
     resetLoopState(0)
     resetPosition()
     await loadMix(mixFileUrl(currentTrack, audioFile), audioFile.bpm)
-  }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix, settings.trackBpm, update])
+  }, [currentTrack, activeMixIndex, resetLoopState, resetPosition, loadMix, settings.trackBpm, update, saveTrackSelection, settings.selectedTrackIndex])
 
   const handleSelectLoop = useCallback((index: number) => {
     if (!currentTrack) return
@@ -190,6 +222,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       setLoopIndex(index)
       resetLoopState(index)
       cancelTransition()
+      saveTrackSelection(settings.selectedTrackIndex, { loopIndex: index })
       return
     }
 
@@ -219,7 +252,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setTransitionBar(boundary)
     transitionBarRef.current = boundary
     scheduleTransition(index, boundary)
-  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeMixIndex, handleExitMix])
+  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeMixIndex, handleExitMix, saveTrackSelection, settings.selectedTrackIndex])
 
   // When playhead crosses the transition boundary, just clear the queue (section already in sectionStarts)
   useEffect(() => {
@@ -276,17 +309,30 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [currentTrack, activeMix, currentLoopIndex, isPlaying, settings.selectedTrackIndex, update, resetLoopState, resetPosition, loadMix, play, adjustBpm, changeTrack])
 
-  const handleTrackChange = (index: number) => {
+  const handleTrackChange = async (index: number) => {
     const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
     const newBpm = track ? track.bpm : settings.metronomeBpm
-    setActiveMixIndex(null)
     stop()
-    changeTrack(index, newBpm)
     update('selectedTrackIndex', index)
     update('trackBpm', newBpm)
     resetPosition()
     regenerate()
-    resetLoopState(0)
+
+    // Restore saved selection or auto-activate first mix when no loops
+    const savedMixIndex = getDefaultMixIndex(index)
+    setActiveMixIndex(savedMixIndex)
+
+    if (savedMixIndex !== null && track?.mixes?.[savedMixIndex]) {
+      const mix = track.mixes[savedMixIndex]
+      const audioFile = getFileForBpm(mix.files, newBpm)
+      resetLoopState(0)
+      await loadMix(mixFileUrl(track, audioFile), audioFile.bpm)
+    } else {
+      const savedLoopIndex = settings.trackSelections[index]?.loopIndex ?? 0
+      await changeTrack(index, newBpm)
+      setLoopIndex(savedLoopIndex)
+      resetLoopState(savedLoopIndex)
+    }
   }
 
   const handleWordListChange = (id: string) => {
