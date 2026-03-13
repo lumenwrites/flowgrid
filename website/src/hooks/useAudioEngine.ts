@@ -78,7 +78,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         if (metronomeRef.current && !metronomeEnabledRef.current) {
           metronomeRef.current.volume.value = -Infinity
         }
-      }, `${countdown}:0:0`)
+      }, `${countdown - 1}:3:3`)
     }
   }
 
@@ -415,6 +415,10 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
     const countdown = countdownBarsRef.current
     const startBar = syncStartBar ?? 0
+
+    // Cancel old scheduled events (e.g. countdown mute) before re-syncing
+    transport.cancel()
+
     // Only sync player to start if we're past countdown
     if (playerRef.current) {
       playerRef.current.unsync()
@@ -424,6 +428,15 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     if (metronomeRef.current) {
       metronomeRef.current.unsync()
       metronomeRef.current.sync().start(0)
+
+      const seekingIntoCountdown = countdown > 0 && targetBar < countdown
+      if (seekingIntoCountdown) {
+        // Re-enable metronome for countdown and schedule mute at end
+        forceMetronomeDuringCountdown(metronomeRef.current, countdown)
+      } else {
+        // Past countdown — restore user's metronome setting
+        metronomeRef.current.volume.value = metronomeEnabledRef.current ? volumeToDb(metronomeVolumeRef.current) : -Infinity
+      }
     }
 
     transport.position = `${targetBar}:${beat}:0`
