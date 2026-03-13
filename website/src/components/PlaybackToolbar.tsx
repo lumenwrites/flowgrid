@@ -1,22 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faStop, faMusic, faXmark, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
-import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, COUNTDOWN_LINE_OPTIONS, TRACK_CATEGORIES, type Track, type TrackCategory, getFileForBpm, getBpmVariants, loopFileUrl, mixFileUrl } from '@/lib/constants'
-
-function getPreviewUrl(track: Track): string | null {
-  if (track.mixes) {
-    const mix = track.mixes.find(m => m.name === 'Lyrics') ?? track.mixes[0]
-    const audioFile = getFileForBpm(mix.files, track.bpm)
-    return mixFileUrl(track, audioFile)
-  }
-  if (!track.loops?.[0]) return null
-  const audioFile = getFileForBpm(track.loops[0].files, track.bpm)
-  return loopFileUrl(track, audioFile)
-}
-
-const selectClass = 'w-full bg-surface-light text-foreground text-sm rounded px-2 py-1.5 border border-border focus:outline-none focus:border-accent'
+import { faPlay, faPause, faStop, faMusic, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
+import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, COUNTDOWN_LINE_OPTIONS, type TrackCategory } from '@/lib/constants'
+import TrackPickerModal from '@/components/TrackPickerModal'
 
 type PlaybackToolbarProps = {
   isPlaying: boolean
@@ -75,44 +63,6 @@ export default function PlaybackToolbar({
   const [audioPopupOpen, setAudioPopupOpen] = useState(false)
   const [metronomePopupOpen, setMetronomePopupOpen] = useState(false)
   const playGroupRef = useRef<HTMLDivElement>(null)
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
-  const previewAudioRef = useRef<HTMLAudioElement | null>(null)
-
-  const stopPreview = useCallback(() => {
-    if (previewAudioRef.current) {
-      previewAudioRef.current.pause()
-      previewAudioRef.current = null
-    }
-    setPreviewIndex(null)
-  }, [])
-
-  function handlePreview(index: number) {
-    if (previewIndex === index) {
-      stopPreview()
-      return
-    }
-    stopPreview()
-    const url = getPreviewUrl(AVAILABLE_TRACKS[index])
-    if (!url) return
-    const audio = new Audio(url)
-    audio.addEventListener('ended', () => setPreviewIndex(null))
-    audio.play()
-    previewAudioRef.current = audio
-    setPreviewIndex(index)
-  }
-
-  useEffect(() => {
-    if (!trackModalOpen) stopPreview()
-  }, [trackModalOpen, stopPreview])
-
-  useEffect(() => {
-    if (!trackModalOpen) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setTrackModalOpen(false)
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [trackModalOpen])
 
   useEffect(() => {
     if (!audioPopupOpen) return
@@ -135,11 +85,6 @@ export default function PlaybackToolbar({
   const trackLabel = selectedTrackIndex === NONE_TRACK_INDEX
     ? 'No track'
     : AVAILABLE_TRACKS[selectedTrackIndex]?.label ?? 'No track'
-
-  function handleSelectTrack(index: number) {
-    onTrackChange(index)
-    setTrackModalOpen(false)
-  }
 
   return (
     <>
@@ -344,91 +289,15 @@ export default function PlaybackToolbar({
         </button>
       </div>
 
-      {/* Track picker modal */}
-      {trackModalOpen && (
-        <div className="fixed inset-0 z-50 flex justify-center pt-[50px]">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setTrackModalOpen(false)} />
-          <div className="relative bg-surface border border-border rounded-lg w-96 max-h-[70vh] flex flex-col shadow-xl">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <div className="flex gap-1">
-                {TRACK_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => onTrackModalTabChange(cat.id)}
-                    className={`text-sm font-bold tracking-wider px-3 py-1 rounded transition-colors ${
-                      trackModalTab === cat.id
-                        ? 'bg-accent/15 text-accent'
-                        : 'text-foreground-muted hover:text-foreground hover:bg-surface-light'
-                    }`}
-                  >
-                    {cat.label.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setTrackModalOpen(false)}
-                className="p-1 rounded hover:bg-surface-light transition-colors"
-                aria-label="Close"
-              >
-                <FontAwesomeIcon icon={faXmark} className="text-lg text-foreground-muted" />
-              </button>
-            </div>
-            <div className="overflow-y-auto py-1">
-              <button
-                onClick={() => handleSelectTrack(NONE_TRACK_INDEX)}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                  selectedTrackIndex === NONE_TRACK_INDEX
-                    ? 'bg-accent/15 text-accent'
-                    : 'text-foreground hover:bg-surface-light'
-                }`}
-              >
-                No track
-              </button>
-              {AVAILABLE_TRACKS.map((track, i) => {
-                if (track.category !== trackModalTab) return null
-                if (track.public === false && !isAdmin) return null
-                return (
-                  <div
-                    key={i}
-                    className={`flex items-center transition-colors ${
-                      selectedTrackIndex === i
-                        ? 'bg-accent/15'
-                        : 'hover:bg-surface-light'
-                    }`}
-                  >
-                    <button
-                      onClick={() => handleSelectTrack(i)}
-                      className={`flex-1 text-left px-4 py-2.5 text-sm transition-colors ${
-                        selectedTrackIndex === i ? 'text-accent' : 'text-foreground'
-                      }`}
-                    >
-                      <span>{track.label}</span>
-                      <div className="flex flex-wrap gap-1 mt-1 whitespace-nowrap">
-                        {(track.loops?.[0] ? getBpmVariants(track.loops[0]) ?? [track.bpm] : [track.bpm]).map((bpm) => (
-                          <span key={bpm} className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-surface-light border border-border text-foreground-muted">
-                            {bpm} BPM
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handlePreview(i) }}
-                      className={`shrink-0 w-8 h-8 mr-2 flex items-center justify-center rounded-full transition-colors ${
-                        previewIndex === i
-                          ? 'text-accent'
-                          : 'text-foreground-muted hover:text-foreground'
-                      }`}
-                      aria-label={`Preview ${track.label}`}
-                    >
-                      <FontAwesomeIcon icon={previewIndex === i ? faVolumeHigh : faPlay} className="text-xs" />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      <TrackPickerModal
+        open={trackModalOpen}
+        onClose={() => setTrackModalOpen(false)}
+        selectedTrackIndex={selectedTrackIndex}
+        onTrackChange={onTrackChange}
+        isAdmin={isAdmin}
+        activeTab={trackModalTab}
+        onTabChange={onTrackModalTabChange}
+      />
     </>
   )
 }

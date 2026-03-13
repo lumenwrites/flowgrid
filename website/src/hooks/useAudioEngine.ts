@@ -465,6 +465,11 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     }
   }, [])
 
+  const updateTrackIndex = useCallback((index: number) => {
+    setSelectedTrackIndex(index)
+    selectedTrackIndexRef.current = index
+  }, [])
+
   return {
     isPlaying,
     selectedTrackIndex,
@@ -479,5 +484,6 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     setLoopIndex,
     loadMix,
     adjustBpm,
+    updateTrackIndex,
   }
 }

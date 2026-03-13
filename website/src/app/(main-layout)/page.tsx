@@ -58,6 +58,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setLoopIndex,
     loadMix,
     adjustBpm,
+    updateTrackIndex,
   } = useAudioEngine(settings.metronomeEnabled, settings.selectedTrackIndex, settings.metronomeBpm, settings.trackVolume, settings.metronomeVolume, settings.trackBpm, countdownBars)
 
   // Global spacebar → toggle play/pause
@@ -329,6 +330,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     stop()
     update('selectedTrackIndex', index)
     update('trackBpm', newBpm)
+    updateTrackIndex(index)
     resetPosition()
     regenerate()
 
