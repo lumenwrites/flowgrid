@@ -257,6 +257,24 @@ export default function PlaybackToolbar({
                   </div>
                 </div>
                 <div className="mt-4">
+                  <label className="text-sm text-foreground">Count-in</label>
+                  <div className="flex gap-1.5 mt-1.5">
+                    {COUNTDOWN_LINE_OPTIONS.map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => onCountdownLinesChange(n)}
+                        className={`flex-1 text-sm py-1 rounded border transition-colors ${
+                          countdownLines === n
+                            ? 'bg-accent text-white border-accent'
+                            : 'bg-surface-light text-foreground-muted border-border hover:text-foreground'
+                        }`}
+                      >
+                        {n === 0 ? 'Off' : n === 1 ? '1 line' : `${n} lines`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4">
                   <div className="flex items-center justify-between">
                     <label className="text-sm text-foreground">BPM{selectedTrackIndex !== NONE_TRACK_INDEX && !bpmVariants ? ` — ${trackBpm}` : ''}</label>
                     {selectedTrackIndex !== NONE_TRACK_INDEX && !bpmVariants && trackBpm !== nativeBpm && (
@@ -311,24 +329,6 @@ export default function PlaybackToolbar({
                       className="w-full mt-1.5 accent-accent"
                     />
                   )}
-                </div>
-                <div className="mt-4">
-                  <label className="text-sm text-foreground">Count-in</label>
-                  <div className="flex gap-1.5 mt-1.5">
-                    {COUNTDOWN_LINE_OPTIONS.map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => onCountdownLinesChange(n)}
-                        className={`flex-1 text-sm py-1 rounded border transition-colors ${
-                          countdownLines === n
-                            ? 'bg-accent text-white border-accent'
-                            : 'bg-surface-light text-foreground-muted border-border hover:text-foreground'
-                        }`}
-                      >
-                        {n === 0 ? 'Off' : n === 1 ? '1 line' : `${n} lines`}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               </div>
             </>

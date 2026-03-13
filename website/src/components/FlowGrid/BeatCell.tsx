@@ -48,11 +48,11 @@ export default function BeatCell({
       }
     >
       {hasRhyme ? (
-        <span className="text-sm sm:text-base font-semibold text-white">
+        <span className="text-md sm:text-md font-semibold text-white">
           {rhymeHidden ? '????' : rhymeWord}
         </span>
       ) : hasWord ? (
-        <span className="text-xs sm:text-sm text-white/70">
+        <span className="text-md sm:text-md text-white/70">
           {rhymeHidden ? '????' : rhymeWord}
         </span>
       ) : null}
