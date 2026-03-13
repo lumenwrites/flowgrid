@@ -14,6 +14,8 @@ const TUTORIALS = [
 
 export default function LearnPage() {
   const [activeVideo, setActiveVideo] = useState<string | null>(null)
+  const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -50,6 +52,67 @@ export default function LearnPage() {
               />
             </button>
           ))}
+        </div>
+
+        <div className="max-w-lg mx-auto mt-12 mb-8 text-center">
+          <h2 className="text-xl font-bold text-foreground mb-2">
+            Want to freestyle rap but don&apos;t know where to start?
+          </h2>
+          <p className="text-foreground-muted mb-5">
+            I&apos;ll guide you through the basics step by step — and send you weekly tips to keep you improving
+          </p>
+          {submitState === 'success' ? (
+            <p className="text-green-400 font-semibold">You&apos;re in! Check your inbox.</p>
+          ) : (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                const form = e.currentTarget
+                const email = new FormData(form).get('email') as string
+                if (!email) return
+                setSubmitState('loading')
+                try {
+                  const res = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email }),
+                  })
+                  const data = await res.json()
+                  if (!res.ok || data.error) {
+                    setErrorMsg(data.error || 'Something went wrong.')
+                    setSubmitState('error')
+                  } else {
+                    form.reset()
+                    setSubmitState('success')
+                  }
+                } catch {
+                  setErrorMsg('Something went wrong.')
+                  setSubmitState('error')
+                }
+              }}
+              className="flex flex-col items-center gap-2 max-w-sm mx-auto"
+            >
+              <div className="flex gap-2 w-full">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="Your email"
+                  className="flex-1 px-3 py-2 rounded-lg bg-surface-light border border-border text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+                <button
+                  type="submit"
+                  disabled={submitState === 'loading'}
+                  className="px-4 py-2 rounded-lg bg-accent text-white font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50"
+                >
+                  {submitState === 'loading' ? 'Signing up...' : 'Sign up'}
+                </button>
+              </div>
+              {submitState === 'error' && (
+                <p className="text-red-400 text-sm">{errorMsg}</p>
+              )}
+            </form>
+          )}
         </div>
       </div>
 
