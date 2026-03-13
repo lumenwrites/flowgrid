@@ -133,7 +133,9 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   }, [trackVolume])
 
   useEffect(() => {
-    if (metronomeRef.current && metronomeEnabledRef.current) {
+    if (!metronomeRef.current) return
+    // Update volume if metronome is audible (user-enabled or forced on during countdown)
+    if (metronomeRef.current.volume.value > -Infinity) {
       metronomeRef.current.volume.value = volumeToDb(metronomeVolume)
     }
   }, [metronomeVolume])
@@ -394,6 +396,11 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     const wasPlaying = transport.state === 'started'
     transport.pause()
     cancelPendingTransition()
+    transport.cancel()
+
+    const countdown = countdownBarsRef.current
+    const startBar = syncStartBar ?? 0
+    const playerStartBar = `${Math.max(startBar, countdown)}:0:0`
 
     if (loopIndex !== undefined && loopIndex !== currentLoopIndexRef.current) {
       const buffers = buffersRef.current
@@ -407,39 +414,19 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         const hasVariants = hasVariantFiles(track)
         const rate = getPlaybackRate(track, hasVariants, trackBpmRef.current)
 
-        // Don't sync yet — we'll re-sync below after cancel()
-        let newPlayer: Tone.Player | Tone.GrainPlayer
-        if (hasVariants) {
-          const p = new Tone.Player(buffers[loopIndex]).toDestination()
-          p.loop = true
-          newPlayer = p
-        } else {
-          const p = new Tone.GrainPlayer(buffers[loopIndex]).toDestination()
-          p.loop = true
-          p.grainSize = 0.1
-          p.overlap = 0.05
-          p.playbackRate = rate
-          newPlayer = p
-        }
-        newPlayer.volume.value = volumeToDb(trackVolumeRef.current)
-
-        playerRef.current = newPlayer
+        playerRef.current = createSyncedPlayer(buffers[loopIndex], {
+          hasVariants, rate, loop: true,
+          volume: trackVolumeRef.current,
+          startBar: playerStartBar,
+        })
         setCurrentLoopIndex(loopIndex)
         currentLoopIndexRef.current = loopIndex
       }
-    }
-
-    const countdown = countdownBarsRef.current
-    const startBar = syncStartBar ?? 0
-
-    // Cancel old scheduled events (e.g. countdown mute) before re-syncing
-    transport.cancel()
-
-    if (playerRef.current) {
+    } else if (playerRef.current) {
       playerRef.current.unsync()
-      const playerStartBar = Math.max(startBar, countdown)
-      playerRef.current.sync().start(`${playerStartBar}:0:0`)
+      playerRef.current.sync().start(playerStartBar)
     }
+
     if (metronomeRef.current) {
       metronomeRef.current.unsync()
       metronomeRef.current.sync().start(0)
