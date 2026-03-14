@@ -46,6 +46,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const {
     isPlaying,
+    isLoading,
     selectedTrackIndex,
     currentLoopIndex,
     play,
@@ -451,6 +452,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       )}
       <PlaybackToolbar
         isPlaying={isPlaying}
+        isLoading={isLoading}
         onToggle={togglePlay}
         onStop={handleStop}
         selectedTrackIndex={selectedTrackIndex}

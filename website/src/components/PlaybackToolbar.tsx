@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faStop, faMusic, faVolumeHigh } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faPause, faStop, faMusic, faVolumeHigh, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, BPM_MIN, BPM_MAX, METRONOME_BPM_OPTIONS, COUNTDOWN_LINE_OPTIONS, type TrackCategory } from '@/lib/constants'
 import TrackPickerModal from '@/components/TrackPickerModal'
 
 type PlaybackToolbarProps = {
   isPlaying: boolean
+  isLoading: boolean
   onToggle: () => void
   onStop: () => void
   selectedTrackIndex: number
@@ -35,6 +36,7 @@ type PlaybackToolbarProps = {
 
 export default function PlaybackToolbar({
   isPlaying,
+  isLoading,
   onToggle,
   onStop,
   selectedTrackIndex,
@@ -100,10 +102,16 @@ export default function PlaybackToolbar({
 
           <button
             onClick={onToggle}
-            className="w-12 h-12 flex items-center justify-center rounded-full transition-colors bg-accent text-white hover:bg-accent-hover"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
+            disabled={isLoading}
+            className={`w-12 h-12 flex items-center justify-center rounded-full transition-colors ${
+              isLoading ? 'bg-accent/60 text-white/60 cursor-wait' : 'bg-accent text-white hover:bg-accent-hover'
+            }`}
+            aria-label={isLoading ? 'Loading' : isPlaying ? 'Pause' : 'Play'}
           >
-            <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-lg" />
+            <FontAwesomeIcon
+              icon={isLoading ? faSpinner : isPlaying ? faPause : faPlay}
+              className={`text-lg ${isLoading ? 'animate-spin' : ''}`}
+            />
           </button>
 
           {selectedTrackIndex !== NONE_TRACK_INDEX && (

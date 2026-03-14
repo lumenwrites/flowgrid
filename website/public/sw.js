@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'flowgrid-v12'
+const CACHE_VERSION = 'flowgrid-v13'
 
 const PRECACHE_ASSETS = [
   '/',
@@ -30,6 +30,13 @@ const PRECACHE_ASSETS = [
   // Other tracks
   '/tracks/whose-line-rap/loops/01-loop-8bars-100bpm.wav',
   '/tracks/yucca-80bpm/loops/01-loop-8bars-80bpm.m4a',
+  // Tutorials
+  '/tutorials/01-learn-how-to-freestyle-rap-in-5-minutes-per-day.mp4',
+  '/tutorials/01-learn-how-to-freestyle-rap-in-5-minutes-per-day.png',
+  '/tutorials/02-the-easiest-freestyle-rap-exercise-for-beginners.mp4',
+  '/tutorials/02-the-easiest-freestyle-rap-exercise-for-beginners.png',
+  '/tutorials/03learn-a-new-rap-flow-in-4-easy-steps.mp4',
+  '/tutorials/03learn-a-new-rap-flow-in-4-easy-steps.png',
   // App assets
   '/img/logo.png',
   '/img/background-tile.webp',

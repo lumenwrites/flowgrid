@@ -63,9 +63,12 @@ function loadPlayer(url: string, loop: boolean): Promise<Tone.Player> {
 
 export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIndex: number = DEFAULT_TRACK_INDEX, metronomeBpm: number = DEFAULT_BPM, trackVolume: number = 100, metronomeVolume: number = 100, trackBpm: number = DEFAULT_BPM, countdownBars: number = 0) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedTrackIndex, setSelectedTrackIndex] = useState(initialTrackIndex)
   const [currentLoopIndex, setCurrentLoopIndex] = useState(0)
   const selectedTrackIndexRef = useRef(initialTrackIndex)
+  const loadGenRef = useRef(0)
+  const loadPromiseRef = useRef<Promise<void> | null>(null)
   const playerRef = useRef<Tone.Player | Tone.GrainPlayer | null>(null)
   const metronomeRef = useRef<Tone.Player | null>(null)
   const buffersRef = useRef<Tone.ToneAudioBuffer[]>([])
@@ -169,6 +172,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   }
 
   const loadTrack = useCallback(async (trackIndex: number, loopIndex: number = 0, bpmOverride?: number) => {
+    const gen = ++loadGenRef.current
     Tone.getTransport().stop()
     Tone.getTransport().position = 0
     Tone.getTransport().cancel()
@@ -186,6 +190,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     }
     buffersRef.current = []
     isLoadedRef.current = false
+    setIsLoading(true)
 
     const track = getTrackInfo(trackIndex)
     const nativeBpm = track ? track.bpm : metronomeBpmRef.current
@@ -209,6 +214,12 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
         Promise.all(loopBufferPromises),
         metronomePromise,
       ])
+
+      // A newer load started while we were downloading — discard these results
+      if (gen !== loadGenRef.current) {
+        metronome?.dispose()
+        return
+      }
 
       buffersRef.current = loopBuffers
 
@@ -236,6 +247,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       currentLoopIndexRef.current = loopIndex
     } catch (e) {
       console.error('Failed to load audio:', e)
+    } finally {
+      if (gen === loadGenRef.current) setIsLoading(false)
     }
   }, [])
 
@@ -277,21 +290,27 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
     cancelPendingTransition()
   }, [])
 
+  // Ensure audio is loaded, waiting for any in-progress load or starting a new one.
+  const ensureLoaded = useCallback(async () => {
+    if (loadPromiseRef.current) await loadPromiseRef.current
+    if (!isLoadedRef.current) {
+      const p = loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current)
+      loadPromiseRef.current = p
+      await p
+      if (loadPromiseRef.current === p) loadPromiseRef.current = null
+    }
+  }, [loadTrack])
+
   const play = useCallback(async () => {
     await Tone.start()
-    if (!isLoadedRef.current) {
-      await loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current)
-    }
+    await ensureLoaded()
     Tone.getTransport().start()
     setIsPlaying(true)
-  }, [loadTrack])
+  }, [ensureLoaded])
 
   const togglePlay = useCallback(async () => {
     await Tone.start()
-
-    if (!isLoadedRef.current) {
-      await loadTrack(selectedTrackIndexRef.current, currentLoopIndexRef.current)
-    }
+    await ensureLoaded()
 
     const transport = Tone.getTransport()
     if (transport.state === 'started') {
@@ -301,12 +320,15 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       transport.start()
       setIsPlaying(true)
     }
-  }, [loadTrack])
+  }, [ensureLoaded])
 
   const changeTrack = useCallback(
     async (trackIndex: number, customBpm?: number) => {
       const wasPlaying = Tone.getTransport().state === 'started'
-      await loadTrack(trackIndex, 0, customBpm)
+      const p = loadTrack(trackIndex, 0, customBpm)
+      loadPromiseRef.current = p
+      await p
+      if (loadPromiseRef.current === p) loadPromiseRef.current = null
 
       if (wasPlaying) {
         Tone.getTransport().start()
@@ -318,7 +340,8 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
   // Load a mix file. Always plays at rate 1 at the file's native BPM.
   // Caller is responsible for picking the right file for the current BPM.
-  const loadMix = useCallback(async (audioUrl: string, fileBpm: number) => {
+  const loadMixAsync = useCallback(async (audioUrl: string, fileBpm: number) => {
+    const gen = ++loadGenRef.current
     const transport = Tone.getTransport()
     transport.stop()
     transport.position = 0
@@ -340,33 +363,54 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
       metronomeRef.current.sync().start(0)
     }
 
-    const metronomeFile = METRONOME_FILES[fileBpm]
-    const [mixBuffer, metronome] = await Promise.all([
-      loadBuffer(audioUrl),
-      !metronomeRef.current && metronomeFile
-        ? loadPlayer(metronomeFile, true)
-        : null,
-    ])
+    isLoadedRef.current = false
+    setIsLoading(true)
 
-    const countdown = countdownBarsRef.current
-    const player = new Tone.GrainPlayer(mixBuffer).toDestination()
-    player.loop = false
-    player.grainSize = 0.1
-    player.overlap = 0.05
-    player.playbackRate = 1
-    player.volume.value = volumeToDb(trackVolumeRef.current)
-    player.sync().start(`${countdown}:0:0`)
-    playerRef.current = player
-    isLoadedRef.current = true
+    try {
+      const metronomeFile = METRONOME_FILES[fileBpm]
+      const [mixBuffer, metronome] = await Promise.all([
+        loadBuffer(audioUrl),
+        !metronomeRef.current && metronomeFile
+          ? loadPlayer(metronomeFile, true)
+          : null,
+      ])
 
-    if (metronome) {
-      metronome.sync().start(0)
-      metronomeRef.current = metronome
+      if (gen !== loadGenRef.current) {
+        metronome?.dispose()
+        return
+      }
+
+      const countdown = countdownBarsRef.current
+      const player = new Tone.GrainPlayer(mixBuffer).toDestination()
+      player.loop = false
+      player.grainSize = 0.1
+      player.overlap = 0.05
+      player.playbackRate = 1
+      player.volume.value = volumeToDb(trackVolumeRef.current)
+      player.sync().start(`${countdown}:0:0`)
+      playerRef.current = player
+      isLoadedRef.current = true
+
+      if (metronome) {
+        metronome.sync().start(0)
+        metronomeRef.current = metronome
+      }
+      syncMetronomeState(0)
+
+      setIsPlaying(false)
+    } catch (e) {
+      console.error('Failed to load mix:', e)
+    } finally {
+      if (gen === loadGenRef.current) setIsLoading(false)
     }
-    syncMetronomeState(0)
-
-    setIsPlaying(false)
   }, [])
+
+  const loadMix = useCallback((audioUrl: string, fileBpm: number) => {
+    const p = loadMixAsync(audioUrl, fileBpm)
+    loadPromiseRef.current = p
+    p.finally(() => { if (loadPromiseRef.current === p) loadPromiseRef.current = null })
+    return p
+  }, [loadMixAsync])
 
   // Live BPM adjustment for non-variant (GrainPlayer) playback.
   // Called imperatively from page.tsx — no effect needed.
@@ -477,6 +521,7 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
 
   return {
     isPlaying,
+    isLoading,
     selectedTrackIndex,
     currentLoopIndex,
     play,
