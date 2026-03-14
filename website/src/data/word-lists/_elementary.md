@@ -9,17 +9,17 @@ tags: ["beginner","easy","simple"]
 ---
 all, ball, fall, call, crawl, tall
 ate, great, late, date, fate, plate, straight, state, eight
-bad, glad, pad, had
+bad, glad, pad, had, sad, mad, dad
 bag, tag, brag, rag, flag
 bake, make, lake, take, fake
 band, land, planned, sand, stand, hand, grand
-bat, cat, hat, sat
+bat, cat, hat, sat, flat, mat, rat, chat, that
 tree, see, knee, me, key, bee, free, sea, glee
 bed, head, red, fed, spread, bread, said
 write, bright, light, sight, fight, flight, kite, right, might, bite, night
-bell, tell, smell, well
+bell, tell, smell, well, fell, sell, shell, spell, yell
 best, test, rest, nest
-big, dig, pig, wig
+big, dig, pig, wig, gig
 bill, fill, hill, drill, still, will
 sit, bit, fit, hit
 blue, you, too, two, new, knew, grew, drew, flew, do, clue, true
@@ -32,7 +32,7 @@ good, could, stood, should
 letter, better, cheddar, sweater
 blend, end, friend, send
 blind, find, mind, kind
-boat, goat, wrote, note
+boat, goat, wrote, note, float, coat, throat, vote
 bone, zone, stone, own, shown
 box, rocks, fox, socks
 brown, down, town, clown
@@ -41,7 +41,7 @@ bug, rug, hug, plug
 bun, sun, one, fun, done, run, none
 buy, try, eye, fly, high, sky, dry, cry, tie
 name, same, frame, game, fame, shame, claim, aim
-can, fan, plan, ran
+can, fan, plan, ran, man, van, tan, pan, ban
 cap, rap, tap, map, snap, nap
 car, far, bar, jar, star
 caught, hot, not, spot, pot, bought, dot, taught
@@ -49,7 +49,8 @@ please, cheese, ease, tease, breeze
 very, cherry, carry, merry, hairy
 hear, near, clear, year, steer, ear, here
 rhyme, climb, time, prime, slime
-clock, knock, rock, sock, stock, shock, lock, talk, walk
+clock, knock, rock, sock, stock, shock, lock, block, dock
+talk, walk, chalk, stalk
 cold, told, bold, old, fold, sold, mold
 crazy, lazy, daisy, hazy
 deep, keep, sleep, cheap, leap, steep
@@ -116,3 +117,12 @@ form, norm, storm, warm, swarm
 sent, spent, meant, bent, dent, vent, tent, rent, scent
 hard, yard, card, guard, shard, scarred
 young, sprung, sung, tongue, lung, swung
+brain, train, rain, pain, chain, plain, gain, drain, main, strain
+nice, ice, rice, dice, mice, price, twice, slice, spice
+joke, broke, spoke, smoke, poke, stroke, choke
+jump, bump, pump, dump, lump, stump, clump, plump
+junk, trunk, funk, dunk, skunk, chunk, bunk, drunk
+bank, thank, tank, rank, blank, prank, sank, crank
+cash, crash, flash, trash, smash, dash, splash, clash, mash
+duck, luck, truck, stuck, pluck, chuck, tuck, struck
+club, tub, rub, scrub, hub, pub

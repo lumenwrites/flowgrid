@@ -36,7 +36,7 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={cn(inter.variable, 'font-sans')}>
+    <html lang="en" className={cn(inter.variable, 'font-sans')} suppressHydrationWarning>
       <body className="flex h-screen flex-col overflow-hidden">
         {children}
         <Analytics />
