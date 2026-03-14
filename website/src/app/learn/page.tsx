@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'
 import Video from '@/components/ui/Video'
 
 const TUTORIALS = [
@@ -40,7 +41,7 @@ export default function LearnPage() {
               Freestyle Rap Tutorials
             </h1>
             <p className="text-foreground-muted">
-              Learn to freestyle rap in 5 minutes per day.
+              Learn to freestyle rap in 5 minutes per day
             </p>
           </div>
 
@@ -110,12 +111,12 @@ export default function LearnPage() {
                   }}
                   className="flex flex-col items-center gap-3 max-w-sm mx-auto"
                 >
-                  <div className="flex gap-2 w-full">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
                     <input
                       type="email"
                       name="email"
                       required
-                      placeholder="Your email"
+                      placeholder="Enter your email..."
                       className="flex-1 px-4 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
                     />
                     <button
@@ -125,6 +126,15 @@ export default function LearnPage() {
                     >
                       {submitState === 'loading' ? 'Signing up...' : 'Sign up'}
                     </button>
+                    <a
+                      href="https://discord.gg/z3AmD8UMVG"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center px-3 py-2.5 rounded-lg bg-accent text-white hover:bg-accent-hover transition-colors"
+                      aria-label="Join Discord"
+                    >
+                      <FontAwesomeIcon icon={faDiscord} className="text-lg" />
+                    </a>
                   </div>
                   {submitState === 'error' && (
                     <p className="text-red-400 text-sm">{errorMsg}</p>
