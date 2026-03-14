@@ -14,7 +14,7 @@ import { useRhymes } from '@/hooks/useRhymes'
 import { useSettings, type Settings } from '@/hooks/useSettings'
 import { randomSeed } from '@/lib/utils'
 import { AVAILABLE_TRACKS, NONE_TRACK_INDEX, type LoopInfo, type SectionStart, type Loop, getFileForBpm, mixFileUrl, getBpmVariants } from '@/lib/constants'
-import { type BarData, type RhymeColor, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
+import { type BarData, BLANK_COLOR, generateBarsFromGrid, buildDisplayBars } from '@/lib/rhymes'
 import { parseGrid, deriveSectionsFromGrid } from '@/lib/grid-format'
 
 function getNextBoundary(currentBar: number, epochBar: number, loopBars: number): number {
@@ -119,16 +119,20 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const activeMix = activeMixIndex !== null ? currentTrack?.mixes?.[activeMixIndex] ?? null : null
 
+  // Parse grid once, shared by section resolution and bar generation
+  const parsedGrid = useMemo(() => {
+    if (!activeMix?.grid) return null
+    const gridText = Array.isArray(activeMix.grid) ? activeMix.grid.join('\n') : activeMix.grid
+    return parseGrid(gridText)
+  }, [activeMix])
+
   // Resolve sections: use explicit sections if provided, otherwise derive from grid headers
   const resolvedMixSections = useMemo(() => {
     if (!activeMix) return null
     if (activeMix.sections) return { sections: activeMix.sections, fromGrid: false }
-    if (activeMix.grid) {
-      const gridText = Array.isArray(activeMix.grid) ? activeMix.grid.join('\n') : activeMix.grid
-      return { sections: deriveSectionsFromGrid(parseGrid(gridText)), fromGrid: true }
-    }
+    if (parsedGrid) return { sections: deriveSectionsFromGrid(parsedGrid), fromGrid: true }
     return null
-  }, [activeMix])
+  }, [activeMix, parsedGrid])
 
   const mixTotalBars = resolvedMixSections
     ? resolvedMixSections.sections.reduce((sum, s) => sum + s.bars, 0) : 0
@@ -156,12 +160,9 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
 
   const mixBars = useMemo(() => {
     if (!activeMix) return null
-    if (activeMix.grid) {
-      const gridText = Array.isArray(activeMix.grid) ? activeMix.grid.join('\n') : activeMix.grid
-      return generateBarsFromGrid(parseGrid(gridText), settings.fillMode)
-    }
+    if (parsedGrid) return generateBarsFromGrid(parsedGrid, settings.fillMode)
     return bars.slice(0, mixNonInstrumentalBars)
-  }, [activeMix, mixNonInstrumentalBars, bars, settings.fillMode])
+  }, [activeMix, parsedGrid, mixNonInstrumentalBars, bars, settings.fillMode])
 
   // Load saved mix audio on initial mount
   const initialMixLoadedRef = useRef(false)
@@ -291,7 +292,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       stop()
       resetPosition()
     }
-  }, [position.bar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
+  }, [position.contentBar, isPlaying, activeMix, mixTotalBars, stop, resetPosition])
 
   const handleBpmChange = useCallback(async (newBpm: number) => {
     update('trackBpm', newBpm)
@@ -324,7 +325,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }, [currentTrack, activeMix, currentLoopIndex, isPlaying, settings.selectedTrackIndex, update, resetLoopState, resetPosition, loadMix, play, adjustBpm, changeTrack])
 
-  const handleTrackChange = async (index: number) => {
+  const handleTrackChange = useCallback(async (index: number) => {
     const track = index === NONE_TRACK_INDEX ? null : AVAILABLE_TRACKS[index]
     const newBpm = track ? track.bpm : settings.metronomeBpm
     stop()
@@ -349,7 +350,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       setLoopIndex(savedLoopIndex)
       resetLoopState(savedLoopIndex)
     }
-  }
+  }, [stop, update, updateTrackIndex, resetPosition, regenerate, getDefaultMixIndex, resetLoopState, loadMix, changeTrack, setLoopIndex, settings.metronomeBpm, settings.trackSelections])
 
   const handleWordListChange = (id: string) => {
     update('selectedListId', id)
@@ -403,7 +404,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   // Remap the flat rhyme pool so instrumental sections get blank bars and
   // non-instrumental sections pull rhymes sequentially (preserving pair alignment).
   // Then prepend countdown bars so Grid renders everything in transport coordinates.
-  const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
   const displayBars = useMemo(() => {
     let contentBars: BarData[]
     // When sections are derived from the grid, bars already include instrumental

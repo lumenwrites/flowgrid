@@ -67,22 +67,13 @@ export default function PlaybackToolbar({
   const playGroupRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!audioPopupOpen) return
+    if (!audioPopupOpen && !metronomePopupOpen) return
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setAudioPopupOpen(false)
+      if (e.key === 'Escape') { setAudioPopupOpen(false); setMetronomePopupOpen(false) }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [audioPopupOpen])
-
-  useEffect(() => {
-    if (!metronomePopupOpen) return
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMetronomePopupOpen(false)
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [metronomePopupOpen])
+  }, [audioPopupOpen, metronomePopupOpen])
 
   const trackLabel = selectedTrackIndex === NONE_TRACK_INDEX
     ? 'No track'

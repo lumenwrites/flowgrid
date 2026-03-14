@@ -1,4 +1,4 @@
-import { RHYME_COLORS, BEATS_PER_BAR, type RhymePattern, type BarsPerLine, type FillMode, type LoopInfo, getLoopForBar } from './constants'
+import { RHYME_COLORS, BEATS_PER_BAR, type RhymePattern, type BarsPerLine, type FillMode, type LoopInfo, getLoopForBar, isInstrumentalSection } from './constants'
 import { type GridData } from './grid-format'
 
 export type Word = {
@@ -179,8 +179,7 @@ export function generateBarsFromGrid(
   for (const line of grid.lines) {
     const beatsPerBar = BEATS_PER_BAR
     const barsInLine = Math.max(1, Math.floor(line.beats.length / beatsPerBar))
-    const isInstrumental = (line.section === 'Break' || line.section === 'Intro' || line.section === 'Outro')
-      && line.beats.every(b => b.word === null)
+    const isInstrumental = line.section != null && isInstrumentalSection(line.section, line.beats)
 
     // Fill mode: position in pair (AABB-style)
     const posInPair = lineIdx % 2
@@ -232,7 +231,7 @@ export function generateBarsFromGrid(
   return bars
 }
 
-const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
+export const BLANK_COLOR: RhymeColor = { bg: 'transparent', border: 'transparent', activeBg: 'transparent', activeBorder: 'transparent' }
 
 // Remaps a flat rhyme pool into display bars that account for instrumental sections.
 //

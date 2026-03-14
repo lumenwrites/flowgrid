@@ -522,4 +522,11 @@ export function getLoopForBar(barIdx: number, loopInfo: LoopInfo): Loop | null {
   return loops[loopIndex] ?? null
 }
 
+// Names that count as instrumental when all beats are empty
+const INSTRUMENTAL_SECTION_NAMES = new Set(['Break', 'Intro', 'Outro'])
+
+export function isInstrumentalSection(sectionName: string, beats: { word: string | null }[]): boolean {
+  return INSTRUMENTAL_SECTION_NAMES.has(sectionName) && beats.every(b => b.word === null)
+}
+
 export type BarsPerLine = 1 | 2
