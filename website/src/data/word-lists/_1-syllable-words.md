@@ -76,7 +76,7 @@ broad, fraud, flawed, clawed, gnawed
 frog, hog, jog, log, smog, dog, cog, fog, bog
 rock, shock, lock, mock, stock, knock, dock, block
 chalk, walk, talk, stalk, hawk, squawk
-pop, top, flop, stop, chop, drop, mop, opt, shop
+pop, top, flop, stop, chop, drop, mop, shop
 lot, pot, rot, taught, ought, hot, plot, jot
 box, fox, ox, rocks, locks, socks, blocks, clocks, docks, knocks
 cough, off, scoff, trough

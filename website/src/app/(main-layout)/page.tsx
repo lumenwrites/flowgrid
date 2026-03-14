@@ -408,19 +408,26 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       seekToBarAudio(barIndex, beat)
     } else if (currentTrack) {
       seekToBarAudio(barIndex, beat, targetLoopIndex, sectionStartBar)
-      // When seeking to a different section: clear transition state but keep section
-      // headers visible (don't trim sectionStarts)
-      if (targetLoopIndex !== currentLoopIndex) {
-        setQueuedLoopIndex(null)
-        setTransitionBar(null)
-        transitionBarRef.current = null
+      // Re-schedule audio transition for the next section boundary after seek target
+      if (info) {
+        const nextSection = info.sectionStarts.find(s => s.bar > barIndex)
+        if (nextSection) {
+          scheduleTransition(nextSection.loopIndex, nextSection.bar)
+          setQueuedLoopIndex(nextSection.loopIndex)
+          setTransitionBar(nextSection.bar)
+          transitionBarRef.current = nextSection.bar
+        } else {
+          setQueuedLoopIndex(null)
+          setTransitionBar(null)
+          transitionBarRef.current = null
+        }
       }
     } else {
       seekToBarAudio(barIndex, beat)
     }
 
     seekTo(barIndex, beat)
-  }, [activeLoopInfo, currentLoopIndex, activeMixIndex, currentTrack, seekToBarAudio, seekTo])
+  }, [activeLoopInfo, currentLoopIndex, activeMixIndex, currentTrack, seekToBarAudio, seekTo, scheduleTransition])
 
   // Remap the flat rhyme pool so instrumental sections get blank bars and
   // non-instrumental sections pull rhymes sequentially (preserving pair alignment).
