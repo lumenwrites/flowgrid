@@ -137,18 +137,29 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   const mixTotalBars = resolvedMixSections
     ? resolvedMixSections.sections.reduce((sum, s) => sum + s.bars, 0) : 0
 
-  const mixLoopInfo: LoopInfo | null = useMemo(() => {
+  // 0-based loopInfo for buildDisplayBars (rhyme mapping must not be offset by countdown)
+  const mixLoopInfoBase: LoopInfo | null = useMemo(() => {
     if (!resolvedMixSections) return null
     const starts: SectionStart[] = []
     const fakeLoops: Loop[] = []
-    let bar = countdownBars
+    let bar = 0
     for (const section of resolvedMixSections.sections) {
       starts.push({ bar, loopIndex: fakeLoops.length })
       fakeLoops.push({ name: section.name, files: [], bars: section.bars, instrumental: section.instrumental })
       bar += section.bars
     }
     return { sectionStarts: starts, loops: fakeLoops }
-  }, [resolvedMixSections, countdownBars])
+  }, [resolvedMixSections])
+
+  // Countdown-offset loopInfo for rendering (Grid section headers, seek, etc.)
+  const mixLoopInfo: LoopInfo | null = useMemo(() => {
+    if (!mixLoopInfoBase) return null
+    if (countdownBars === 0) return mixLoopInfoBase
+    return {
+      ...mixLoopInfoBase,
+      sectionStarts: mixLoopInfoBase.sectionStarts.map(s => ({ ...s, bar: s.bar + countdownBars })),
+    }
+  }, [mixLoopInfoBase, countdownBars])
 
   // For mixes with explicit sections, the rhyme pool only covers non-instrumental bars.
   // buildDisplayBars will then expand this back to the full bar count by
@@ -234,7 +245,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
       return
     }
 
-    if (!isPlaying) {
+    if (!isPlaying || position.bar < countdownBars) {
       setLoopIndex(index)
       resetLoopState(index)
       cancelTransition()
@@ -268,7 +279,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     setTransitionBar(boundary)
     transitionBarRef.current = boundary
     scheduleTransition(index, boundary)
-  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeMixIndex, handleExitMix, saveTrackSelection, settings.selectedTrackIndex])
+  }, [currentTrack, currentLoop, currentLoopIndex, isPlaying, position.bar, countdownBars, sectionStarts, queuedLoopIndex, scheduleTransition, cancelTransition, setLoopIndex, resetLoopState, activeMixIndex, handleExitMix, saveTrackSelection, settings.selectedTrackIndex])
 
   // When playhead crosses the transition boundary, just clear the queue (section already in sectionStarts)
   useEffect(() => {
@@ -365,6 +376,16 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }
   }
 
+  // 0-based loopInfo for buildDisplayBars (rhyme mapping must not be offset by countdown)
+  const loopInfoBase: LoopInfo | null = useMemo(() => {
+    if (!currentTrack?.loops) return null
+    const starts = countdownBars === 0
+      ? sectionStarts
+      : sectionStarts.map(s => ({ ...s, bar: s.bar - countdownBars }))
+    return { sectionStarts: starts, loops: currentTrack.loops }
+  }, [currentTrack, sectionStarts, countdownBars])
+
+  // Countdown-offset loopInfo for rendering (Grid section headers, seek, etc.)
   const loopInfo: LoopInfo | null = useMemo(() => {
     if (!currentTrack?.loops) return null
     return { sectionStarts, loops: currentTrack.loops }
@@ -408,8 +429,8 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     let contentBars: BarData[]
     // When sections are derived from the grid, bars already include instrumental
     // bars, so skip buildDisplayBars (pass null loopInfo for passthrough).
-    if (mixBars) contentBars = buildDisplayBars(mixBars, resolvedMixSections?.fromGrid ? null : mixLoopInfo)
-    else contentBars = buildDisplayBars(bars, loopInfo)
+    if (mixBars) contentBars = buildDisplayBars(mixBars, resolvedMixSections?.fromGrid ? null : mixLoopInfoBase)
+    else contentBars = buildDisplayBars(bars, loopInfoBase)
 
     const countdown = countdownBars
     if (countdown === 0) return contentBars
@@ -419,7 +440,7 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     }))
     const reindexed = contentBars.map(bar => ({ ...bar, index: bar.index + countdown }))
     return [...countdownEntries, ...reindexed]
-  }, [mixBars, mixLoopInfo, bars, loopInfo, countdownBars, resolvedMixSections])
+  }, [mixBars, mixLoopInfoBase, bars, loopInfoBase, countdownBars, resolvedMixSections])
 
   return (
     <>

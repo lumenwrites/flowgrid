@@ -117,5 +117,23 @@ When asked to create a new word list, follow the prompt in `website/src/data/GEN
 
 If I ask you to make a todo list, create a TASKS.md file, summarizing our goal at the top (including all the important details), and then having `## TODO` and `## DONE` lists. As you complete the tasks, move the completed items into the DONE list (do not cross them out or mark them as checkboxes, items should be simply deleted from TODO and added to DONE).
 
+## Playwright Tests
+
+UI interaction tests live in `website/tests/app.spec.ts`. They click through all controls, modals, popups, and verify the DOM responds correctly. Audio playback itself is not tested (Web Audio can't be verified via Playwright).
+
+```bash
+cd website
+npm test          # run all tests headless
+npm run test:ui   # interactive UI mode
+```
+
+The config (`website/playwright.config.ts`) auto-starts the dev server on port 3030 if one isn't already running.
+
+**When to run tests:** After changing UI behavior — modifying components, adding/removing controls, changing how modals/popups/buttons work. Not needed for non-UI changes like word list edits.
+
+**When to write new tests:** When adding new UI features — a new modal, button, interaction flow, or control. Add tests to `website/tests/app.spec.ts`.
+
+**When tests fail:** Fix the code or fix the test. Don't skip or delete tests without understanding why they failed.
+
 ## Self-improving documentation
 Update this file, SPEC, TODO, references, and task lists proactively as needed. You should your own judgement to update the files, when you learn or change something important in the chat, build a new feature, when we establish best practices, etc.

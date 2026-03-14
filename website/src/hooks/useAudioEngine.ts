@@ -431,6 +431,31 @@ export function useAudioEngine(metronomeEnabled: boolean = false, initialTrackIn
   const setLoopIndex = useCallback((loopIndex: number) => {
     setCurrentLoopIndex(loopIndex)
     currentLoopIndexRef.current = loopIndex
+
+    // If transport is running during countdown, swap the synced player to the new loop's buffer
+    const countdown = countdownBarsRef.current
+    if (countdown > 0 && Tone.getTransport().state === 'started') {
+      const pos = Tone.getTransport().position as string
+      const currentBar = parseInt(pos.split(':')[0], 10) || 0
+      if (currentBar < countdown) {
+        const buffers = buffersRef.current
+        if (buffers[loopIndex] && playerRef.current) {
+          playerRef.current.unsync()
+          playerRef.current.stop()
+          playerRef.current.dispose()
+
+          const track = getTrackInfo(selectedTrackIndexRef.current)
+          const hasVariants = hasVariantFiles(track)
+          const rate = getPlaybackRate(track, hasVariants, trackBpmRef.current)
+
+          playerRef.current = createSyncedPlayer(buffers[loopIndex], {
+            hasVariants, rate, loop: true,
+            volume: trackVolumeRef.current,
+            startBar: `${countdown}:0:0`,
+          })
+        }
+      }
+    }
   }, [])
 
   const seekToBar = useCallback((targetBar: number, beat: number = 0, loopIndex?: number, syncStartBar?: number) => {
