@@ -57,7 +57,7 @@ for (const file of files) {
   let familyId = 1;
   for (const line of body.split('\n')) {
     const trimmed = line.trim();
-    if (!trimmed) continue;
+    if (!trimmed || trimmed.startsWith('//')) continue;
 
     const wordList = trimmed.split(',').map(w => w.trim()).filter(Boolean);
     for (const word of wordList) {

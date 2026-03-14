@@ -81,7 +81,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
     wordLists,
     selectedListId,
     bars,
-    changeWordList,
     extendBars,
     regenerate,
   } = useRhymes(settings.rhymePattern, barsPerLine, settings.selectedListId, settings.fillMode, settings.seed)
@@ -352,7 +351,6 @@ function FlowGrid({ settings, update }: { settings: Settings; update: <K extends
   }
 
   const handleWordListChange = (id: string) => {
-    changeWordList(id)
     update('selectedListId', id)
   }
 

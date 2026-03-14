@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { type WordList, type BarData, getWordLists, generateBars } from '@/lib/rhymes'
 import { BARS_BUFFER, INFINITE_INITIAL_BARS, INFINITE_EXTEND_CHUNK, type RhymePattern, type BarsPerLine, type FillMode } from '@/lib/constants'
 
-export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, initialListId: string = 'elementary', fillMode: FillMode = 'all', seed: number = 42) {
+export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: BarsPerLine = 1, selectedListId: string = 'elementary', fillMode: FillMode = 'all', seed: number = 42) {
   const rhymePatternRef = useRef(rhymePattern)
   rhymePatternRef.current = rhymePattern
   const barsPerLineRef = useRef(barsPerLine)
@@ -14,7 +14,6 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
   const seedRef = useRef(seed)
   seedRef.current = seed
   const [wordLists] = useState<WordList[]>(() => getWordLists())
-  const [selectedListId, setSelectedListId] = useState<string>(initialListId)
   const [bars, setBars] = useState<BarData[]>([])
   const selectedListRef = useRef<WordList | undefined>(undefined)
 
@@ -48,10 +47,6 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
     []
   )
 
-  const changeWordList = useCallback((listId: string) => {
-    setSelectedListId(listId)
-  }, [])
-
   const regenerate = useCallback(() => {
     const list = selectedListRef.current
     if (!list) return
@@ -64,7 +59,6 @@ export function useRhymes(rhymePattern: RhymePattern = 'AABB', barsPerLine: Bars
     wordLists,
     selectedListId,
     bars,
-    changeWordList,
     extendBars,
     regenerate,
   }

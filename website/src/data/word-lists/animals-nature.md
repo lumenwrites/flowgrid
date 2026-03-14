@@ -1,10 +1,10 @@
 ---
-id: animals-nature
-name: Animals & Nature
-description: Get wild with this nature-themed word pack!
+id: Nature
+name: Nature
+description: 
 difficulty: 1
 freepaid: PAID
-publicList: false
+publicList: true
 tags: []
 ---
 cat, bat, rat, sat

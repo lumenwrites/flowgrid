@@ -1,3 +1,12 @@
+---
+id: pirates
+name: Pirates
+description: pirates
+difficulty: 1
+freepaid: PAID
+publicList: true
+tags: []
+---
 sea, free, flee, spree
 ship, whip, grip, tip
 gold, bold, hold, told

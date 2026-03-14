@@ -42,3 +42,33 @@ created, related, debated, sedated, equated, inflated, belated
 musical, mutual, funeral, doable, beautiful, usual, cubicle, suitable, usable, movable
 frequency, decency, recently, evenly, thievery, easily, leisurely, peacefully, eagerly, scenery
 spectacle, flexible, pedestal, technical, several, decibel, sceptical, festival, credible, decimal
+
+// Expansion — new families from CMU dictionary
+however, whatever, forever, whenever, wherever, whoever, whichever
+department, apartment, compartment
+december, november, september, remember
+effective, perspective, objective, collective, protective, directive, selective, detective, respective
+decision, division, provision, revision, precision, collision
+potential, essential, sequential, credential, residential
+assistance, resistance, existence, persistence, insistence, consistency
+paragraph, photograph, telegraph, autograph, epitaph
+engineer, volunteer, pioneer, disappear, interfere, atmosphere, hemisphere, souvenir
+progressive, impressive, aggressive, excessive, possessive, obsessive
+arrival, survival, revival
+proportion, abortion, distortion
+explosion, erosion, corrosion
+outstanding, expanding, demanding, commanding, understanding
+delicious, ambitious, malicious, suspicious, nutritious, auspicious
+envelope, telescope, horoscope, microscope, antelope, cantaloupe
+productive, constructive, destructive, instructive, seductive
+questionnaire, solitaire, millionaire, billionaire, debonaire
+offender, surrender, defender, contender, pretender
+exclusive, inclusive, conclusive, elusive
+fantastic, elastic, sarcastic, enthusiastic
+attractive, inactive, reactive, proactive, interactive
+magnetic, genetic, athletic, cosmetic, synthetic, aesthetic, kinetic, pathetic, frenetic
+vanilla, gorilla, guerrilla, umbrella, cinderella
+anywhere, everywhere, underwear, nightmare, unaware
+attitude, latitude, magnitude, gratitude, solitude, altitude, multitude, amplitude
+dinosaur, metaphor, anymore, furthermore, semaphore, carnivore, evermore
+acrobat, habitat, democrat, thermostat, diplomat, aristocrat
