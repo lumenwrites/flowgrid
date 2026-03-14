@@ -243,3 +243,36 @@ cup, yup, up, sup, pup
 once, stunts, dunce, hunts, runts
 wild, child, mild, filed, tiled, piled
 farce, sparse, parse, harsh, marsh
+
+// Expansion — new families from CMU dictionary
+jump, pump, dump, bump, lump, thump, plump, stump
+fresh, mesh, flesh
+health, wealth, stealth
+move, prove, groove
+choice, voice
+self, shelf, elf
+camp, lamp, stamp, ramp, clamp, champ, damp, cramp
+death, breath
+north, fourth, forth
+tube, cube
+oil, soil, coil, foil, boil, toil, spoil
+scout, trout, sprout, snout
+swap, crop, prop, hop, cop
+skull, gull, hull, dull, null, lull
+drown, gown, brown, frown
+club, dub, scrub, shrub
+shrug, thug, hug, snug, jug
+truck, struck, chuck, tuck, cluck, suck
+den, hen, wren, glen, then, when
+nerve, swerve, serve, curve, verge
+trait, weight, freight, straight, bait, wait, fate, gate
+black, track, stack, hack, shack, snack, crack, smack
+dad, add, grad, chad, had, clad
+came, frame, flame, blame, shame, dame
+fight, bright, write, height, white, kite, spite, knight
+goes, shows, flows, knows, throws, grows, blows, toes
+queen, scene, keen, bean
+school, drool, ghoul
+funk, junk, chunk, bunk, hunk, spunk, shrunk
+drum, dumb, gum, plum, hum, scum, slum, glum
+gray, pray, ray, tray, clay, sleigh, weigh, prey

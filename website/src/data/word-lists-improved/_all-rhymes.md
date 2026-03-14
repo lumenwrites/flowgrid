@@ -385,3 +385,106 @@ cup, yup, up, sup, pup
 once, stunts, dunce, hunts, runts
 wild, child, mild, filed, tiled, piled
 farce, sparse, parse, harsh, marsh
+
+// Expansion — new 1-syllable families from CMU dictionary
+jump, pump, dump, bump, lump, thump, plump, stump
+fresh, mesh, flesh
+health, wealth, stealth
+move, prove, groove
+choice, voice
+self, shelf, elf
+camp, lamp, stamp, ramp, clamp, champ, damp, cramp
+death, breath
+north, fourth, forth
+tube, cube
+oil, soil, coil, foil, boil, toil, spoil
+scout, trout, sprout, snout
+swap, crop, prop, hop, cop
+skull, gull, hull, dull, null, lull
+drown, gown, brown, frown
+club, dub, scrub, shrub
+shrug, thug, hug, snug, jug
+truck, struck, chuck, tuck, cluck, suck
+den, hen, wren, glen, then, when
+nerve, swerve, serve, curve, verge
+trait, weight, freight, straight, bait, wait, fate, gate
+black, track, stack, hack, shack, snack, crack, smack
+dad, add, grad, chad, had, clad
+came, frame, flame, blame, shame, dame
+fight, bright, write, height, white, kite, spite, knight
+goes, shows, flows, knows, throws, grows, blows, toes
+queen, scene, keen, bean
+school, drool, ghoul
+funk, junk, chunk, bunk, hunk, spunk, shrunk
+drum, dumb, gum, plum, hum, scum, slum, glum
+gray, pray, ray, tray, clay, sleigh, weigh, prey
+
+// Expansion — new 2-syllable families from CMU dictionary
+about, without, throughout, devout
+reply, apply, supply, comply, deny, rely, nearby, defy
+today, away, display, delay, okay, essay, decay, array, betray, portray, dismay, convey
+compare, repair, aware, prepare, declare, affair, unfair, beware, despair, nightmare
+provide, inside, outside, decide, aside, collide, confide, divide, allied
+around, surround, profound, rebound, renowned, astound
+improve, remove, approve, disprove
+enjoy, destroy, employ, deploy, annoy, decoy
+despite, tonight, invite, delight, excite, ignite, polite, recite, uptight, unite
+yourself, itself, himself, myself, herself
+control, patrol, enroll, parole
+command, demand, expand, withstand, firsthand, offhand
+account, amount, discount, surmount
+express, success, unless, possess, distress, recess, compress, impress
+event, percent, prevent, extent, consent, intent, cement, descent, relent, resent, repent, invent
+alive, arrive, survive, derive, revive, deprive, connive
+career, appear, severe, frontier, unclear, sincere, cashier, premiere
+domain, campaign, maintain, obtain, remain, explain, terrain, restrain, refrain, sustain, complain, contain
+beauty, duty, booty, cutie
+advice, device, precise, concise
+appeal, ideal, reveal, unreal, surreal, ordeal
+relief, belief, motif
+mention, pension, tension, dimension
+unique, technique, antique, boutique, critique, mystique
+reserve, preserve, observe, deserve
+complete, delete, concrete, compete, defeat, retreat, discreet, receipt, repeat, elite
+reduce, abuse, produce, excuse, deduce, seduce, induce
+dinner, winner, inner, thinner, sinner, beginner
+extreme, supreme, redeem, regime, esteem
+avoid, annoyed, employed, enjoyed, destroyed, deployed
+double, trouble, bubble, rubble, stubble, humble, crumble, rumble, fumble, tumble, stumble, mumble
+record, award, toward, afford, reward, accord, adored, explored, restored
+design, define, refine, decline, divine, assign, align, confine, combine, entwine, outline, resign
+older, folder, holder, shoulder, boulder, colder, bolder
+fuel, dual, jewel, cruel, duel
+beneath, unleash
+cartoon, balloon, saloon, maroon, lagoon, platoon, bassoon, harpoon, cocoon, raccoon
+donate, locate, rotate, vibrate, migrate, translate, debate, create, equate
+
+// Expansion — new 3-syllable families from CMU dictionary
+however, whatever, forever, whenever, wherever, whoever, whichever
+department, apartment, compartment
+december, november, september, remember
+effective, perspective, objective, collective, protective, directive, selective, detective, respective
+decision, division, provision, revision, precision, collision
+potential, essential, sequential, credential, residential
+assistance, resistance, existence, persistence, insistence, consistency
+paragraph, photograph, telegraph, autograph, epitaph
+engineer, volunteer, pioneer, disappear, interfere, atmosphere, hemisphere, souvenir
+progressive, impressive, aggressive, excessive, possessive, obsessive
+arrival, survival, revival
+proportion, abortion, distortion
+explosion, erosion, corrosion
+outstanding, expanding, demanding, commanding, understanding
+delicious, ambitious, malicious, suspicious, nutritious, auspicious
+envelope, telescope, horoscope, microscope, antelope, cantaloupe
+productive, constructive, destructive, instructive, seductive
+questionnaire, solitaire, millionaire, billionaire, debonaire
+offender, surrender, defender, contender, pretender
+exclusive, inclusive, conclusive, elusive
+fantastic, elastic, sarcastic, enthusiastic
+attractive, inactive, reactive, proactive, interactive
+magnetic, genetic, athletic, cosmetic, synthetic, aesthetic, kinetic, pathetic, frenetic
+vanilla, gorilla, guerrilla, umbrella, cinderella
+anywhere, everywhere, underwear, nightmare, unaware
+attitude, latitude, magnitude, gratitude, solitude, altitude, multitude, amplitude
+dinosaur, metaphor, anymore, furthermore, semaphore, carnivore, evermore
+acrobat, habitat, democrat, thermostat, diplomat, aristocrat

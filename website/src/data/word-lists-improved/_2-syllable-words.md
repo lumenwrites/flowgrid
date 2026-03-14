@@ -114,3 +114,43 @@ evening, meaning, cleaning, seeming, scheming, leaving, steaming
 eating, reading, seating, heating, needing, leading
 concept, context, contest, conquest, onset, complex
 luncheon, dungeon, function, junction, onion, sunken, gumption
+
+// Expansion — new families from CMU dictionary
+about, without, throughout, devout
+reply, apply, supply, comply, deny, rely, nearby, defy
+today, away, display, delay, okay, essay, decay, array, betray, portray, dismay, convey
+compare, repair, aware, prepare, declare, affair, unfair, beware, despair, nightmare
+provide, inside, outside, decide, aside, collide, confide, divide, allied
+around, surround, profound, rebound, renowned, astound
+improve, remove, approve, disprove
+enjoy, destroy, employ, deploy, annoy, decoy
+despite, tonight, invite, delight, excite, ignite, polite, recite, uptight, unite
+yourself, itself, himself, myself, herself
+control, patrol, enroll, parole
+command, demand, expand, withstand, firsthand, offhand
+account, amount, discount, surmount
+express, success, unless, possess, distress, recess, compress, impress
+event, percent, prevent, extent, consent, intent, cement, descent, relent, resent, repent, invent
+alive, arrive, survive, derive, revive, deprive, connive
+career, appear, severe, frontier, unclear, sincere, cashier, premiere
+domain, campaign, maintain, obtain, remain, explain, terrain, restrain, refrain, sustain, complain, contain
+beauty, duty, booty, cutie
+advice, device, precise, concise
+appeal, ideal, reveal, unreal, surreal, ordeal
+relief, belief, motif
+mention, pension, tension, dimension
+unique, technique, antique, boutique, critique, mystique
+reserve, preserve, observe, deserve
+complete, delete, concrete, compete, defeat, retreat, discreet, receipt, repeat, elite
+reduce, abuse, produce, excuse, deduce, seduce, induce
+dinner, winner, inner, thinner, sinner, beginner
+extreme, supreme, redeem, regime, esteem
+avoid, annoyed, employed, enjoyed, destroyed, deployed
+double, trouble, bubble, rubble, stubble, humble, crumble, rumble, fumble, tumble, stumble, mumble
+record, award, toward, afford, reward, accord, adored, explored, restored
+design, define, refine, decline, divine, assign, align, confine, combine, entwine, outline, resign
+older, folder, holder, shoulder, boulder, colder, bolder
+fuel, dual, jewel, cruel, duel
+beneath, unleash
+cartoon, balloon, saloon, maroon, lagoon, platoon, bassoon, harpoon, cocoon, raccoon
+donate, locate, rotate, vibrate, migrate, translate, debate, create, equate
