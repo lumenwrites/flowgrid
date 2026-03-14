@@ -26,7 +26,7 @@ as, has, spaz, jazz
 snatch, hatch, patch, batch, match, scratch, catch, latch
 led, dead, fed, bed, red, shed, head, said
 leg, egg, beg, peg
-deck, neck, tech, check, wreck, treck, heck, sect, peck
+deck, neck, tech, check, wreck, trek, heck, sect, peck
 step, prep, strep, pep
 leapt, crept, wept, kept, swept, slept
 bet, set, met, wet, pet, fret, get, net
@@ -36,7 +36,7 @@ theft, heft, left, cleft
 less, guess, mess, yes, bless, press, chess, stress
 rest, test, pest, best, guest, west, zest, nest
 fetch, stretch, etch, sketch
-wedge, edge, hedge, ledge
+wedge, edge, hedge, ledge, pledge
 hem, phlegm, gem, stem
 then, zen, pen, men
 stench, clench, wench, bench, wrench, trench, french, drench
@@ -71,12 +71,14 @@ wince, prince, since, rinse
 till, bill, chill, still, drill, mill, will, pill
 guilt, built, stilt, kilt, quilt, hilt, wilt, tilt
 rob, knob, swab, snob, sob, mob, slob, job
-nod, rod, god, broad, fraud
-frog, hog, jog, log, smog, dog, cog, sog
-rock, shock, chalk, lock, walk, mock, talk, stock
+nod, rod, god, odd, pod, squad, prod, plod, sod
+broad, fraud, flawed, clawed, gnawed
+frog, hog, jog, log, smog, dog, cog, fog, bog
+rock, shock, lock, mock, stock, knock, dock, block
+chalk, walk, talk, stalk, hawk, squawk
 pop, top, flop, stop, chop, drop, mop, opt, shop
 lot, pot, rot, taught, ought, hot, plot, jot
-aux, box, fox, ox
+box, fox, ox, rocks, locks, socks, blocks, clocks, docks, knocks
 cough, off, scoff, trough
 oft, soft, loft, waft
 floss, loss, sauce, gloss, toss
@@ -88,17 +90,18 @@ bomb, palm, calm, qualm, prom, mom
 dawn, yawn, gone, brawn, spawn, lawn, drawn, don
 pond, bond, fond, wand
 wrong, song, prong, strong, long
-want, jont, font, haunt, flaunt
+want, jaunt, font, haunt, flaunt
 fall, wall, ball, call, small, tall, crawl, all
 halt, salt, vault, fault
-draw, law, raw, saw
+draw, law, raw, saw, jaw, flaw, claw, thaw, paw, straw, awe, gnaw
 snub, grub, stub, hub, pub, flub, rub, tub
 mud, thud, dud, spud, crud, bud, blood, flood
 bug, slug, drug, tug, mug, dug, rug, plug
 stuck, luck, puck, huck, pluck, muck, buck, duck
 strut, mutt, cut, hut, shut, gut, what, nut
 lux, crux, tux, flux
-stuff, rough, tough, tuft, bluff
+stuff, rough, tough, bluff, buff, cuff, fluff, puff
+tuft, stuffed, huffed, puffed
 fuss, bus, us, plus
 mush, crush, rush, brush, gush, blush, hush, slush
 dusk, musk, tusk, husk
@@ -115,10 +118,11 @@ flunk, trunk, sunk, monk, punk, drunk, skunk, dunk
 punt, blunt, grunt, stunt, brunt, front
 stood, should, would, hood, good, could, wood
 hook, took, shook, crook, book, look, cook, nook
-wool, bull, dull, able, hull, full, bagel, null
+wool, bull, full, pull
+dull, hull, null, gull, skull, lull
 aid, fade, made, blade, grade, paid, shade, trade
 make, shake, take, wake, fake, lake, bake, ache
-ape, shape, cape, tape, scrape, gape, nape, drape
+ape, shape, cape, tape, scrape, gape, nape, drape, grape
 date, great, plate, slate, trait, hate, ate, late
 race, pace, place, grace, face, case, ace, space
 baste, waist, haste, paste
@@ -146,11 +150,10 @@ seem, cream, scheme, team, theme, steam, beam, dream
 seen, mean, green, clean, teen, lean, glean, screen
 meal, steal, heel, peel, real, wheel, deal, feel
 field, wield, shield, yield
-steer, gear, near, peer, here, fear, dear, cheer
+steer, gear, near, peer, here, fear, dear, cheer, ear, hear, clear, year, beer, sheer, spear
 tree, see, free, ski, be, knee, fee, sea
 tribe, vibe, bribe, scribe
-ride, pride, stride, hide
-lied, tide, wide, side
+ride, pride, stride, hide, lied, tide, wide, side, guide, slide
 like, strike, bike, spike, mic, hike
 pipe, wipe, ripe, hype, stripe, swipe, gripe, type
 might, light, night, tight, plight, right, sight, flight
@@ -166,7 +169,7 @@ fire, liar, dire, tire, wire
 sky, eye, try, lie, buy, high, fly, cry
 robe, strobe, probe, lobe, globe
 ode, rode, load, mode, toad, code, road, node
-joke, smoke, cloak, poke, spoke, choke, stroke, broke
+joke, smoke, cloak, poke, spoke, choke, stroke, broke, coke, folk, oak
 hope, rope, nope, slope, cope, mope, soap, trope
 tote, boat, goat, quote, bloat, note, float, wrote
 most, toast, roast, host, boast, post, coast, ghost
@@ -180,10 +183,10 @@ hole, roll, toll, bowl, mole, pole, soul, troll
 old, hold, bold, fold, sold, told, gold, cold
 colt, volt, molt, bolt, jolt
 glow, no, though, low, slow, go, snow, owe
-rude, shrewed, food, crude, lewd, dude, feud, mood
+rude, shrewd, food, crude, lewd, dude, feud, mood
 juke, spook, nuke, fluke
 loop, troop, soup, coup, boop, droop, stoop
-hoot, root, suit, mute, boot, fruit, moot, loot
+hoot, root, suit, mute, boot, fruit, moot, loot, shoot, flute
 roof, poof, proof, spoof
 loose, juice, goose, use
 booth, truth, youth, sleuth, tooth
@@ -192,7 +195,7 @@ room, fume, tomb, plume, boom, doom, bloom, zoom
 soon, noon, spoon, moon, toon, dune, swoon
 cool, pool, rule, tool, fool, stool, cruel, drool
 lure, sure, pure, cure
-view, knew, few, flu, grew, new, glue, through
+view, knew, few, flu, grew, new, glue, through, blue, true, due, crew, clue, drew, brew
 slam, ram, fam, bam, jam, scam, wham, cam
 plan, man, van, fan, ban, ran, can, pan
 hand, stand, grand, band, sand, brand, strand, land
@@ -201,18 +204,19 @@ dance, chance, stance, pants, glance
 rail, fail, whale, wail, snail, nail, mail, bail
 there, air, fair, where, flair, glare, lair, stare
 coin, groin, loin, join
-joy, toy, boy, ploy, coy
+joy, toy, boy, ploy, coy, soy
 loud, proud, crowd, shroud, cloud
 out, doubt, shout, pout, snout, spout, drought, tout
 house, mouse, spouse, douse
 ouch, slouch, pouch, couch
 down, frown, clown, noun, town, crown
 found, pound, mound, sound, ground, bound, round, wound
-how, plow, now, pow, chow, wow, vow, brow
-curb, herb, blurb, verb, heard, word, nerd, bird
+how, plow, now, pow, chow, wow, vow, brow, cow, bow
+curb, herb, blurb, verb
+heard, word, nerd, bird, third, stirred, blurred
 lurk, work, clerk, jerk, murk, smirk, quirk, perk
 hurt, shirt, spurt, flirt, dirt
-curse, purse, worse, hearse, nurse
+curse, purse, worse, hearse, nurse, verse
 thirst, worst, first, burst
 birth, girth, worth, Earth
 nerve, swerve, serve, curve
@@ -221,7 +225,7 @@ urge, merge, purge, splurge, surge, verge
 term, squirm, firm, worm, germ
 earn, learn, turn, burn, yearn, churn, stern, fern
 hurl, whirl, girl, curl, pearl
-sure, blur, fur, purr, stir
+blur, fur, purr, stir, her, sir, spur
 hard, card, lard, yard, shard, guard
 dark, park, bark, arc, spark, shark, mark, stark
 harp, sharp, carp, tarp
@@ -236,10 +240,34 @@ course, morse, source, hoarse, force
 form, storm, dorm, norm, swarm, warm
 thorn, torn, born, warn, scorn, sworn, corn, worn
 bore, chore, snore, lore, pour, war, more, door
-apt, slapped, trapped, tapped
+apt, trapped, wrapped, snapped, mapped, capped, strapped, slapped
 fix, mix, tricks, clicks, picks
 build, guild, killed, thrilled, filled
 cup, yup, up, sup, pup
 once, stunts, dunce, hunts, runts
 wild, child, mild, filed, tiled, piled
-farce, sparse, parse, harsh, marsh
+farce, sparse, parse
+harsh, marsh
+bump, dump, jump, lump, pump, stump, trump, clump, plump, hump
+camp, damp, lamp, ramp, stamp, champ, clamp, cramp, tramp, vamp
+self, shelf, elf
+help, yelp
+fresh, mesh, flesh
+milk, silk
+limp, shrimp, blimp, crimp
+bulk, hulk, sulk
+gulp, pulp
+clasp, gasp, grasp, rasp
+text, next, flexed, hexed
+plunge, lunge, sponge
+desk, grotesque
+health, wealth, stealth
+length, strength
+oil, soil, coil, foil, boil, toil, broil, spoil
+move, prove, groove
+death, breath
+choice, voice
+bush, push
+pal, gal, shall
+tube, cube
+weird, beard, feared

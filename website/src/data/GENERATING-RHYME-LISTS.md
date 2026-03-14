@@ -1,7 +1,7 @@
 TASK: Generate rhyming word groups for a freestyle rap / improv song practice app.
 
 FORMAT:
-- Each group is 4 words that all rhyme with each other. If you really struggle, 2-3 words is fine, but ideally aim for 4 words per group.
+- Each group is 3+ words that all rhyme with each other. If you really struggle, 2-3 words is fine, but ideally aim for 4 words per group.
 - One group per line, words separated by commas.
 - Output as a markdown code block.
 - 100 groups per topic.

@@ -109,6 +109,10 @@ bee, tree, spree, flee, sea, free, glee
 
 Naming: main/general lists have `_` prefix (`_elementary.md`, `_1-syllable-words.md`), topic lists don't (`animals-nature.md`, `pirates.md`).
 
+## Generating new word lists
+
+When asked to create a new word list, follow the prompt in `website/src/data/GENERATING-RHYME-LISTS.md`. It covers the format (frontmatter + comma-separated rhyme groups), quality rules (clean rhymes, common words, topic association), and the batch-then-review process. Create the file in `website/src/data/word-lists/`.
+
 ## TODO Lists
 
 If I ask you to make a todo list, create a TASKS.md file, summarizing our goal at the top (including all the important details), and then having `## TODO` and `## DONE` lists. As you complete the tasks, move the completed items into the DONE list (do not cross them out or mark them as checkboxes, items should be simply deleted from TODO and added to DONE).
